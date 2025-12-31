@@ -180,6 +180,33 @@ export const syncApi = {
     api.post('/sync/pull', { last_pulled_at: lastPulledAt, tables }),
 };
 
+// ==================== Marketing System APIs ====================
+
+// Promotion APIs
+export const promotionApi = {
+  getAll: (promotionType?: string, activeOnly?: boolean) => 
+    api.get('/promotions', { params: { promotion_type: promotionType, active_only: activeOnly } }),
+  getById: (id: string) => api.get(`/promotions/${id}`),
+  create: (data: any) => api.post('/promotions', data),
+  update: (id: string, data: any) => api.put(`/promotions/${id}`, data),
+  reorder: (id: string, sortOrder: number) => api.patch(`/promotions/${id}/reorder`, { sort_order: sortOrder }),
+  delete: (id: string) => api.delete(`/promotions/${id}`),
+};
+
+// Bundle Offer APIs
+export const bundleOfferApi = {
+  getAll: (activeOnly?: boolean) => api.get('/bundle-offers', { params: { active_only: activeOnly } }),
+  getById: (id: string) => api.get(`/bundle-offers/${id}`),
+  create: (data: any) => api.post('/bundle-offers', data),
+  update: (id: string, data: any) => api.put(`/bundle-offers/${id}`, data),
+  delete: (id: string) => api.delete(`/bundle-offers/${id}`),
+};
+
+// Combined Marketing APIs
+export const marketingApi = {
+  getHomeSlider: () => api.get('/marketing/home-slider'),
+};
+
 // Legacy aliases for backwards compatibility
 export const categoriesApi = {
   getAll: categoryApi.getAll,
