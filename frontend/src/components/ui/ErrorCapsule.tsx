@@ -1,140 +1,145 @@
 /**
- * Error Capsule - Modern Error Notification Component
- * Auto-expiring pill-shaped message with scale effect
+ * Error Capsule Component
+ * Shows error messages for failed optimistic updates
  */
-import React, { useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, Animated, Easing } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  withTiming,
+  withSequence,
+  runOnJS,
+} from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 interface ErrorCapsuleProps {
   message: string;
-  type?: 'error' | 'success' | 'warning' | 'info';
-  duration?: number;
-  onDismiss?: () => void;
   visible: boolean;
+  onDismiss: () => void;
+  duration?: number;
+  type?: 'error' | 'warning' | 'success';
 }
-
-const COLORS = {
-  error: { bg: '#FEE2E2', text: '#DC2626', icon: '#DC2626' },
-  success: { bg: '#D1FAE5', text: '#059669', icon: '#059669' },
-  warning: { bg: '#FEF3C7', text: '#D97706', icon: '#D97706' },
-  info: { bg: '#DBEAFE', text: '#2563EB', icon: '#2563EB' },
-};
-
-const ICONS = {
-  error: 'alert-circle',
-  success: 'checkmark-circle',
-  warning: 'warning',
-  info: 'information-circle',
-};
 
 export const ErrorCapsule: React.FC<ErrorCapsuleProps> = ({
   message,
-  type = 'error',
-  duration = 3000,
-  onDismiss,
   visible,
+  onDismiss,
+  duration = 4000,
+  type = 'error',
 }) => {
-  const scaleAnim = useRef(new Animated.Value(0)).current;
-  const opacityAnim = useRef(new Animated.Value(0)).current;
-  const colors = COLORS[type];
-  const icon = ICONS[type];
+  const translateY = useSharedValue(-100);
+  const scale = useSharedValue(0.8);
+  const shake = useSharedValue(0);
+
+  const config = {
+    error: { color: '#EF4444', icon: 'alert-circle' as const, bg: '#FEF2F2' },
+    warning: { color: '#F59E0B', icon: 'warning' as const, bg: '#FFFBEB' },
+    success: { color: '#10B981', icon: 'checkmark-circle' as const, bg: '#ECFDF5' },
+  };
 
   useEffect(() => {
     if (visible) {
-      // Animate in
-      Animated.parallel([
-        Animated.spring(scaleAnim, {
-          toValue: 1,
-          tension: 100,
-          friction: 8,
-          useNativeDriver: true,
-        }),
-        Animated.timing(opacityAnim, {
-          toValue: 1,
-          duration: 200,
-          useNativeDriver: true,
-        }),
-      ]).start();
+      // Shake animation for error
+      if (type === 'error') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      }
+      
+      translateY.value = withSpring(60, { damping: 15 });
+      scale.value = withSpring(1);
+      
+      // Shake effect for errors
+      if (type === 'error') {
+        shake.value = withSequence(
+          withTiming(10, { duration: 50 }),
+          withTiming(-10, { duration: 50 }),
+          withTiming(10, { duration: 50 }),
+          withTiming(-10, { duration: 50 }),
+          withTiming(0, { duration: 50 })
+        );
+      }
 
       // Auto dismiss
       const timer = setTimeout(() => {
-        Animated.parallel([
-          Animated.timing(scaleAnim, {
-            toValue: 0,
-            duration: 200,
-            easing: Easing.in(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(opacityAnim, {
-            toValue: 0,
-            duration: 200,
-            useNativeDriver: true,
-          }),
-        ]).start(() => onDismiss?.());
+        dismiss();
       }, duration);
 
       return () => clearTimeout(timer);
-    } else {
-      scaleAnim.setValue(0);
-      opacityAnim.setValue(0);
     }
   }, [visible]);
 
+  const dismiss = () => {
+    translateY.value = withTiming(-100, { duration: 200 });
+    scale.value = withTiming(0.8, { duration: 200 }, () => {
+      runOnJS(onDismiss)();
+    });
+  };
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: translateY.value },
+      { translateX: shake.value },
+      { scale: scale.value },
+    ],
+  }));
+
   if (!visible) return null;
 
+  const { color, icon, bg } = config[type];
+
   return (
-    <Animated.View
-      style={[
-        styles.container,
-        {
-          backgroundColor: colors.bg,
-          transform: [{ scale: scaleAnim }],
-          opacity: opacityAnim,
-        },
-      ]}
-    >
-      <Ionicons name={icon as any} size={20} color={colors.icon} />
-      <Text style={[styles.message, { color: colors.text }]}>{message}</Text>
+    <Animated.View style={[styles.container, animatedStyle]}>
+      <TouchableOpacity
+        style={[styles.capsule, { backgroundColor: bg, borderColor: color }]}
+        onPress={dismiss}
+        activeOpacity={0.9}
+      >
+        <Ionicons name={icon} size={20} color={color} />
+        <Text style={[styles.message, { color }]} numberOfLines={2}>
+          {message}
+        </Text>
+        <TouchableOpacity onPress={dismiss} style={styles.closeBtn}>
+          <Ionicons name="close" size={18} color={color} />
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Animated.View>
   );
 };
 
-// Global error capsule state management
-let showErrorCapsule: ((message: string, type?: 'error' | 'success' | 'warning' | 'info') => void) | null = null;
-
-export const setErrorCapsuleHandler = (handler: typeof showErrorCapsule) => {
-  showErrorCapsule = handler;
-};
-
-export const showError = (message: string) => showErrorCapsule?.(message, 'error');
-export const showSuccess = (message: string) => showErrorCapsule?.(message, 'success');
-export const showWarning = (message: string) => showErrorCapsule?.(message, 'warning');
-export const showInfo = (message: string) => showErrorCapsule?.(message, 'info');
-
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    top: 60,
-    left: 20,
-    right: 20,
-    flexDirection: 'row',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 9999,
     alignItems: 'center',
     paddingHorizontal: 16,
+  },
+  capsule: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingVertical: 12,
-    borderRadius: 24,
+    paddingHorizontal: 16,
+    borderRadius: 50,
+    borderWidth: 1,
+    gap: 10,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
     shadowRadius: 8,
-    elevation: 4,
-    zIndex: 9999,
+    elevation: 8,
+    maxWidth: 350,
   },
   message: {
     flex: 1,
-    marginLeft: 8,
     fontSize: 14,
     fontWeight: '500',
+  },
+  closeBtn: {
+    padding: 4,
   },
 });
 
