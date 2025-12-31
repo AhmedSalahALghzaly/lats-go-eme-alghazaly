@@ -62,23 +62,8 @@ export const Header: React.FC<HeaderProps> = ({
   const headerTextColor = '#1a1a2e';
   const headerIconColor = '#1a1a2e';
 
-  const handleMoodSelect = (mood: typeof COLOR_MOODS[0]) => {
-    setColorMood({
-      primary: mood.primary,
-      background: mood.background,
-      surface: '#FFFFFF',
-      text: '#1E3A5F',
-      textSecondary: '#64748B',
-      border: '#E2E8F0',
-      success: '#10B981',
-      warning: '#F59E0B',
-      error: '#EF4444',
-      card: '#FFFFFF',
-      tabBar: '#FFFFFF',
-      tabBarActive: mood.primary,
-      tabBarInactive: '#9CA3AF',
-    });
-    setShowMoodSwitcher(false);
+  const handleMoodSelect = () => {
+    // Mood selection removed - Neon Night is default
   };
 
   return (
