@@ -114,6 +114,9 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Sync Indicator - Compact version */}
           <SyncIndicator compact />
 
+          {/* Notification Bell */}
+          <NotificationBell onPress={() => setShowNotifications(true)} />
+
           {/* Admin Panel Icon - Only visible for authorized admins */}
           {user && ADMIN_EMAILS.includes(user.email?.toLowerCase()) && (
             <TouchableOpacity 
@@ -126,7 +129,7 @@ export const Header: React.FC<HeaderProps> = ({
 
           {showSearch && (
             <TouchableOpacity 
-              onPress={() => router.push('/search')} 
+              onPress={() => setShowSearchModal(true)} 
               style={styles.iconButton}
             >
               <Ionicons name="search" size={22} color={headerIconColor} />
@@ -178,6 +181,12 @@ export const Header: React.FC<HeaderProps> = ({
           </TouchableOpacity>
         </View>
       </View>
+
+      {/* Global Search Modal */}
+      <GlobalSearch visible={showSearchModal} onClose={() => setShowSearchModal(false)} />
+
+      {/* Notification Center */}
+      <NotificationCenter visible={showNotifications} onClose={() => setShowNotifications(false)} />
     </View>
   );
 };
