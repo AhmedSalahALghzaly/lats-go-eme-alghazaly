@@ -269,6 +269,13 @@ export default function CarBrandsAdmin() {
           )}
         </View>
       </ScrollView>
+      
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onHide={() => setToastVisible(false)}
+      />
     </SafeAreaView>
   );
 }
