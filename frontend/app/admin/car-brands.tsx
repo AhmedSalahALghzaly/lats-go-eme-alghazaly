@@ -46,23 +46,10 @@ export default function CarBrandsAdmin() {
     }
   };
 
-  const pickImage = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.7,
-        base64: true,
-      });
-
-      if (!result.canceled && result.assets[0].base64) {
-        setLogoImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
-        setLogoUrl('');
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-    }
+  const showToast = (message: string, type: 'success' | 'error' | 'warning' | 'info' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setToastVisible(true);
   };
 
   const handleSave = async () => {
