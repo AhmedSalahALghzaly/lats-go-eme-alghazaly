@@ -208,6 +208,7 @@ export const useAppStore = create<AppState>()(
       sessionToken: null,
       isAuthenticated: false,
       userRole: 'guest',
+      _hasHydrated: false,
       theme: 'light',
       language: 'ar',
       isRTL: true,
