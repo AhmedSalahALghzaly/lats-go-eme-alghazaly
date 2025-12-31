@@ -8,6 +8,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useAppStore } from '../store/appStore';
 import { SyncIndicator } from './ui/SyncIndicator';
 import { GlobalSearch } from './ui/GlobalSearch';
+import { AdvancedSearch } from './ui/AdvancedSearch';
 import { NotificationCenter, NotificationBell } from './ui/NotificationCenter';
 
 // Logo image URL
