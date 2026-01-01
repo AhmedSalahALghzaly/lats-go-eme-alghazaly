@@ -271,6 +271,13 @@ export default function CategoriesAdmin() {
           )}
         </View>
       </ScrollView>
+      
+      <Toast
+        visible={toastVisible}
+        message={toastMessage}
+        type={toastType}
+        onDismiss={() => setToastVisible(false)}
+      />
     </SafeAreaView>
   );
 }
