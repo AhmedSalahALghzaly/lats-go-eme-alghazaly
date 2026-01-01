@@ -24,6 +24,8 @@ import { distributorApi, carBrandApi } from '../../src/services/api';
 import { VoidDeleteGesture } from '../../src/components/ui/VoidDeleteGesture';
 import { ErrorCapsule } from '../../src/components/ui/ErrorCapsule';
 import { ConfettiEffect } from '../../src/components/ui/ConfettiEffect';
+import { ImageUploader } from '../../src/components/ui/ImageUploader';
+import { Toast } from '../../src/components/ui/FormFeedback';
 
 type ViewMode = 'list' | 'add' | 'edit' | 'profile';
 
