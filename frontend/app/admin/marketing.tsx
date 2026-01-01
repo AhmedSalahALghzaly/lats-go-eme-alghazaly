@@ -801,16 +801,19 @@ export default function MarketingSuiteScreen() {
                 placeholderTextColor={colors.textSecondary}
               />
 
-              <Text style={[styles.label, { color: colors.text }]}>
-                {language === 'ar' ? 'رابط الصورة' : 'Image URL'}
-              </Text>
-              <TextInput
-                style={[styles.input, { backgroundColor: colors.surface, color: colors.text, borderColor: colors.border }]}
-                value={bundleImage}
-                onChangeText={setBundleImage}
-                placeholder="https://..."
-                placeholderTextColor={colors.textSecondary}
-              />
+              {/* Bundle Image Upload */}
+              <View style={styles.imageUploadSection}>
+                <ImageUploader
+                  mode="single"
+                  value={bundleImage}
+                  onChange={(newImage) => setBundleImage(newImage as string)}
+                  size="medium"
+                  shape="rounded"
+                  aspectRatio={[4, 3]}
+                  label={language === 'ar' ? 'صورة العرض المجمع' : 'Bundle Image'}
+                  hint={language === 'ar' ? 'اختياري - صورة للعرض' : 'Optional - image for the offer'}
+                />
+              </View>
 
               <View style={styles.switchRow}>
                 <Text style={[styles.label, { color: colors.text, marginBottom: 0 }]}>
