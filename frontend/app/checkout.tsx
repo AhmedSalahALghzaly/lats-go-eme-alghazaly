@@ -624,6 +624,8 @@ export default function CheckoutScreen() {
             <ConfirmStep
               cartItems={cartItems}
               getTotal={getTotal}
+              getOriginalTotal={getOriginalTotal}
+              getTotalSavings={getTotalSavings}
               shippingAddress={shippingAddress}
               phone={phone}
               notes={notes}
