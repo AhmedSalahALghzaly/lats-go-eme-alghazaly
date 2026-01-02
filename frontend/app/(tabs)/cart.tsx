@@ -146,10 +146,16 @@ const BundleGroupCard = ({ bundleName, items, discount, onRemove, colors, langua
   );
 };
 
-// Regular Cart Item Card
+// Regular Cart Item Card with Enhanced Pricing Display
 const CartItemCard = ({ item, onUpdate, onRemove, colors, language, isRTL }: any) => {
   const scale = useSharedValue(1);
   const translateX = useSharedValue(0);
+
+  // Get pricing from server-side cart data
+  const originalPrice = item.original_unit_price || item.product?.price || 0;
+  const finalPrice = item.final_unit_price || item.product?.price || 0;
+  const hasDiscount = originalPrice > finalPrice;
+  const itemSavings = (originalPrice - finalPrice) * item.quantity;
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }, { translateX: translateX.value }],
@@ -204,9 +210,24 @@ const CartItemCard = ({ item, onUpdate, onRemove, colors, language, isRTL }: any
               </Text>
             )}
 
-            <Text style={[styles.itemPrice, { color: NEON_NIGHT_THEME.primary }]}>
-              {item.product?.price?.toFixed(0)} ج.م
-            </Text>
+            {/* Enhanced Pricing Display */}
+            <View style={styles.priceContainer}>
+              {hasDiscount && (
+                <Text style={[styles.originalUnitPrice, { color: colors.textSecondary }]}>
+                  {originalPrice.toFixed(0)} ج.م
+                </Text>
+              )}
+              <Text style={[styles.itemPrice, { color: NEON_NIGHT_THEME.primary }]}>
+                {finalPrice.toFixed(0)} ج.م
+              </Text>
+              {hasDiscount && item.discount_details?.discount_type === 'bundle' && (
+                <View style={[styles.discountTag, { backgroundColor: NEON_NIGHT_THEME.accent }]}>
+                  <Text style={styles.discountTagText}>
+                    -{item.discount_details.discount_value}%
+                  </Text>
+                </View>
+              )}
+            </View>
 
             {/* Quantity Controls */}
             <View style={[styles.quantityRow, isRTL && styles.rowReverse]}>
@@ -234,14 +255,28 @@ const CartItemCard = ({ item, onUpdate, onRemove, colors, language, isRTL }: any
           </View>
         </View>
 
-        {/* Subtotal */}
+        {/* Subtotal with Savings */}
         <View style={[styles.subtotalRow, { borderTopColor: colors.border }, isRTL && styles.rowReverse]}>
-          <Text style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
-            {language === 'ar' ? 'المجموع الفرعي:' : 'Subtotal:'}
-          </Text>
-          <Text style={[styles.subtotalValue, { color: colors.text }]}>
-            {((item.product?.price || 0) * item.quantity).toFixed(0)} ج.م
-          </Text>
+          <View>
+            <Text style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
+              {language === 'ar' ? 'المجموع الفرعي:' : 'Subtotal:'}
+            </Text>
+            {itemSavings > 0 && (
+              <Text style={[styles.savingsLabel, { color: NEON_NIGHT_THEME.accent }]}>
+                {language === 'ar' ? `توفير: ${itemSavings.toFixed(0)} ج.م` : `Save: ${itemSavings.toFixed(0)} EGP`}
+              </Text>
+            )}
+          </View>
+          <View style={{ alignItems: 'flex-end' }}>
+            {hasDiscount && (
+              <Text style={[styles.originalSubtotal, { color: colors.textSecondary }]}>
+                {(originalPrice * item.quantity).toFixed(0)} ج.م
+              </Text>
+            )}
+            <Text style={[styles.subtotalValue, { color: colors.text }]}>
+              {(finalPrice * item.quantity).toFixed(0)} ج.م
+            </Text>
+          </View>
         </View>
       </View>
     </Animated.View>
