@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,294 +8,129 @@ import {
   ActivityIndicator,
   RefreshControl,
   Image,
-  Animated as RNAnimated,
-  Dimensions,
+  Alert,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withSpring,
-  withTiming,
-  withSequence,
-  FadeIn,
-  FadeInDown,
-  FadeOutUp,
-  Layout,
-  SlideInRight,
-} from 'react-native-reanimated';
-import { Header } from '../../src/components/Header';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTheme } from '../../src/hooks/useTheme';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAppStore, NEON_NIGHT_THEME } from '../../src/store/appStore';
 import { cartApi } from '../../src/services/api';
-import ConfettiEffect from '../../src/components/ui/ConfettiEffect';
 
-const { width: screenWidth } = Dimensions.get('window');
-
-// Bundle Group Card component
-const BundleGroupCard = ({ bundleName, items, discount, onRemove, colors, language, isRTL }: any) => {
-  const scale = useSharedValue(1);
-  const savings = items.reduce((sum: number, item: any) => {
-    const originalPrice = item.product?.price || 0;
-    const discountedPrice = originalPrice * (1 - (discount || 0) / 100);
-    return sum + (originalPrice - discountedPrice) * item.quantity;
-  }, 0);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  const handlePress = () => {
-    scale.value = withSequence(
-      withSpring(0.95),
-      withSpring(1)
-    );
-  };
+// Simple Cart Item Component
+const CartItem = ({ 
+  item, 
+  onUpdateQuantity, 
+  onRemove, 
+  colors, 
+  language, 
+  isRTL 
+}: any) => {
+  const originalPrice = item.original_unit_price || item.product?.price || 0;
+  const finalPrice = item.final_unit_price || item.discountedPrice || item.product?.price || 0;
+  const hasDiscount = originalPrice > finalPrice;
+  const lineTotal = finalPrice * item.quantity;
 
   return (
-    <Animated.View
-      entering={FadeInDown.duration(400).springify()}
-      layout={Layout.springify()}
-      style={animatedStyle}
-    >
-      <TouchableOpacity
-        activeOpacity={0.9}
-        onPressIn={handlePress}
-        style={[
-          styles.bundleCard,
-          {
-            backgroundColor: `${NEON_NIGHT_THEME.primary}15`,
-            borderColor: NEON_NIGHT_THEME.primary,
-          },
-        ]}
-      >
-        {/* Bundle Header */}
-        <View style={[styles.bundleHeader, isRTL && styles.rowReverse]}>
-          <View style={[styles.bundleBadge, { backgroundColor: NEON_NIGHT_THEME.primary }]}>
-            <Ionicons name="gift" size={16} color="#FFF" />
-            <Text style={styles.bundleBadgeText}>
-              {language === 'ar' ? 'عرض حزمة' : 'Bundle Deal'}
+    <View style={[styles.cartItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+      {/* Product Image */}
+      <View style={styles.itemImageContainer}>
+        {item.product?.image ? (
+          <Image source={{ uri: item.product.image }} style={styles.itemImage} resizeMode="cover" />
+        ) : (
+          <View style={[styles.itemImagePlaceholder, { backgroundColor: colors.border }]}>
+            <Ionicons name="cube-outline" size={28} color={colors.textSecondary} />
+          </View>
+        )}
+        {/* Bundle Badge */}
+        {item.bundle_group_id && (
+          <View style={[styles.bundleBadge, { backgroundColor: NEON_NIGHT_THEME.accent }]}>
+            <Ionicons name="gift" size={12} color="#FFF" />
+          </View>
+        )}
+      </View>
+
+      {/* Product Info */}
+      <View style={[styles.itemInfo, isRTL && { alignItems: 'flex-end' }]}>
+        <Text style={[styles.itemName, { color: colors.text }]} numberOfLines={2}>
+          {language === 'ar' ? item.product?.name_ar || item.product?.name : item.product?.name || 'Product'}
+        </Text>
+        
+        {/* SKU */}
+        {item.product?.sku && (
+          <Text style={[styles.itemSku, { color: colors.textSecondary }]}>
+            SKU: {item.product.sku}
+          </Text>
+        )}
+
+        {/* Price */}
+        <View style={[styles.priceRow, isRTL && styles.rowReverse]}>
+          {hasDiscount && (
+            <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
+              {originalPrice.toFixed(0)} ج.م
             </Text>
-          </View>
-          <View style={[styles.discountBadge, { backgroundColor: NEON_NIGHT_THEME.accent }]}>
-            <Text style={styles.discountText}>-{discount}%</Text>
-          </View>
+          )}
+          <Text style={[styles.finalPrice, { color: NEON_NIGHT_THEME.primary }]}>
+            {finalPrice.toFixed(0)} ج.م
+          </Text>
+          {hasDiscount && (
+            <View style={[styles.discountBadge, { backgroundColor: NEON_NIGHT_THEME.accent }]}>
+              <Text style={styles.discountText}>
+                -{Math.round(((originalPrice - finalPrice) / originalPrice) * 100)}%
+              </Text>
+            </View>
+          )}
         </View>
 
-        <Text style={[styles.bundleName, { color: colors.text }, isRTL && styles.textRight]}>
-          {bundleName}
-        </Text>
-
-        {/* Bundle Items */}
-        {items.map((item: any, index: number) => (
-          <View key={item.product_id} style={[styles.bundleItem, isRTL && styles.rowReverse]}>
-            <View style={styles.bundleItemImage}>
-              {item.product?.image ? (
-                <Image
-                  source={{ uri: item.product.image }}
-                  style={styles.bundleItemImg}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={[styles.bundleItemPlaceholder, { backgroundColor: colors.border }]}>
-                  <Ionicons name="cube-outline" size={20} color={colors.textSecondary} />
-                </View>
-              )}
-            </View>
-            <View style={styles.bundleItemInfo}>
-              <Text style={[styles.bundleItemName, { color: colors.text }]} numberOfLines={1}>
-                {language === 'ar' ? item.product?.name_ar || item.product?.name : item.product?.name}
-              </Text>
-              <Text style={[styles.bundleItemQty, { color: colors.textSecondary }]}>
-                x{item.quantity}
-              </Text>
-            </View>
-            <View style={styles.bundleItemPrices}>
-              <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
-                {(item.product?.price * item.quantity).toFixed(0)} ج.م
-              </Text>
-              <Text style={[styles.discountedPrice, { color: NEON_NIGHT_THEME.accent }]}>
-                {((item.product?.price || 0) * (1 - discount / 100) * item.quantity).toFixed(0)} ج.م
-              </Text>
-            </View>
+        {/* Quantity Controls */}
+        <View style={[styles.quantityRow, isRTL && styles.rowReverse]}>
+          <View style={[styles.quantityControls, { borderColor: colors.border }]}>
+            <TouchableOpacity 
+              style={styles.qtyButton} 
+              onPress={() => onUpdateQuantity(item.product_id, item.quantity - 1)}
+            >
+              <Ionicons name="remove" size={18} color={colors.text} />
+            </TouchableOpacity>
+            <Text style={[styles.qtyText, { color: colors.text }]}>{item.quantity}</Text>
+            <TouchableOpacity 
+              style={styles.qtyButton}
+              onPress={() => onUpdateQuantity(item.product_id, item.quantity + 1)}
+            >
+              <Ionicons name="add" size={18} color={colors.text} />
+            </TouchableOpacity>
           </View>
-        ))}
-
-        {/* Savings Footer */}
-        <View style={[styles.savingsFooter, { borderTopColor: `${NEON_NIGHT_THEME.primary}30` }]}>
-          <View style={[styles.savingsRow, isRTL && styles.rowReverse]}>
-            <Ionicons name="sparkles" size={18} color={NEON_NIGHT_THEME.primary} />
-            <Text style={[styles.savingsText, { color: NEON_NIGHT_THEME.primary }]}>
-              {language === 'ar' ? `توفير: ${savings.toFixed(0)} ج.م` : `Savings: ${savings.toFixed(0)} EGP`}
-            </Text>
-          </View>
-          <TouchableOpacity
-            onPress={onRemove}
-            style={[styles.voidBundleBtn, { backgroundColor: `${colors.error}15` }]}
+          
+          <TouchableOpacity 
+            style={[styles.removeButton, { borderColor: '#ef4444' }]}
+            onPress={() => onRemove(item.product_id)}
           >
-            <Ionicons name="close-circle" size={16} color={colors.error} />
-            <Text style={[styles.voidBundleText, { color: colors.error }]}>
-              {language === 'ar' ? 'إلغاء العرض' : 'Void Bundle'}
-            </Text>
+            <Ionicons name="trash-outline" size={18} color="#ef4444" />
           </TouchableOpacity>
         </View>
-      </TouchableOpacity>
-    </Animated.View>
-  );
-};
 
-// Regular Cart Item Card with Enhanced Pricing Display
-const CartItemCard = ({ item, onUpdate, onRemove, colors, language, isRTL }: any) => {
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-
-  // Get pricing from server-side cart data
-  const originalPrice = item.original_unit_price || item.product?.price || 0;
-  const finalPrice = item.final_unit_price || item.product?.price || 0;
-  const hasDiscount = originalPrice > finalPrice;
-  const itemSavings = (originalPrice - finalPrice) * item.quantity;
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }, { translateX: translateX.value }],
-  }));
-
-  const handleQuantityChange = (delta: number) => {
-    scale.value = withSequence(
-      withSpring(1.05),
-      withSpring(1)
-    );
-    onUpdate(item.product_id, item.quantity + delta);
-  };
-
-  const handleRemove = () => {
-    translateX.value = withTiming(screenWidth, { duration: 300 }, () => {
-      onRemove(item.product_id);
-    });
-  };
-
-  return (
-    <Animated.View
-      entering={SlideInRight.duration(300).springify()}
-      layout={Layout.springify()}
-      style={animatedStyle}
-    >
-      <View style={[styles.cartItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
-        <View style={[styles.cartItemContent, isRTL && styles.rowReverse]}>
-          {/* Image */}
-          <View style={styles.itemImageContainer}>
-            {item.product?.image ? (
-              <Image
-                source={{ uri: item.product.image }}
-                style={styles.itemImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={[styles.imagePlaceholder, { backgroundColor: colors.border }]}>
-                <Ionicons name="cube-outline" size={30} color={colors.textSecondary} />
-              </View>
-            )}
-          </View>
-
-          {/* Info */}
-          <View style={[styles.itemInfo, isRTL && { alignItems: 'flex-end' }]}>
-            <Text style={[styles.itemName, { color: colors.text }, isRTL && styles.textRight]} numberOfLines={2}>
-              {language === 'ar' ? item.product?.name_ar || item.product?.name : item.product?.name}
-            </Text>
-            
-            {item.product?.part_number && (
-              <Text style={[styles.partNumber, { color: colors.textSecondary }]}>
-                #{item.product.part_number}
-              </Text>
-            )}
-
-            {/* Enhanced Pricing Display */}
-            <View style={styles.priceContainer}>
-              {hasDiscount && (
-                <Text style={[styles.originalUnitPrice, { color: colors.textSecondary }]}>
-                  {originalPrice.toFixed(0)} ج.م
-                </Text>
-              )}
-              <Text style={[styles.itemPrice, { color: NEON_NIGHT_THEME.primary }]}>
-                {finalPrice.toFixed(0)} ج.م
-              </Text>
-              {hasDiscount && item.discount_details?.discount_type === 'bundle' && (
-                <View style={[styles.discountTag, { backgroundColor: NEON_NIGHT_THEME.accent }]}>
-                  <Text style={styles.discountTagText}>
-                    -{item.discount_details.discount_value}%
-                  </Text>
-                </View>
-              )}
-            </View>
-
-            {/* Quantity Controls */}
-            <View style={[styles.quantityRow, isRTL && styles.rowReverse]}>
-              <View style={[styles.quantityControls, { backgroundColor: colors.background }]}>
-                <TouchableOpacity
-                  onPress={() => handleQuantityChange(-1)}
-                  style={[styles.qtyBtn, { backgroundColor: colors.surface }]}
-                  disabled={item.quantity <= 1}
-                >
-                  <Ionicons name="remove" size={18} color={item.quantity <= 1 ? colors.border : colors.text} />
-                </TouchableOpacity>
-                <Text style={[styles.qtyText, { color: colors.text }]}>{item.quantity}</Text>
-                <TouchableOpacity
-                  onPress={() => handleQuantityChange(1)}
-                  style={[styles.qtyBtn, { backgroundColor: NEON_NIGHT_THEME.primary }]}
-                >
-                  <Ionicons name="add" size={18} color="#FFF" />
-                </TouchableOpacity>
-              </View>
-
-              <TouchableOpacity onPress={handleRemove} style={styles.removeBtn}>
-                <Ionicons name="trash-outline" size={20} color={colors.error} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        {/* Subtotal with Savings */}
-        <View style={[styles.subtotalRow, { borderTopColor: colors.border }, isRTL && styles.rowReverse]}>
-          <View>
-            <Text style={[styles.subtotalLabel, { color: colors.textSecondary }]}>
-              {language === 'ar' ? 'المجموع الفرعي:' : 'Subtotal:'}
-            </Text>
-            {itemSavings > 0 && (
-              <Text style={[styles.savingsLabel, { color: NEON_NIGHT_THEME.accent }]}>
-                {language === 'ar' ? `توفير: ${itemSavings.toFixed(0)} ج.م` : `Save: ${itemSavings.toFixed(0)} EGP`}
-              </Text>
-            )}
-          </View>
-          <View style={{ alignItems: 'flex-end' }}>
-            {hasDiscount && (
-              <Text style={[styles.originalSubtotal, { color: colors.textSecondary }]}>
-                {(originalPrice * item.quantity).toFixed(0)} ج.م
-              </Text>
-            )}
-            <Text style={[styles.subtotalValue, { color: colors.text }]}>
-              {(finalPrice * item.quantity).toFixed(0)} ج.م
-            </Text>
-          </View>
-        </View>
+        {/* Line Total */}
+        <Text style={[styles.lineTotal, { color: colors.text }]}>
+          {language === 'ar' ? 'الإجمالي:' : 'Total:'} {lineTotal.toFixed(0)} ج.م
+        </Text>
       </View>
-    </Animated.View>
+    </View>
   );
 };
 
 export default function CartScreen() {
   const { colors } = useTheme();
-  const { t, isRTL, language } = useTranslation();
+  const { isRTL, language } = useTranslation();
   const router = useRouter();
-  const { user, setCartItems, cartItems, voidBundleDiscount } = useAppStore();
+  const insets = useSafeAreaInsets();
+  const { user, setCartItems } = useAppStore();
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [items, setItems] = useState<any[]>([]);
-  const [showConfetti, setShowConfetti] = useState(false);
-  const confettiTimeout = useRef<any>(null);
 
-  const fetchCart = async () => {
+  // Fetch cart from server
+  const fetchCart = useCallback(async () => {
     if (!user) {
       setItems([]);
       setLoading(false);
@@ -305,32 +140,30 @@ export default function CartScreen() {
 
     try {
       const response = await cartApi.get();
-      setItems(response.data.items || []);
-      setCartItems(response.data.items || []);
+      const cartItems = response.data.items || [];
+      setItems(cartItems);
+      setCartItems(cartItems);
     } catch (error) {
       console.error('Error fetching cart:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [user, setCartItems]);
 
+  // Fetch on focus
   useFocusEffect(
     useCallback(() => {
       fetchCart();
-      return () => {
-        if (confettiTimeout.current) {
-          clearTimeout(confettiTimeout.current);
-        }
-      };
-    }, [user])
+    }, [fetchCart])
   );
 
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchCart();
-  };
+  }, [fetchCart]);
 
+  // Update item quantity
   const updateQuantity = async (productId: string, newQuantity: number) => {
     if (newQuantity <= 0) {
       removeItem(productId);
@@ -341,48 +174,23 @@ export default function CartScreen() {
       fetchCart();
     } catch (error) {
       console.error('Error updating cart:', error);
+      Alert.alert(language === 'ar' ? 'خطأ' : 'Error', language === 'ar' ? 'فشل تحديث الكمية' : 'Failed to update quantity');
     }
   };
 
+  // Remove item
   const removeItem = async (productId: string) => {
     try {
       await cartApi.updateItem(productId, 0);
-      setItems((prev) => prev.filter(item => item.product_id !== productId));
-      setCartItems(items.filter(item => item.product_id !== productId));
+      setItems(prev => prev.filter(item => item.product_id !== productId));
     } catch (error) {
-      console.error('Error removing item from cart:', error);
+      console.error('Error removing item:', error);
+      Alert.alert(language === 'ar' ? 'خطأ' : 'Error', language === 'ar' ? 'فشل حذف المنتج' : 'Failed to remove item');
     }
   };
 
-  const handleVoidBundle = async (bundleGroupId: string) => {
-    try {
-      await cartApi.voidBundle(bundleGroupId);
-      fetchCart();
-    } catch (error) {
-      console.error('Error voiding bundle:', error);
-    }
-  };
-
-  // Group items by bundle
-  const groupedItems = React.useMemo(() => {
-    const bundles = new Map<string, any[]>();
-    const regular: any[] = [];
-
-    items.forEach(item => {
-      if (item.bundle_group_id || item.bundleGroupId) {
-        const bundleId = item.bundle_group_id || item.bundleGroupId;
-        const existing = bundles.get(bundleId) || [];
-        bundles.set(bundleId, [...existing, item]);
-      } else {
-        regular.push(item);
-      }
-    });
-
-    return { bundles, regular };
-  }, [items]);
-
-  // Calculate totals from server-side cart data
-  const getTotal = () => {
+  // Calculate totals
+  const getSubtotal = () => {
     return items.reduce((sum, item) => {
       const price = item.final_unit_price || item.discountedPrice || item.product?.price || 0;
       return sum + price * item.quantity;
@@ -397,53 +205,55 @@ export default function CartScreen() {
   };
 
   const getTotalSavings = () => {
-    return items.reduce((sum, item) => {
-      const originalPrice = item.original_unit_price || item.product?.price || 0;
-      const finalPrice = item.final_unit_price || item.product?.price || 0;
-      return sum + (originalPrice - finalPrice) * item.quantity;
-    }, 0);
+    return getOriginalTotal() - getSubtotal();
   };
 
-  const handleCheckout = () => {
-    setShowConfetti(true);
-    confettiTimeout.current = setTimeout(() => {
-      setShowConfetti(false);
-      router.push('/checkout');
-    }, 1500);
+  const getItemCount = () => {
+    return items.reduce((sum, item) => sum + item.quantity, 0);
   };
 
+  // Loading state
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Header title={t('myCart')} showBack={false} showCart={false} />
+        <View style={[styles.header, { paddingTop: insets.top + 10, borderBottomColor: colors.border }]}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {language === 'ar' ? 'سلة التسوق' : 'Shopping Cart'}
+          </Text>
+        </View>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={NEON_NIGHT_THEME.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            {language === 'ar' ? 'جاري التحميل...' : 'Loading...'}
+          </Text>
         </View>
       </View>
     );
   }
 
+  // Not logged in
   if (!user) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Header title={t('myCart')} showBack={false} showCart={false} />
+        <View style={[styles.header, { paddingTop: insets.top + 10, borderBottomColor: colors.border }]}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {language === 'ar' ? 'سلة التسوق' : 'Shopping Cart'}
+          </Text>
+        </View>
         <View style={styles.emptyContainer}>
-          <View style={[styles.emptyIcon, { backgroundColor: `${NEON_NIGHT_THEME.primary}20` }]}>
-            <Ionicons name="person-outline" size={48} color={NEON_NIGHT_THEME.primary} />
-          </View>
+          <Ionicons name="person-outline" size={80} color={colors.border} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            {language === 'ar' ? 'سجل الدخول لعرض سلتك' : 'Sign in to view your cart'}
+            {language === 'ar' ? 'يجب تسجيل الدخول' : 'Please login'}
           </Text>
           <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-            {language === 'ar' ? 'احفظ منتجاتك وتابع طلباتك' : 'Save your items and track your orders'}
+            {language === 'ar' ? 'سجل دخولك لعرض سلة التسوق' : 'Login to view your cart'}
           </Text>
           <TouchableOpacity
-            style={[styles.loginBtn, { backgroundColor: NEON_NIGHT_THEME.primary }]}
-            onPress={() => router.push('/profile')}
+            style={[styles.actionButton, { backgroundColor: NEON_NIGHT_THEME.primary }]}
+            onPress={() => router.push('/login')}
           >
-            <Ionicons name="log-in-outline" size={20} color="#FFF" />
-            <Text style={styles.loginBtnText}>
-              {language === 'ar' ? 'تسجيل الدخول' : 'Sign In'}
+            <Text style={styles.actionButtonText}>
+              {language === 'ar' ? 'تسجيل الدخول' : 'Login'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -451,29 +261,28 @@ export default function CartScreen() {
     );
   }
 
+  // Empty cart
   if (items.length === 0) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
-        <Header title={t('myCart')} showBack={false} showCart={false} />
+        <View style={[styles.header, { paddingTop: insets.top + 10, borderBottomColor: colors.border }]}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {language === 'ar' ? 'سلة التسوق' : 'Shopping Cart'}
+          </Text>
+        </View>
         <View style={styles.emptyContainer}>
-          <Animated.View
-            entering={FadeIn.duration(500)}
-            style={[styles.emptyIcon, { backgroundColor: `${NEON_NIGHT_THEME.primary}20` }]}
-          >
-            <Ionicons name="cart-outline" size={48} color={NEON_NIGHT_THEME.primary} />
-          </Animated.View>
+          <Ionicons name="cart-outline" size={80} color={colors.border} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>
-            {language === 'ar' ? 'سلتك فارغة' : 'Your cart is empty'}
+            {language === 'ar' ? 'السلة فارغة' : 'Your cart is empty'}
           </Text>
           <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
-            {language === 'ar' ? 'تصفح منتجاتنا وأضف ما يعجبك' : 'Browse our products and add your favorites'}
+            {language === 'ar' ? 'أضف منتجات لبدء التسوق' : 'Add items to start shopping'}
           </Text>
           <TouchableOpacity
-            style={[styles.shopBtn, { backgroundColor: NEON_NIGHT_THEME.primary }]}
+            style={[styles.actionButton, { backgroundColor: NEON_NIGHT_THEME.primary }]}
             onPress={() => router.push('/')}
           >
-            <Ionicons name="storefront-outline" size={20} color="#FFF" />
-            <Text style={styles.shopBtnText}>
+            <Text style={styles.actionButtonText}>
               {language === 'ar' ? 'تصفح المنتجات' : 'Browse Products'}
             </Text>
           </TouchableOpacity>
@@ -482,70 +291,33 @@ export default function CartScreen() {
     );
   }
 
-  const totalSavings = getTotalSavings();
-
+  // Cart with items
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <Header title={t('myCart')} showBack={false} showCart={false} />
-      
-      {/* Confetti Effect */}
-      {showConfetti && <ConfettiEffect />}
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 10, borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          {language === 'ar' ? 'سلة التسوق' : 'Shopping Cart'}
+        </Text>
+        <View style={[styles.itemCountBadge, { backgroundColor: NEON_NIGHT_THEME.primary }]}>
+          <Text style={styles.itemCountText}>{getItemCount()}</Text>
+        </View>
+      </View>
 
+      {/* Cart Items */}
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            colors={[NEON_NIGHT_THEME.primary]}
-          />
-        }
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={NEON_NIGHT_THEME.primary} />
+        }
       >
-        {/* Cart Summary Bar */}
-        <Animated.View
-          entering={FadeInDown.delay(100)}
-          style={[styles.summaryBar, { backgroundColor: `${NEON_NIGHT_THEME.primary}15` }]}
-        >
-          <View style={[styles.summaryRow, isRTL && styles.rowReverse]}>
-            <View style={[styles.summaryItem, isRTL && styles.rowReverse]}>
-              <Ionicons name="cart" size={20} color={NEON_NIGHT_THEME.primary} />
-              <Text style={[styles.summaryText, { color: colors.text }]}>
-                {items.length} {language === 'ar' ? 'منتج' : 'items'}
-              </Text>
-            </View>
-            {totalSavings > 0 && (
-              <View style={[styles.savingsBadge, { backgroundColor: NEON_NIGHT_THEME.accent }]}>
-                <Ionicons name="sparkles" size={14} color="#FFF" />
-                <Text style={styles.savingsBadgeText}>
-                  {language === 'ar' ? `توفير ${totalSavings.toFixed(0)} ج.م` : `Save ${totalSavings.toFixed(0)} EGP`}
-                </Text>
-              </View>
-            )}
-          </View>
-        </Animated.View>
-
-        {/* Bundle Groups */}
-        {Array.from(groupedItems.bundles.entries()).map(([bundleId, bundleItems]) => (
-          <BundleGroupCard
-            key={bundleId}
-            bundleName={bundleItems[0]?.bundleOfferName || 'Bundle Deal'}
-            items={bundleItems}
-            discount={bundleItems[0]?.bundleDiscount || 0}
-            onRemove={() => handleVoidBundle(bundleId)}
-            colors={colors}
-            language={language}
-            isRTL={isRTL}
-          />
-        ))}
-
-        {/* Regular Items */}
-        {groupedItems.regular.map((item) => (
-          <CartItemCard
-            key={item.product_id}
+        {items.map((item, index) => (
+          <CartItem
+            key={item.product_id || index}
             item={item}
-            onUpdate={updateQuantity}
+            onUpdateQuantity={updateQuantity}
             onRemove={removeItem}
             colors={colors}
             language={language}
@@ -553,42 +325,69 @@ export default function CartScreen() {
           />
         ))}
 
-        {/* Bottom spacing for footer */}
-        <View style={{ height: 150 }} />
-      </ScrollView>
-
-      {/* Checkout Footer */}
-      <Animated.View
-        entering={FadeInDown.delay(300)}
-        style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}
-      >
-        <View style={[styles.totalRow, isRTL && styles.rowReverse]}>
-          <Text style={[styles.totalLabel, { color: colors.textSecondary }]}>
-            {language === 'ar' ? 'الإجمالي:' : 'Total:'}
+        {/* Order Summary */}
+        <View style={[styles.summaryCard, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Text style={[styles.summaryTitle, { color: colors.text }]}>
+            {language === 'ar' ? 'ملخص الطلب' : 'Order Summary'}
           </Text>
-          <View>
-            {totalSavings > 0 && (
-              <Text style={[styles.originalTotal, { color: colors.textSecondary }]}>
-                {(getTotal() + totalSavings).toFixed(0)} ج.م
+
+          {getTotalSavings() > 0 && (
+            <View style={[styles.summaryRow, isRTL && styles.rowReverse]}>
+              <Text style={[styles.summaryLabel, { color: colors.textSecondary }]}>
+                {language === 'ar' ? 'المجموع الأصلي:' : 'Original Total:'}
               </Text>
-            )}
+              <Text style={[styles.summaryOriginal, { color: colors.textSecondary }]}>
+                {getOriginalTotal().toFixed(0)} ج.م
+              </Text>
+            </View>
+          )}
+
+          {getTotalSavings() > 0 && (
+            <View style={[styles.summaryRow, isRTL && styles.rowReverse]}>
+              <View style={[styles.savingsRow, isRTL && styles.rowReverse]}>
+                <Ionicons name="sparkles" size={16} color={NEON_NIGHT_THEME.accent} />
+                <Text style={[styles.savingsLabel, { color: NEON_NIGHT_THEME.accent }]}>
+                  {language === 'ar' ? 'التوفير:' : 'You Save:'}
+                </Text>
+              </View>
+              <Text style={[styles.savingsValue, { color: NEON_NIGHT_THEME.accent }]}>
+                -{getTotalSavings().toFixed(0)} ج.م
+              </Text>
+            </View>
+          )}
+
+          <View style={[styles.totalRow, { borderTopColor: colors.border }, isRTL && styles.rowReverse]}>
+            <Text style={[styles.totalLabel, { color: colors.text }]}>
+              {language === 'ar' ? 'الإجمالي:' : 'Total:'}
+            </Text>
             <Text style={[styles.totalValue, { color: NEON_NIGHT_THEME.primary }]}>
-              {getTotal().toFixed(0)} ج.م
+              {getSubtotal().toFixed(0)} ج.م
             </Text>
           </View>
         </View>
+      </ScrollView>
 
+      {/* Checkout Footer */}
+      <View style={[styles.footer, { backgroundColor: colors.surface, borderTopColor: colors.border }]}>
+        <View style={styles.footerInfo}>
+          <Text style={[styles.footerLabel, { color: colors.textSecondary }]}>
+            {language === 'ar' ? `${getItemCount()} منتج` : `${getItemCount()} items`}
+          </Text>
+          <Text style={[styles.footerTotal, { color: colors.text }]}>
+            {getSubtotal().toFixed(0)} ج.م
+          </Text>
+        </View>
         <TouchableOpacity
-          style={[styles.checkoutBtn, { backgroundColor: NEON_NIGHT_THEME.primary }]}
-          onPress={handleCheckout}
-          activeOpacity={0.85}
+          style={[styles.checkoutButton, { backgroundColor: NEON_NIGHT_THEME.primary }]}
+          onPress={() => router.push('/checkout')}
         >
-          <Text style={styles.checkoutText}>
+          <Ionicons name="card-outline" size={20} color="#FFF" />
+          <Text style={styles.checkoutButtonText}>
             {language === 'ar' ? 'إتمام الشراء' : 'Checkout'}
           </Text>
           <Ionicons name={isRTL ? 'arrow-back' : 'arrow-forward'} size={20} color="#FFF" />
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     </View>
   );
 }
@@ -597,375 +396,263 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  scrollView: {
-    flex: 1,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
   },
-  scrollContent: {
-    padding: 16,
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  itemCountBadge: {
+    position: 'absolute',
+    right: 16,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  itemCountText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '700',
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 15,
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 32,
-  },
-  emptyIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 24,
+    padding: 24,
   },
   emptyTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '700',
-    marginBottom: 8,
-    textAlign: 'center',
+    marginTop: 16,
   },
   emptySubtitle: {
-    fontSize: 14,
+    fontSize: 15,
+    marginTop: 8,
     textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
   },
-  loginBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 24,
+  actionButton: {
+    marginTop: 24,
+    paddingHorizontal: 32,
     paddingVertical: 14,
     borderRadius: 12,
   },
-  loginBtnText: {
+  actionButtonText: {
     color: '#FFF',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
   },
-  shopBtn: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 100,
+  },
+  cartItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 24,
-    paddingVertical: 14,
-    borderRadius: 12,
-  },
-  shopBtnText: {
-    color: '#FFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  summaryBar: {
     padding: 12,
+    marginBottom: 12,
     borderRadius: 12,
-    marginBottom: 16,
+    borderWidth: 1,
+  },
+  itemImageContainer: {
+    width: 90,
+    height: 90,
+    borderRadius: 10,
+    overflow: 'hidden',
+    position: 'relative',
+  },
+  itemImage: {
+    width: '100%',
+    height: '100%',
+  },
+  itemImagePlaceholder: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bundleBadge: {
+    position: 'absolute',
+    top: 4,
+    left: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  itemInfo: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  itemName: {
+    fontSize: 15,
+    fontWeight: '600',
+    marginBottom: 4,
+  },
+  itemSku: {
+    fontSize: 12,
+    marginBottom: 6,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  rowReverse: {
+    flexDirection: 'row-reverse',
+  },
+  originalPrice: {
+    fontSize: 13,
+    textDecorationLine: 'line-through',
+  },
+  finalPrice: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  discountBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  discountText: {
+    color: '#FFF',
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  quantityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 8,
+  },
+  quantityControls: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  qtyButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  qtyText: {
+    fontSize: 15,
+    fontWeight: '600',
+    paddingHorizontal: 8,
+  },
+  removeButton: {
+    padding: 8,
+    borderWidth: 1,
+    borderRadius: 8,
+  },
+  lineTotal: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  summaryCard: {
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginTop: 8,
+  },
+  summaryTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    marginBottom: 12,
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 8,
   },
-  summaryItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  summaryText: {
+  summaryLabel: {
     fontSize: 14,
-    fontWeight: '600',
   },
-  savingsBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  savingsBadgeText: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  bundleCard: {
-    borderRadius: 16,
-    borderWidth: 2,
-    padding: 16,
-    marginBottom: 16,
-    overflow: 'hidden',
-  },
-  bundleHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  bundleBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-  },
-  bundleBadgeText: {
-    color: '#FFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  discountBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 8,
-  },
-  discountText: {
-    color: '#FFF',
+  summaryOriginal: {
     fontSize: 14,
-    fontWeight: '700',
-  },
-  bundleName: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 12,
-  },
-  bundleItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
-  },
-  bundleItemImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 8,
-    overflow: 'hidden',
-    marginRight: 12,
-  },
-  bundleItemImg: {
-    width: '100%',
-    height: '100%',
-  },
-  bundleItemPlaceholder: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  bundleItemInfo: {
-    flex: 1,
-  },
-  bundleItemName: {
-    fontSize: 14,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  bundleItemQty: {
-    fontSize: 12,
-  },
-  bundleItemPrices: {
-    alignItems: 'flex-end',
-  },
-  originalPrice: {
-    fontSize: 12,
     textDecorationLine: 'line-through',
-  },
-  discountedPrice: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  savingsFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
   },
   savingsRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
   },
-  savingsText: {
-    fontSize: 14,
-    fontWeight: '700',
-  },
-  voidBundleBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-  },
-  voidBundleText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  cartItem: {
-    borderRadius: 16,
-    borderWidth: 1,
-    overflow: 'hidden',
-    marginBottom: 12,
-  },
-  cartItemContent: {
-    flexDirection: 'row',
-    padding: 12,
-  },
-  itemImageContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 12,
-    overflow: 'hidden',
-    marginRight: 12,
-  },
-  itemImage: {
-    width: '100%',
-    height: '100%',
-  },
-  imagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  itemInfo: {
-    flex: 1,
-  },
-  itemName: {
-    fontSize: 14,
-    fontWeight: '600',
-    marginBottom: 4,
-    lineHeight: 20,
-  },
-  partNumber: {
-    fontSize: 12,
-    marginBottom: 4,
-  },
-  itemPrice: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  priceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
-  },
-  originalUnitPrice: {
-    fontSize: 13,
-    textDecorationLine: 'line-through',
-  },
-  discountTag: {
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 4,
-  },
-  discountTagText: {
-    color: '#FFF',
-    fontSize: 10,
-    fontWeight: '700',
-  },
   savingsLabel: {
-    fontSize: 11,
+    fontSize: 14,
     fontWeight: '600',
   },
-  originalSubtotal: {
-    fontSize: 11,
-    textDecorationLine: 'line-through',
-  },
-  quantityRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  quantityControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: 10,
-    padding: 4,
-  },
-  qtyBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  qtyText: {
-    fontSize: 16,
-    fontWeight: '700',
-    paddingHorizontal: 16,
-  },
-  removeBtn: {
-    padding: 8,
-  },
-  subtotalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderTopWidth: 1,
-  },
-  subtotalLabel: {
-    fontSize: 13,
-  },
-  subtotalValue: {
+  savingsValue: {
     fontSize: 15,
     fontWeight: '700',
+  },
+  totalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: 12,
+    marginTop: 8,
+    borderTopWidth: 1,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  totalValue: {
+    fontSize: 22,
+    fontWeight: '800',
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
-    paddingBottom: 32,
     borderTopWidth: 1,
   },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+  footerInfo: {
+    flex: 1,
   },
-  totalLabel: {
-    fontSize: 16,
+  footerLabel: {
+    fontSize: 13,
   },
-  originalTotal: {
-    fontSize: 12,
-    textDecorationLine: 'line-through',
-    textAlign: 'right',
-  },
-  totalValue: {
-    fontSize: 24,
-    fontWeight: '800',
-  },
-  checkoutBtn: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 16,
-    borderRadius: 14,
-  },
-  checkoutText: {
-    color: '#FFF',
+  footerTotal: {
     fontSize: 18,
     fontWeight: '700',
   },
-  rowReverse: {
-    flexDirection: 'row-reverse',
+  checkoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderRadius: 12,
   },
-  textRight: {
-    textAlign: 'right',
+  checkoutButtonText: {
+    color: '#FFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
