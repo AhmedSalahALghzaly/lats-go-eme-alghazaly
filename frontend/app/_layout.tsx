@@ -19,13 +19,13 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
   // Hydration timeout fallback for web platform
   useEffect(() => {
-    // If not hydrated after 2 seconds, force hydration
+    // If not hydrated after 1 second, force hydration (quick timeout for web)
     const hydrationTimeout = setTimeout(() => {
       if (!hasHydrated) {
         console.log('Auth Guard: Forcing hydration after timeout');
         setHasHydrated(true);
       }
-    }, 2000);
+    }, 1000);
     return () => clearTimeout(hydrationTimeout);
   }, [hasHydrated, setHasHydrated]);
 
