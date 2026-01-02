@@ -590,6 +590,57 @@ export default function CheckoutScreen() {
     return null;
   }
 
+  // Show loading while fetching cart
+  if (initialLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={NEON_NIGHT_THEME.primary} />
+        <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+          {language === 'ar' ? 'جاري تحميل السلة...' : 'Loading cart...'}
+        </Text>
+      </View>
+    );
+  }
+
+  // Show empty cart message
+  if (displayCartItems.length === 0) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View
+          style={[
+            styles.header,
+            { backgroundColor: colors.background, borderBottomColor: colors.border, paddingTop: insets.top + 10 },
+          ]}
+        >
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color={colors.text} />
+          </TouchableOpacity>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            {language === 'ar' ? 'إتمام الشراء' : 'Checkout'}
+          </Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={styles.emptyCartContainer}>
+          <Ionicons name="cart-outline" size={80} color={colors.border} />
+          <Text style={[styles.emptyCartTitle, { color: colors.text }]}>
+            {language === 'ar' ? 'السلة فارغة' : 'Your cart is empty'}
+          </Text>
+          <Text style={[styles.emptyCartSubtitle, { color: colors.textSecondary }]}>
+            {language === 'ar' ? 'أضف منتجات للمتابعة' : 'Add items to continue'}
+          </Text>
+          <TouchableOpacity
+            style={[styles.shopButton, { backgroundColor: NEON_NIGHT_THEME.primary }]}
+            onPress={() => router.push('/')}
+          >
+            <Text style={styles.shopButtonText}>
+              {language === 'ar' ? 'تصفح المنتجات' : 'Browse Products'}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
   if (orderPlaced) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
