@@ -230,7 +230,7 @@ export default function LoginScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <ActivityIndicator size="large" color={colors.primary} />
         <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
-          {t('loading')}
+          {processingAuth ? (t('authenticating') || 'جاري المصادقة...') : t('loading')}
         </Text>
       </View>
     );
@@ -261,6 +261,14 @@ export default function LoginScreen() {
           {t('appTagline')}
         </Text>
       </View>
+
+      {/* Error Message */}
+      {authError && (
+        <View style={[styles.errorContainer, { backgroundColor: colors.card, borderColor: '#EF4444' }]}>
+          <Ionicons name="alert-circle" size={20} color="#EF4444" />
+          <Text style={[styles.errorText, { color: '#EF4444' }]}>{authError}</Text>
+        </View>
+      )}
 
       {/* Login Button */}
       <View style={styles.buttonContainer}>
