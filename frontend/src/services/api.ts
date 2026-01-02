@@ -125,7 +125,16 @@ export const ordersApi = orderApi;
 export const customerApi = {
   getAll: (sortBy?: string) => api.get('/customers', { params: { sort_by: sortBy } }),
   getById: (id: string) => api.get(`/customers/${id}`),
+  delete: (id: string) => api.delete(`/customers/${id}`),
+  // Admin customer management
+  getFavorites: (userId: string) => api.get(`/admin/customer/${userId}/favorites`),
+  getCart: (userId: string) => api.get(`/admin/customer/${userId}/cart`),
+  getOrders: (userId: string) => api.get(`/admin/customer/${userId}/orders`),
+  markOrdersViewed: (userId: string) => api.patch(`/admin/customer/${userId}/orders/mark-viewed`),
 };
+
+// Alias for existing code
+export const customersApi = customerApi;
 
 // Favorite APIs
 export const favoriteApi = {
