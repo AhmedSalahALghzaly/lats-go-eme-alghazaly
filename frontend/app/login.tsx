@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   },
   logoContainer: {
     alignItems: 'center',
-    marginBottom: 60,
+    marginBottom: 40,
   },
   logoCircle: {
     width: 120,
@@ -325,6 +325,20 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontSize: 16,
+  },
+  errorContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 20,
+    maxWidth: 320,
+    gap: 8,
+  },
+  errorText: {
+    fontSize: 14,
+    flex: 1,
   },
   buttonContainer: {
     width: '100%',
