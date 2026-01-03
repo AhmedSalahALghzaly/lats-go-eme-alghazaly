@@ -215,14 +215,16 @@ const WebSocketContext = createContext<WebSocketContextType | null>(null);
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const ws = useWebSocket();
   
+  const contextValue: WebSocketContextType = {
+    isConnected: ws.isConnected,
+    lastUpdate: ws.lastUpdate,
+    refresh: ws.refresh,
+    syncCart: ws.syncCart,
+    syncOrders: ws.syncOrders,
+  };
+  
   return (
-    <WebSocketContext.Provider value={{
-      isConnected: ws.isConnected,
-      lastUpdate: ws.lastUpdate,
-      refresh: ws.refresh,
-      syncCart: ws.syncCart,
-      syncOrders: ws.syncOrders,
-    }}>
+    <WebSocketContext.Provider value={contextValue}>
       {children}
     </WebSocketContext.Provider>
   );
