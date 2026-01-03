@@ -224,8 +224,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row-reverse',
   },
   logoImage: {
-    width: 65,
-    height: 52,
+    width: 50,
+    height: 40,
   },
   brandText: {
     fontSize: 15,
@@ -244,8 +244,10 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
   },
-  spacer: {
+  centerSection: {
     flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   iconsSection: {
     flexDirection: 'row',
