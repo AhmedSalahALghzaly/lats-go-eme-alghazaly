@@ -306,21 +306,15 @@ export default function ProductDetailScreen() {
           )}
           
           {/* Favorite Button */}
-          <TouchableOpacity
-            style={[styles.favoriteButton, { backgroundColor: colors.card }]}
-            onPress={handleToggleFavorite}
-            disabled={favoriteLoading}
-          >
-            {favoriteLoading ? (
-              <ActivityIndicator size="small" color={colors.error} />
-            ) : (
-              <Ionicons
-                name={isFavorite ? 'heart' : 'heart-outline'}
-                size={24}
-                color={isFavorite ? colors.error : colors.textSecondary}
-              />
-            )}
-          </TouchableOpacity>
+          <View style={[styles.favoriteButton, { backgroundColor: 'transparent' }]}>
+            <AnimatedFavoriteButton
+              isFavorite={isFavorite}
+              isLoading={favoriteLoading}
+              onPress={handleToggleFavorite}
+              size={24}
+              style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.card }}
+            />
+          </View>
 
           {/* Image Counter */}
           {productImages.length > 1 && (
