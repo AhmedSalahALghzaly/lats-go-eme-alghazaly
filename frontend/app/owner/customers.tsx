@@ -43,7 +43,7 @@ export default function CustomersScreen() {
       setCustomers(customersList);
       
       // Fetch order status for each customer
-      const statusMap: {[key: string]: { status: string; activeCount: number }} = {};
+      const statusMap = {};
       for (const customer of customersList) {
         const userId = customer.user_id || customer.id;
         try {
@@ -52,11 +52,11 @@ export default function CustomersScreen() {
           
           // Find most recent active order (not delivered/cancelled)
           const activeStatuses = ['pending', 'confirmed', 'preparing', 'shipped', 'out_for_delivery'];
-          const activeOrders = orders.filter((o: any) => activeStatuses.includes(o.status));
+          const activeOrders = orders.filter((o) => activeStatuses.includes(o.status));
           
           if (activeOrders.length > 0) {
             // Sort by created_at to get most recent
-            activeOrders.sort((a: any, b: any) => 
+            activeOrders.sort((a, b) => 
               new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
             );
             statusMap[userId] = {
