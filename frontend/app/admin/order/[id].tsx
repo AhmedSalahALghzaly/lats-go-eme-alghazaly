@@ -142,13 +142,13 @@ export default function OrderDetailAdmin() {
     setApplyingDiscount(true);
     try {
       const response = await api.patch(`/orders/${id}/discount`, { discount: discountAmount });
-      setOrder((prev: any) => ({
+      setOrder((prev) => ({
         ...prev,
         discount: discountAmount,
         total: response.data.total,
       }));
       setDiscountApplied(true);
-    } catch (error: any) {
+    } catch (error) {
       Alert.alert(
         language === 'ar' ? 'خطأ' : 'Error',
         error.response?.data?.detail || 'Error applying discount'
@@ -162,7 +162,7 @@ export default function OrderDetailAdmin() {
     setApplyingDiscount(true);
     try {
       const response = await api.patch(`/orders/${id}/discount`, { discount: 0 });
-      setOrder((prev: any) => ({
+      setOrder((prev) => ({
         ...prev,
         discount: 0,
         total: response.data.total,
@@ -176,7 +176,7 @@ export default function OrderDetailAdmin() {
     }
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr) => {
     if (!dateStr) return '';
     const date = new Date(dateStr);
     return date.toLocaleDateString(language === 'ar' ? 'ar-EG' : 'en-US', {
