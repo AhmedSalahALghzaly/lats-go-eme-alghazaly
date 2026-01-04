@@ -1,10 +1,11 @@
 /**
- * AnimatedIconButton - Modern, interactive animated icon buttons
- * For favorites and cart actions with smooth animations
+ * AnimatedIconButton - Modern, futuristic animated icon buttons
+ * Enhanced with neon glow effects, particle animations, and professional interactions
  */
-import React, { useRef, useEffect } from 'react';
-import { TouchableOpacity, Animated, StyleSheet, ViewStyle } from 'react-native';
+import React, { useRef, useEffect, useState } from 'react';
+import { TouchableOpacity, Animated, StyleSheet, ViewStyle, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 interface AnimatedIconButtonProps {
   iconName: keyof typeof Ionicons.glyphMap;
@@ -19,7 +20,7 @@ interface AnimatedIconButtonProps {
   onPress: () => void;
   disabled?: boolean;
   style?: ViewStyle;
-  animationType?: 'bounce' | 'pulse' | 'scale' | 'shake';
+  animationType?: 'bounce' | 'pulse' | 'scale' | 'shake' | 'neon';
 }
 
 export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
@@ -40,6 +41,7 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const rotateAnim = useRef(new Animated.Value(0)).current;
   const pulseAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
   const bounceAnim = useRef(new Animated.Value(0)).current;
 
   // Loading pulse animation
@@ -64,12 +66,29 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
     }
   }, [isLoading]);
 
-  // Active state animation - heart beat effect
+  // Active state animation - neon glow effect
   useEffect(() => {
-    if (isActive && animationType === 'bounce') {
+    if (isActive) {
+      // Neon glow animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, {
+            toValue: 1,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowAnim, {
+            toValue: 0.5,
+            duration: 1000,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+
+      // Initial bounce
       Animated.sequence([
         Animated.spring(scaleAnim, {
-          toValue: 1.3,
+          toValue: 1.4,
           friction: 3,
           tension: 200,
           useNativeDriver: true,
@@ -81,6 +100,8 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
           useNativeDriver: true,
         }),
       ]).start();
+    } else {
+      glowAnim.setValue(0);
     }
   }, [isActive]);
 
@@ -90,6 +111,7 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
     // Trigger animation based on type
     switch (animationType) {
       case 'bounce':
+      case 'neon':
         Animated.sequence([
           Animated.spring(scaleAnim, {
             toValue: 0.7,
@@ -98,7 +120,7 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
             useNativeDriver: true,
           }),
           Animated.spring(scaleAnim, {
-            toValue: 1.2,
+            toValue: 1.3,
             friction: 3,
             tension: 300,
             useNativeDriver: true,
@@ -161,6 +183,11 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
     outputRange: ['-15deg', '15deg'],
   });
 
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 0.5, 1],
+    outputRange: [0, 0.4, 0.7],
+  });
+
   const currentIcon = isActive && iconNameActive ? iconNameActive : iconName;
   const currentColor = isActive && activeColor ? activeColor : color;
   const currentBgColor = isActive && activeBackgroundColor ? activeBackgroundColor : backgroundColor;
@@ -179,6 +206,20 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
         style,
       ]}
     >
+      {/* Neon Glow Effect for active state */}
+      {isActive && (
+        <Animated.View
+          style={[
+            styles.glowRing,
+            {
+              opacity: glowOpacity,
+              borderColor: activeColor || color,
+              shadowColor: activeColor || color,
+            },
+          ]}
+        />
+      )}
+      
       <Animated.View
         style={[
           styles.iconContainer,
@@ -196,7 +237,7 @@ export const AnimatedIconButton: React.FC<AnimatedIconButtonProps> = ({
   );
 };
 
-// Specialized Heart/Favorite Button
+// Specialized Heart/Favorite Button - RED when active with futuristic neon glow
 export const AnimatedFavoriteButton: React.FC<{
   isFavorite: boolean;
   isLoading?: boolean;
@@ -204,25 +245,205 @@ export const AnimatedFavoriteButton: React.FC<{
   size?: number;
   style?: ViewStyle;
 }> = ({ isFavorite, isLoading = false, onPress, size = 20, style }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const particleAnims = useRef([
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+    new Animated.Value(0),
+  ]).current;
+  const [showParticles, setShowParticles] = useState(false);
+
+  // Continuous glow animation when favorite
+  useEffect(() => {
+    if (isFavorite) {
+      // Neon pulse glow
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, {
+            toValue: 1,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowAnim, {
+            toValue: 0.4,
+            duration: 800,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+
+      // Heart beat animation
+      Animated.sequence([
+        Animated.spring(scaleAnim, {
+          toValue: 1.5,
+          friction: 3,
+          tension: 200,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 5,
+          tension: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
+
+      // Particle explosion
+      setShowParticles(true);
+      particleAnims.forEach((anim, index) => {
+        Animated.sequence([
+          Animated.timing(anim, {
+            toValue: 1,
+            duration: 400,
+            useNativeDriver: true,
+          }),
+          Animated.timing(anim, {
+            toValue: 0,
+            duration: 200,
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
+      setTimeout(() => setShowParticles(false), 600);
+    } else {
+      glowAnim.setValue(0);
+    }
+  }, [isFavorite]);
+
+  const handlePress = () => {
+    // Bounce animation on press
+    Animated.sequence([
+      Animated.spring(scaleAnim, {
+        toValue: 0.6,
+        friction: 5,
+        tension: 400,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1.3,
+        friction: 3,
+        tension: 300,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 4,
+        tension: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    onPress();
+  };
+
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 0.4, 1],
+    outputRange: [0, 0.5, 0.9],
+  });
+
+  // Particle positions
+  const particlePositions = [
+    { angle: 0 }, { angle: 60 }, { angle: 120 },
+    { angle: 180 }, { angle: 240 }, { angle: 300 },
+  ];
+
   return (
-    <AnimatedIconButton
-      iconName="heart-outline"
-      iconNameActive="heart"
-      size={size}
-      color="#EF4444"
-      activeColor="#FFFFFF"
-      backgroundColor="rgba(239, 68, 68, 0.1)"
-      activeBackgroundColor="#EF4444"
-      isActive={isFavorite}
-      isLoading={isLoading}
-      onPress={onPress}
-      animationType="bounce"
-      style={[styles.favoriteButton, style]}
-    />
+    <TouchableOpacity
+      onPress={handlePress}
+      disabled={isLoading}
+      activeOpacity={0.7}
+      style={[
+        styles.favoriteButton,
+        {
+          backgroundColor: isFavorite ? 'rgba(239, 68, 68, 0.15)' : 'rgba(239, 68, 68, 0.08)',
+          borderColor: isFavorite ? '#EF4444' : 'rgba(239, 68, 68, 0.3)',
+        },
+        style,
+      ]}
+    >
+      {/* Outer Neon Glow Ring */}
+      {isFavorite && (
+        <>
+          <Animated.View
+            style={[
+              styles.neonGlowOuter,
+              {
+                opacity: glowOpacity,
+                borderColor: '#EF4444',
+                shadowColor: '#EF4444',
+              },
+            ]}
+          />
+          <Animated.View
+            style={[
+              styles.neonGlowInner,
+              {
+                opacity: glowAnim,
+                backgroundColor: 'rgba(239, 68, 68, 0.3)',
+              },
+            ]}
+          />
+        </>
+      )}
+
+      {/* Particle Effects */}
+      {showParticles && particlePositions.map((pos, index) => {
+        const translateX = particleAnims[index].interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, Math.cos(pos.angle * Math.PI / 180) * 20],
+        });
+        const translateY = particleAnims[index].interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, Math.sin(pos.angle * Math.PI / 180) * 20],
+        });
+        const opacity = particleAnims[index].interpolate({
+          inputRange: [0, 0.5, 1],
+          outputRange: [1, 0.8, 0],
+        });
+        const scale = particleAnims[index].interpolate({
+          inputRange: [0, 0.5, 1],
+          outputRange: [0.5, 1, 0.3],
+        });
+
+        return (
+          <Animated.View
+            key={index}
+            style={[
+              styles.particle,
+              {
+                opacity,
+                transform: [{ translateX }, { translateY }, { scale }],
+                backgroundColor: '#EF4444',
+              },
+            ]}
+          />
+        );
+      })}
+
+      {/* Heart Icon */}
+      <Animated.View
+        style={[
+          styles.iconContainer,
+          {
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
+        <Ionicons
+          name={isFavorite ? 'heart' : 'heart-outline'}
+          size={size}
+          color="#EF4444"  // Always RED
+        />
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
-// Specialized Cart Button
+// Specialized Cart Button - Futuristic with gradient and glow
 export const AnimatedCartButton: React.FC<{
   isInCart?: boolean;
   isLoading?: boolean;
@@ -231,18 +452,141 @@ export const AnimatedCartButton: React.FC<{
   primaryColor?: string;
   style?: ViewStyle;
 }> = ({ isInCart = false, isLoading = false, onPress, size = 20, primaryColor = '#3B82F6', style }) => {
+  const scaleAnim = useRef(new Animated.Value(1)).current;
+  const rotateAnim = useRef(new Animated.Value(0)).current;
+  const glowAnim = useRef(new Animated.Value(0)).current;
+  const successPulse = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isInCart) {
+      // Success glow animation
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(glowAnim, {
+            toValue: 1,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glowAnim, {
+            toValue: 0.3,
+            duration: 600,
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+
+      // Success pulse
+      Animated.sequence([
+        Animated.spring(successPulse, {
+          toValue: 1.5,
+          friction: 3,
+          tension: 200,
+          useNativeDriver: true,
+        }),
+        Animated.spring(successPulse, {
+          toValue: 1,
+          friction: 5,
+          tension: 150,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      glowAnim.setValue(0);
+      successPulse.setValue(1);
+    }
+  }, [isInCart]);
+
+  const handlePress = () => {
+    if (isLoading) return;
+
+    // Futuristic press animation
+    Animated.parallel([
+      Animated.sequence([
+        Animated.spring(scaleAnim, {
+          toValue: 0.7,
+          friction: 5,
+          tension: 400,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1.2,
+          friction: 3,
+          tension: 300,
+          useNativeDriver: true,
+        }),
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          friction: 4,
+          tension: 200,
+          useNativeDriver: true,
+        }),
+      ]),
+      Animated.sequence([
+        Animated.timing(rotateAnim, { toValue: -15, duration: 80, useNativeDriver: true }),
+        Animated.timing(rotateAnim, { toValue: 15, duration: 80, useNativeDriver: true }),
+        Animated.timing(rotateAnim, { toValue: -10, duration: 60, useNativeDriver: true }),
+        Animated.timing(rotateAnim, { toValue: 0, duration: 80, useNativeDriver: true }),
+      ]),
+    ]).start();
+
+    onPress();
+  };
+
+  const bgColor = isInCart ? '#10B981' : primaryColor;
+  const glowOpacity = glowAnim.interpolate({
+    inputRange: [0, 0.3, 1],
+    outputRange: [0, 0.4, 0.8],
+  });
+
   return (
-    <AnimatedIconButton
-      iconName={isInCart ? "checkmark" : "add"}
-      size={size}
-      color="#FFFFFF"
-      backgroundColor={isInCart ? '#10B981' : primaryColor}
-      isActive={isInCart}
-      isLoading={isLoading}
-      onPress={onPress}
-      animationType={isInCart ? 'pulse' : 'scale'}
-      style={[styles.cartButton, style]}
-    />
+    <TouchableOpacity
+      onPress={handlePress}
+      disabled={isLoading}
+      activeOpacity={0.8}
+      style={[
+        styles.cartButton,
+        {
+          backgroundColor: bgColor,
+          shadowColor: bgColor,
+        },
+        style,
+      ]}
+    >
+      {/* Neon glow effect */}
+      {isInCart && (
+        <Animated.View
+          style={[
+            styles.cartGlow,
+            {
+              opacity: glowOpacity,
+              borderColor: '#10B981',
+              shadowColor: '#10B981',
+            },
+          ]}
+        />
+      )}
+
+      <Animated.View
+        style={[
+          styles.iconContainer,
+          {
+            transform: [
+              { scale: isInCart ? successPulse : scaleAnim },
+              { rotate: rotateAnim.interpolate({
+                inputRange: [-15, 15],
+                outputRange: ['-15deg', '15deg'],
+              }) },
+            ],
+          },
+        ]}
+      >
+        <Ionicons
+          name={isInCart ? 'checkmark' : 'add'}
+          size={size}
+          color="#FFFFFF"
+        />
+      </Animated.View>
+    </TouchableOpacity>
   );
 };
 
@@ -263,11 +607,76 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  favoriteButton: {
-    borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+  glowRing: {
+    position: 'absolute',
+    width: '120%',
+    height: '120%',
+    borderRadius: 100,
+    borderWidth: 2,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.8,
+    shadowRadius: 8,
   },
-  cartButton: {},
+  favoriteButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+    shadowColor: '#EF4444',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+    overflow: 'visible',
+  },
+  neonGlowOuter: {
+    position: 'absolute',
+    width: '140%',
+    height: '140%',
+    borderRadius: 100,
+    borderWidth: 2,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  neonGlowInner: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    borderRadius: 100,
+  },
+  particle: {
+    position: 'absolute',
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  cartButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 6,
+    overflow: 'visible',
+  },
+  cartGlow: {
+    position: 'absolute',
+    width: '130%',
+    height: '130%',
+    borderRadius: 100,
+    borderWidth: 2,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 1,
+    shadowRadius: 10,
+    elevation: 8,
+  },
 });
 
 export default AnimatedIconButton;

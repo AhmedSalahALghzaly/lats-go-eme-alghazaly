@@ -34,7 +34,7 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({
   title,
   showBack = false,
-  showSearch = true,
+  showSearch = false, // Changed default to false - Search icon removed
   showCart = true,
   showSettings = true,
 }) => {
@@ -170,15 +170,6 @@ export const Header: React.FC<HeaderProps> = ({
               {language === 'en' ? 'عر' : 'EN'}
             </Text>
           </TouchableOpacity>
-
-          {showSearch && (
-            <TouchableOpacity 
-              onPress={() => setShowAdvancedSearch(true)} 
-              style={styles.iconButton}
-            >
-              <Ionicons name="search" size={22} color={headerIconColor} />
-            </TouchableOpacity>
-          )}
 
           {/* Notification Bell */}
           <NotificationBell onPress={() => setShowNotifications(true)} />
