@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, TextInput, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,21 +6,38 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useTheme } from '../../../src/hooks/useTheme';
 import { useTranslation } from '../../../src/hooks/useTranslation';
 import { Header } from '../../../src/components/Header';
-import api from '../../../src/services/api';
+import api, { orderApi } from '../../../src/services/api';
+import { useIsOwner, useCanAccessAdminPanel } from '../../../src/store/appStore';
 
 const SHIPPING_COST = 150;
+
+// Status flow configuration
+const STATUS_FLOW = ['pending', 'confirmed', 'preparing', 'shipped', 'out_for_delivery', 'delivered'];
+const STATUS_COLORS: { [key: string]: string } = {
+  pending: '#F59E0B',
+  confirmed: '#EF4444',
+  preparing: '#FBBF24',
+  shipped: '#10B981',
+  out_for_delivery: '#3B82F6',
+  delivered: '#6B7280',
+  cancelled: '#EF4444',
+};
 
 export default function OrderDetailAdmin() {
   const { colors } = useTheme();
   const { language, isRTL } = useTranslation();
   const router = useRouter();
   const { id } = useLocalSearchParams();
+  const isOwner = useIsOwner();
+  const isAdmin = useCanAccessAdminPanel();
 
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [discountInput, setDiscountInput] = useState('');
   const [applyingDiscount, setApplyingDiscount] = useState(false);
   const [discountApplied, setDiscountApplied] = useState(false);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchOrder();
@@ -40,6 +57,77 @@ export default function OrderDetailAdmin() {
       setLoading(false);
     }
   };
+
+  const updateOrderStatus = useCallback(async (newStatus: string) => {
+    setUpdatingStatus(newStatus);
+    try {
+      // Show loading for 1 second as per requirement
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await orderApi.updateStatus(id as string, newStatus);
+      setOrder((prev: any) => ({ ...prev, status: newStatus }));
+    } catch (error: any) {
+      Alert.alert(
+        language === 'ar' ? 'خطأ' : 'Error',
+        error.response?.data?.detail || 'Failed to update status'
+      );
+    } finally {
+      setUpdatingStatus(null);
+    }
+  }, [id, language]);
+
+  const handleCancelOrder = useCallback(async () => {
+    Alert.alert(
+      language === 'ar' ? 'إلغاء الطلب' : 'Cancel Order',
+      language === 'ar' ? 'هل أنت متأكد من إلغاء هذا الطلب؟' : 'Are you sure you want to cancel this order?',
+      [
+        { text: language === 'ar' ? 'لا' : 'No', style: 'cancel' },
+        {
+          text: language === 'ar' ? 'نعم' : 'Yes',
+          style: 'destructive',
+          onPress: async () => {
+            setUpdatingStatus('cancelled');
+            try {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+              await orderApi.updateStatus(id as string, 'cancelled');
+              setOrder((prev: any) => ({ ...prev, status: 'cancelled' }));
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.detail || 'Failed to cancel order');
+            } finally {
+              setUpdatingStatus(null);
+            }
+          }
+        }
+      ]
+    );
+  }, [id, language]);
+
+  const handleDeleteOrder = useCallback(async () => {
+    Alert.alert(
+      language === 'ar' ? 'حذف الطلب نهائياً' : 'Delete Order Permanently',
+      language === 'ar' ? 'سيتم حذف هذا الطلب نهائياً ولا يمكن استرجاعه. هل أنت متأكد؟' : 'This order will be permanently deleted and cannot be recovered. Are you sure?',
+      [
+        { text: language === 'ar' ? 'إلغاء' : 'Cancel', style: 'cancel' },
+        {
+          text: language === 'ar' ? 'حذف' : 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            setDeleting(true);
+            try {
+              await orderApi.delete(id as string);
+              Alert.alert(
+                language === 'ar' ? 'تم' : 'Done',
+                language === 'ar' ? 'تم حذف الطلب بنجاح' : 'Order deleted successfully',
+                [{ text: 'OK', onPress: () => router.back() }]
+              );
+            } catch (error: any) {
+              Alert.alert('Error', error.response?.data?.detail || 'Failed to delete order');
+              setDeleting(false);
+            }
+          }
+        }
+      ]
+    );
+  }, [id, language, router]);
 
   const applyDiscount = async () => {
     const discountAmount = parseFloat(discountInput);
@@ -99,6 +187,17 @@ export default function OrderDetailAdmin() {
       minute: '2-digit',
     });
   };
+
+  // Check if cancel button should be visible (hidden after shipped)
+  const canCancel = !['shipped', 'out_for_delivery', 'delivered', 'cancelled'].includes(order?.status);
+
+  // Status buttons configuration
+  const statusButtons = [
+    { status: 'preparing', label: language === 'ar' ? 'تحضير' : 'Preparing', icon: 'restaurant' },
+    { status: 'shipped', label: language === 'ar' ? 'شحن' : 'Shipped', icon: 'cube' },
+    { status: 'out_for_delivery', label: language === 'ar' ? 'في الطريق' : 'Out for Delivery', icon: 'bicycle' },
+    { status: 'delivered', label: language === 'ar' ? 'تم التوصيل' : 'Delivered', icon: 'checkmark-circle' },
+  ];
 
   if (loading) {
     return (
