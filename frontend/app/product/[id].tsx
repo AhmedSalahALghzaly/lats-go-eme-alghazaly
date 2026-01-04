@@ -172,9 +172,10 @@ export default function ProductDetailScreen() {
 
     setAddingToCart(true);
     try {
-      await cartApi.addItem(product.id, 1);
-      addToLocalCart({ product_id: product.id, quantity: 1, product });
+      await cartApi.addItem(product.id, quantity);
+      addToLocalCart({ product_id: product.id, quantity: quantity, product });
       Alert.alert('', t('addToCart') + ' ✔', [{ text: 'OK' }]);
+      setQuantity(1); // Reset quantity after adding
     } catch (error) {
       console.error('Error adding to cart:', error);
       Alert.alert(t('error'));
