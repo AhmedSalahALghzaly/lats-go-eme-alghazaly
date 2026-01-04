@@ -127,6 +127,7 @@ export const UnifiedShoppingHub: React.FC<UnifiedShoppingHubProps> = ({
     paymentMethod: 'cash_on_delivery',
   });
   const [submittingOrder, setSubmittingOrder] = useState(false);
+  const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 
   // Order confirmation modal
   const [showOrderConfirmation, setShowOrderConfirmation] = useState(false);
