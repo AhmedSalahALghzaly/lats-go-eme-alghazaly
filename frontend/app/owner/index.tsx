@@ -2,7 +2,7 @@
  * Owner Interface Dashboard
  * Advanced owner interface with reorganized icon grids, live metrics, and Partner management
  */
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -23,11 +23,13 @@ import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import { useAppStore, useColorMood } from '../../src/store/appStore';
 import { SyncIndicator } from '../../src/components/ui/SyncIndicator';
 import { useWebSocket } from '../../src/services/websocketService';
 import { adminApi } from '../../src/services/api';
+import { haptic } from '../../src/services/hapticService';
+import { VoidDeleteGesture } from '../../src/components/ui/VoidDeleteGesture';
+import { ConfettiEffect } from '../../src/components/ui/ConfettiEffect';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
