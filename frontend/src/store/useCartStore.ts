@@ -158,7 +158,7 @@ export const useCartStore = create<CartState>()(
         return groups;
       },
 
-      voidBundleDiscount: (bundleGroupId) => {
+      voidBundleDiscount: (bundleGroupId, syncToBackend = true) => {
         const { cartItems } = get();
         const updatedItems = cartItems.map((item) => {
           if (item.bundleGroupId === bundleGroupId) {
@@ -176,6 +176,13 @@ export const useCartStore = create<CartState>()(
           return item;
         });
         set({ cartItems: updatedItems });
+        
+        // Sync with backend to void bundle discount on server-side cart
+        if (syncToBackend) {
+          cartApi.voidBundle(bundleGroupId).catch((error) => {
+            console.error('Failed to sync bundle void to backend:', error);
+          });
+        }
       },
 
       setCartItems: (items) => {
