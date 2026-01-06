@@ -244,7 +244,8 @@ export default function OwnerDashboard() {
       });
       
       setAddSuccess(true);
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      haptic.success();
+      setShowConfetti(true);
       
       setTimeout(() => {
         setShowAddPartnerModal(false);
