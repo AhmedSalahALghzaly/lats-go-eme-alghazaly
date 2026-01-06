@@ -472,15 +472,18 @@ frontend:
 
   - task: "Admin Marketing Suite - Admin View API Fix"
     implemented: true
-    working: "NA"
+    working: true
     file: "frontend/src/services/api.ts, frontend/app/admin/marketing.tsx"
     stuck_count: 0
     priority: "critical"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: "NA"
         agent: "main"
         comment: "Added getAllForAdmin() methods to promotionApi and bundleOfferApi that pass active_only=false. Updated marketing.tsx fetchData() to use these admin methods so admin panel shows ALL items (active + inactive)."
+      - working: true
+        agent: "testing"
+        comment: "✅ Admin View API Fix tested successfully. GET /api/promotions?active_only=false returns 3 total promotions (including inactive), while GET /api/promotions?active_only=true returns 2 active promotions. GET /api/bundle-offers?active_only=false returns 4 total bundle offers, while GET /api/bundle-offers?active_only=true returns 3 active bundle offers. The active_only parameter is working correctly for admin panel to show all items."
 
   - task: "Delete Function Error Handling"
     implemented: true
