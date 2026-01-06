@@ -419,13 +419,28 @@ export default function OrderDetailAdmin() {
                 <Text style={[styles.itemQty, { color: colors.textSecondary }]}>
                   {language === 'ar' ? 'الكمية:' : 'Qty:'} {item.quantity}
                 </Text>
+                {/* Show bundle info if item is from a bundle */}
+                {item.bundle_group_id && (
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: 2 }}>
+                    <Ionicons name="gift" size={12} color="#10b981" />
+                    <Text style={{ color: '#10b981', fontSize: 11, marginLeft: 4 }}>
+                      {language === 'ar' ? 'عرض حزمة' : 'Bundle Offer'}
+                    </Text>
+                  </View>
+                )}
               </View>
               <View style={styles.itemPricing}>
-                <Text style={[styles.itemUnitPrice, { color: colors.textSecondary }]}>
-                  {item.price?.toFixed(2)} ج.م
+                {/* Show original price if discounted */}
+                {item.original_unit_price && item.original_unit_price > (item.final_unit_price || item.price) && (
+                  <Text style={{ color: colors.textSecondary, fontSize: 11, textDecorationLine: 'line-through' }}>
+                    {item.original_unit_price?.toFixed(2)} ج.م
+                  </Text>
+                )}
+                <Text style={[styles.itemUnitPrice, { color: item.original_unit_price && item.original_unit_price > (item.final_unit_price || item.price) ? '#10b981' : colors.textSecondary }]}>
+                  {(item.final_unit_price || item.price)?.toFixed(2)} ج.م
                 </Text>
                 <Text style={[styles.itemTotalPrice, { color: colors.text }]}>
-                  {(item.price * item.quantity).toFixed(2)} ج.م
+                  {((item.final_unit_price || item.price) * item.quantity).toFixed(2)} ج.م
                 </Text>
               </View>
             </View>
