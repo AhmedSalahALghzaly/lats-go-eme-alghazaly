@@ -1,8 +1,10 @@
 /**
  * Background Sync Service
  * Automatically syncs data from server to local Zustand store
+ * v2.0 - Added Offline Action Queue Processing
  */
 import { useAppStore } from '../store/appStore';
+import { useDataCacheStore, OfflineAction } from '../store/useDataCacheStore';
 import { 
   carBrandApi, 
   carModelApi, 
@@ -13,13 +15,17 @@ import {
   distributorApi,
   orderApi,
   customerApi,
-  syncApi 
+  syncApi,
+  cartApi,
+  favoriteApi,
+  api
 } from './api';
 
 class SyncService {
   private syncInterval: NodeJS.Timeout | null = null;
   private isRunning = false;
   private syncIntervalMs = 60000; // 1 minute
+  private wasOffline = false;
 
   /**
    * Start the background sync service
@@ -52,15 +58,126 @@ class SyncService {
   }
 
   /**
+   * Process the offline action queue
+   */
+  async processOfflineQueue() {
+    const cacheStore = useDataCacheStore.getState();
+    const queue = cacheStore.offlineActionsQueue;
+    
+    if (queue.length === 0) {
+      console.log('[SyncService] No offline actions to process');
+      return;
+    }
+
+    if (cacheStore.isProcessingQueue) {
+      console.log('[SyncService] Already processing queue, skipping');
+      return;
+    }
+
+    console.log(`[SyncService] Processing ${queue.length} offline actions...`);
+    cacheStore.setProcessingQueue(true);
+
+    // Process actions sequentially
+    for (const action of queue) {
+      if (action.status === 'processing') continue;
+      
+      try {
+        cacheStore.updateQueueAction(action.id, { status: 'processing' });
+        
+        // Execute the action based on type
+        await this.executeOfflineAction(action);
+        
+        // Success - remove from queue
+        console.log(`[SyncService] Action ${action.id} (${action.type}) completed successfully`);
+        cacheStore.removeFromOfflineQueue(action.id);
+        
+      } catch (error: any) {
+        console.error(`[SyncService] Action ${action.id} failed:`, error.message);
+        
+        const newRetryCount = action.retryCount + 1;
+        
+        if (newRetryCount >= action.maxRetries) {
+          // Max retries reached - mark as failed
+          cacheStore.updateQueueAction(action.id, { 
+            status: 'failed', 
+            retryCount: newRetryCount,
+            errorMessage: error.message || 'Unknown error'
+          });
+          console.log(`[SyncService] Action ${action.id} marked as failed after ${newRetryCount} retries`);
+        } else {
+          // Update retry count and reset to pending for next attempt
+          cacheStore.updateQueueAction(action.id, { 
+            status: 'pending', 
+            retryCount: newRetryCount,
+            errorMessage: error.message
+          });
+        }
+      }
+    }
+
+    cacheStore.setProcessingQueue(false);
+    console.log('[SyncService] Offline queue processing completed');
+  }
+
+  /**
+   * Execute a single offline action
+   */
+  private async executeOfflineAction(action: OfflineAction): Promise<void> {
+    switch (action.type) {
+      case 'cart_add':
+        await cartApi.addItem(action.payload.product_id, action.payload.quantity);
+        break;
+        
+      case 'cart_update':
+        await cartApi.updateItem(action.payload.product_id, action.payload.quantity);
+        break;
+        
+      case 'cart_clear':
+        await cartApi.clear();
+        break;
+        
+      case 'order_create':
+        await orderApi.create(action.payload);
+        break;
+        
+      case 'favorite_toggle':
+        await favoriteApi.toggle(action.payload.product_id);
+        break;
+        
+      default:
+        // Generic API call for other actions
+        const config: any = {
+          method: action.method,
+          url: action.endpoint,
+        };
+        
+        if (action.payload && ['POST', 'PUT', 'PATCH'].includes(action.method)) {
+          config.data = action.payload;
+        }
+        
+        await api(config);
+    }
+  }
+
+  /**
    * Perform a full data sync
    */
   async performSync() {
     const store = useAppStore.getState();
+    const cacheStore = useDataCacheStore.getState();
     
     // Check if online
     if (!store.isOnline) {
       console.log('[SyncService] Offline, skipping sync');
+      this.wasOffline = true;
       return;
+    }
+
+    // If we were offline and now online, process the queue first
+    if (this.wasOffline && store.isOnline) {
+      console.log('[SyncService] Connection restored, processing offline queue...');
+      this.wasOffline = false;
+      await this.processOfflineQueue();
     }
 
     // Check if already syncing
@@ -177,6 +294,13 @@ class SyncService {
   }
 
   /**
+   * Force process the offline queue
+   */
+  forceProcessQueue() {
+    return this.processOfflineQueue();
+  }
+
+  /**
    * Set the sync interval in milliseconds
    */
   setSyncInterval(ms: number) {
@@ -184,6 +308,24 @@ class SyncService {
     if (this.isRunning) {
       this.stop();
       this.start();
+    }
+  }
+
+  /**
+   * Handle network status change
+   */
+  handleNetworkChange(isOnline: boolean) {
+    const cacheStore = useDataCacheStore.getState();
+    cacheStore.setOnline(isOnline);
+    
+    if (isOnline && this.wasOffline) {
+      console.log('[SyncService] Network restored, triggering queue processing');
+      this.wasOffline = false;
+      this.processOfflineQueue().then(() => {
+        this.forceSync();
+      });
+    } else if (!isOnline) {
+      this.wasOffline = true;
     }
   }
 }
@@ -197,7 +339,9 @@ export const useSyncService = () => {
     start: () => syncService.start(),
     stop: () => syncService.stop(),
     forceSync: () => syncService.forceSync(),
+    forceProcessQueue: () => syncService.forceProcessQueue(),
     setSyncInterval: (ms: number) => syncService.setSyncInterval(ms),
+    handleNetworkChange: (isOnline: boolean) => syncService.handleNetworkChange(isOnline),
   };
 };
 
