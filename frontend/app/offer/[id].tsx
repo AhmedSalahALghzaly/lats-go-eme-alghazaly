@@ -266,7 +266,7 @@ export default function OfferDetailsScreen() {
 
       {/* Offer Slider at Top */}
       <View style={styles.sliderContainer}>
-        <OfferSlider 
+        <DynamicOfferSlider 
           compact={true} 
           showArrows={true}
           hideIcon={true}
