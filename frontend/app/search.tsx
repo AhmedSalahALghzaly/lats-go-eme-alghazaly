@@ -49,6 +49,9 @@ export default function SearchScreen() {
   const [productBrands, setProductBrands] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
 
+  // Calculate card width dynamically (max 15% increase from 160 = max 184)
+  const cardWidth = useMemo(() => calculateCardWidth(), []);
+
   // Filters
   const [selectedCarBrand, setSelectedCarBrand] = useState<string | null>(params.car_brand_id as string || null);
   const [selectedCarModel, setSelectedCarModel] = useState<string | null>(params.car_model_id as string || null);
