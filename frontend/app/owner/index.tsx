@@ -63,6 +63,7 @@ export default function OwnerDashboard() {
   const [showPartnersModal, setShowPartnersModal] = useState(false);
   const [showAddPartnerModal, setShowAddPartnerModal] = useState(false);
   const [partners, setPartners] = useState<any[]>([]);
+  const [pendingPartners, setPendingPartners] = useState<any[]>([]);
   const [partnerEmail, setPartnerEmail] = useState('');
   const [addingPartner, setAddingPartner] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
