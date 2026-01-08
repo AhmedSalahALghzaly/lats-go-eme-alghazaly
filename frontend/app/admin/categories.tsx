@@ -69,7 +69,7 @@ export default function CategoriesAdmin() {
         name_ar: nameAr.trim(),
         parent_id: parentId,
         icon: icon.trim() || null,
-        image: categoryImage || null,
+        image_data: categoryImage || null,
       });
 
       showToast(language === 'ar' ? 'تم حفظ الفئة بنجاح' : 'Category saved successfully', 'success');
