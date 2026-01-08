@@ -52,12 +52,15 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, size = 'me
   };
 
   const sizeStyles = {
-    small: { width: 80, height: 80, iconSize: 24, fontSize: 11 },
-    medium: { width: 100, height: 100, iconSize: 32, fontSize: 12 },
-    large: { width: 120, height: 120, iconSize: 40, fontSize: 14 },
+    small: { width: 80, height: 80, iconSize: 24, fontSize: 11, containerSize: 40 },
+    medium: { width: 100, height: 100, iconSize: 32, fontSize: 12, containerSize: 50 },
+    large: { width: 120, height: 120, iconSize: 40, fontSize: 14, containerSize: 60 },
   };
 
-  const { width, height, iconSize, fontSize } = sizeStyles[size];
+  const { width, height, iconSize, fontSize, containerSize } = sizeStyles[size];
+
+  // Check if category has an uploaded image
+  const hasImage = category.image_data && category.image_data.length > 0;
 
   return (
     <TouchableOpacity
@@ -73,12 +76,35 @@ export const CategoryCard: React.FC<CategoryCardProps> = ({ category, size = 'me
       onPress={() => router.push(`/category/${category.id}`)}
       activeOpacity={0.7}
     >
-      <View style={[styles.iconContainer, { backgroundColor: colors.primary + '15' }]}>
-        <MaterialCommunityIcons
-          name={getIconName() as any}
-          size={iconSize}
-          color={colors.primary}
-        />
+      <View 
+        style={[
+          styles.iconContainer, 
+          { 
+            backgroundColor: hasImage ? 'transparent' : colors.primary + '15',
+            width: containerSize,
+            height: containerSize,
+            borderRadius: containerSize / 2,
+            overflow: 'hidden',
+          }
+        ]}
+      >
+        {hasImage ? (
+          <Image
+            source={{ uri: category.image_data }}
+            style={{
+              width: containerSize,
+              height: containerSize,
+              borderRadius: containerSize / 2,
+            }}
+            resizeMode="cover"
+          />
+        ) : (
+          <MaterialCommunityIcons
+            name={getIconName() as any}
+            size={iconSize}
+            color={colors.primary}
+          />
+        )}
       </View>
       <Text
         style={[styles.name, { color: colors.text, fontSize }]}
