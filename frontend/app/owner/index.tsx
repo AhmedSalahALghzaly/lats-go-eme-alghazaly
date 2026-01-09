@@ -381,7 +381,7 @@ export default function OwnerDashboard() {
             <TouchableOpacity
               style={styles.searchButton}
               onPress={() => {
-                haptic('light');
+                haptic.tap();
                 setShowGlobalSearch(true);
               }}
               activeOpacity={0.7}
