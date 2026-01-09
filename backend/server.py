@@ -1142,7 +1142,14 @@ async def get_car_model(model_id: str):
     if brand_id:
         brand = await db.car_brands.find_one({"_id": brand_id})
         model_data["brand"] = serialize_doc(brand) if brand else None
-    products = await db.products.find({"compatible_car_models": model_id, "deleted_at": None}).to_list(100)
+    # Search for products with this car model in both field names for compatibility
+    products = await db.products.find({
+        "$or": [
+            {"car_model_ids": model_id},
+            {"compatible_car_models": model_id}
+        ],
+        "deleted_at": None
+    }).to_list(100)
     model_data["compatible_products"] = [serialize_doc(p) for p in products]
     model_data["compatible_products_count"] = len(products)
     return model_data
