@@ -92,7 +92,13 @@ export default function BrandModelsScreen() {
         <View style={[styles.brandHeader, { backgroundColor: colors.card, borderColor: colors.border }]}>
           <View style={[styles.brandIconLarge, { backgroundColor: colors.primary + '15' }]}>
             {(brand?.image || brand?.logo) ? (
-              <Image source={{ uri: brand.image || brand.logo }} style={styles.brandLogoLarge} resizeMode="contain" />
+              <Image 
+                source={{ uri: brand.image || brand.logo }} 
+                style={styles.brandLogoLarge} 
+                contentFit="contain"
+                cachePolicy="disk"
+                transition={200}
+              />
             ) : (
               <Ionicons name="car-sport" size={48} color={colors.primary} />
             )}
@@ -130,7 +136,9 @@ export default function BrandModelsScreen() {
                     <Image
                       source={{ uri: model.image_url }}
                       style={styles.modelImage}
-                      resizeMode="cover"
+                      contentFit="cover"
+                      cachePolicy="disk"
+                      transition={200}
                     />
                   ) : (
                     <Ionicons name="car-sport" size={40} color={colors.textSecondary} />
