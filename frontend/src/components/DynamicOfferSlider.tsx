@@ -2,7 +2,7 @@
  * Dynamic Offer Slider - Fetches from Marketing API
  * Displays both Promotions and Bundle Offers
  */
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
