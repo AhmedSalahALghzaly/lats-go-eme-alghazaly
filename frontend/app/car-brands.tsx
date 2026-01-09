@@ -147,7 +147,13 @@ export default function CarBrandsPage() {
                   {/* Brand Logo */}
                   <View style={[styles.brandLogoContainer, { backgroundColor: colors.primary + '15' }]}>
                     {(brand.image || brand.logo) ? (
-                      <Image source={{ uri: brand.image || brand.logo }} style={styles.brandLogo} resizeMode="contain" />
+                      <Image 
+                        source={{ uri: brand.image || brand.logo }} 
+                        style={styles.brandLogo} 
+                        contentFit="contain"
+                        cachePolicy="disk"
+                        transition={200}
+                      />
                     ) : (
                       <Ionicons name="car-sport" size={40} color={colors.primary} />
                     )}
