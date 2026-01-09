@@ -2677,76 +2677,75 @@ async def create_database_indexes():
         logger.info("Creating database indexes...")
         
         # Products indexes - الأكثر أهمية للبحث
-        await db.products.create_index("deleted_at")
-        await db.products.create_index("category_id")
-        await db.products.create_index("product_brand_id")
-        await db.products.create_index("car_model_ids")
-        await db.products.create_index("price")
-        await db.products.create_index("sku")
-        await db.products.create_index("name")
-        await db.products.create_index("hidden_status")
-        await db.products.create_index([("deleted_at", 1), ("category_id", 1)])
-        await db.products.create_index([("deleted_at", 1), ("product_brand_id", 1)])
-        await db.products.create_index([("deleted_at", 1), ("car_model_ids", 1)])
+        await db.products.create_index("deleted_at", background=True)
+        await db.products.create_index("category_id", background=True)
+        await db.products.create_index("product_brand_id", background=True)
+        await db.products.create_index("car_model_ids", background=True)
+        await db.products.create_index("price", background=True)
+        await db.products.create_index("sku", background=True)
+        await db.products.create_index("name", background=True)
+        await db.products.create_index("hidden_status", background=True)
+        await db.products.create_index([("deleted_at", 1), ("category_id", 1)], background=True)
+        await db.products.create_index([("deleted_at", 1), ("product_brand_id", 1)], background=True)
+        await db.products.create_index([("deleted_at", 1), ("car_model_ids", 1)], background=True)
         
-        # Sessions indexes - للمصادقة السريعة
-        await db.sessions.create_index("session_token", unique=True)
-        await db.sessions.create_index("user_id")
-        await db.sessions.create_index("expires_at")
+        # Sessions indexes - للمصادقة السريعة (بدون unique للتعامل مع البيانات القديمة)
+        await db.sessions.create_index("session_token", background=True)
+        await db.sessions.create_index("user_id", background=True)
+        await db.sessions.create_index("expires_at", background=True)
         
         # Users indexes
-        await db.users.create_index("email", unique=True)
-        await db.users.create_index("_id")
+        await db.users.create_index("email", background=True)
         
         # Orders indexes
-        await db.orders.create_index("deleted_at")
-        await db.orders.create_index("user_id")
-        await db.orders.create_index("status")
-        await db.orders.create_index("created_at")
-        await db.orders.create_index([("deleted_at", 1), ("status", 1)])
+        await db.orders.create_index("deleted_at", background=True)
+        await db.orders.create_index("user_id", background=True)
+        await db.orders.create_index("status", background=True)
+        await db.orders.create_index("created_at", background=True)
+        await db.orders.create_index([("deleted_at", 1), ("status", 1)], background=True)
         
         # Categories indexes
-        await db.categories.create_index("deleted_at")
-        await db.categories.create_index("parent_id")
+        await db.categories.create_index("deleted_at", background=True)
+        await db.categories.create_index("parent_id", background=True)
         
         # Car Brands indexes
-        await db.car_brands.create_index("deleted_at")
-        await db.car_brands.create_index("name")
+        await db.car_brands.create_index("deleted_at", background=True)
+        await db.car_brands.create_index("name", background=True)
         
         # Car Models indexes
-        await db.car_models.create_index("deleted_at")
-        await db.car_models.create_index("brand_id")
-        await db.car_models.create_index([("deleted_at", 1), ("brand_id", 1)])
+        await db.car_models.create_index("deleted_at", background=True)
+        await db.car_models.create_index("brand_id", background=True)
+        await db.car_models.create_index([("deleted_at", 1), ("brand_id", 1)], background=True)
         
         # Product Brands indexes
-        await db.product_brands.create_index("deleted_at")
-        await db.product_brands.create_index("name")
+        await db.product_brands.create_index("deleted_at", background=True)
+        await db.product_brands.create_index("name", background=True)
         
         # Partners, Admins, Subscribers indexes
-        await db.partners.create_index("email")
-        await db.partners.create_index("deleted_at")
-        await db.admins.create_index("email")
-        await db.admins.create_index("deleted_at")
-        await db.subscribers.create_index("email")
-        await db.subscribers.create_index("deleted_at")
+        await db.partners.create_index("email", background=True)
+        await db.partners.create_index("deleted_at", background=True)
+        await db.admins.create_index("email", background=True)
+        await db.admins.create_index("deleted_at", background=True)
+        await db.subscribers.create_index("email", background=True)
+        await db.subscribers.create_index("deleted_at", background=True)
         
         # Notifications indexes
-        await db.notifications.create_index("user_id")
-        await db.notifications.create_index("created_at")
-        await db.notifications.create_index([("user_id", 1), ("created_at", -1)])
+        await db.notifications.create_index("user_id", background=True)
+        await db.notifications.create_index("created_at", background=True)
+        await db.notifications.create_index([("user_id", 1), ("created_at", -1)], background=True)
         
         # Promotions indexes
-        await db.promotions.create_index("deleted_at")
-        await db.promotions.create_index("is_active")
+        await db.promotions.create_index("deleted_at", background=True)
+        await db.promotions.create_index("is_active", background=True)
         
         # Bundle offers indexes
-        await db.bundle_offers.create_index("deleted_at")
-        await db.bundle_offers.create_index("is_active")
+        await db.bundle_offers.create_index("deleted_at", background=True)
+        await db.bundle_offers.create_index("is_active", background=True)
         
         logger.info("Database indexes created successfully!")
         
     except Exception as e:
-        logger.warning(f"Error creating some indexes (may already exist): {e}")
+        logger.warning(f"Error creating some indexes: {e}")
 
 @app.on_event("startup")
 async def startup_db_client():
