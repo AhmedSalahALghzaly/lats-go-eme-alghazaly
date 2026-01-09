@@ -60,6 +60,12 @@ export default function OwnerDashboard() {
   const products = useAppStore((state) => state.products);
   const setOrderFilter = useAppStore((state) => state.setOrderFilter);
   const setGlobalPartners = useAppStore((state) => state.setPartners);
+  
+  // Store setters for global search data
+  const setSuppliers = useAppStore((state) => state.setSuppliers);
+  const setDistributors = useAppStore((state) => state.setDistributors);
+  const setCustomers = useAppStore((state) => state.setCustomers);
+  const setAdmins = useAppStore((state) => state.setAdmins);
 
   // Partner management state
   const [showPartnersModal, setShowPartnersModal] = useState(false);
