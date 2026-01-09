@@ -17,6 +17,7 @@ import { useTheme, lightTheme, darkTheme } from '../../src/hooks/useTheme';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAppStore, useCanAccessAdminPanel } from '../../src/store/appStore';
 import { authApi } from '../../src/services/api';
+import { AppVersionInfo } from '../../src/components/ui/AppVersionInfo';
 
 // Owner email that can always access the interface
 const OWNER_EMAIL = 'pc.2025.ai@gmail.com';
