@@ -228,46 +228,55 @@ export const GlobalSearch: React.FC<GlobalSearchProps> = ({ visible, onClose }) 
 
     // === CUSTOMERS, ADMINS, PARTNERS (Owner/Partner only) ===
     if (accessLevel === 'owner') {
-      customers.forEach((c: any) => {
-        if (fuzzyMatch(c.name || '', query) || fuzzyMatch(c.email || '', query)) {
-          allResults.push({
-            id: c.id,
-            type: 'customer',
-            title: c.name || c.email,
-            subtitle: c.email,
-            icon: 'person',
-            color: '#10B981',
-            route: `/owner/customers`,
-          });
-        }
-      });
+      // Customers
+      if (Array.isArray(customers)) {
+        customers.forEach((c: any) => {
+          if (fuzzyMatch(c.name || '', query) || fuzzyMatch(c.email || '', query)) {
+            allResults.push({
+              id: c.id,
+              type: 'customer',
+              title: c.name || c.email,
+              subtitle: c.email,
+              icon: 'person',
+              color: '#10B981',
+              route: `/owner/customers`,
+            });
+          }
+        });
+      }
 
-      admins.forEach((a: any) => {
-        if (fuzzyMatch(a.name || '', query) || fuzzyMatch(a.email || '', query)) {
-          allResults.push({
-            id: a.id,
-            type: 'admin',
-            title: a.name || a.email,
-            subtitle: `Revenue: ${a.revenue || 0} ج.م`,
-            icon: 'shield-checkmark',
-            color: '#8B5CF6',
-            route: `/owner/admins`,
-          });
-        }
-      });
+      // Admins
+      if (Array.isArray(admins)) {
+        admins.forEach((a: any) => {
+          if (fuzzyMatch(a.name || '', query) || fuzzyMatch(a.email || '', query)) {
+            allResults.push({
+              id: a.id,
+              type: 'admin',
+              title: a.name || a.email,
+              subtitle: `Revenue: ${a.revenue || 0} ج.م`,
+              icon: 'shield-checkmark',
+              color: '#8B5CF6',
+              route: `/owner/admins`,
+            });
+          }
+        });
+      }
 
-      partners.forEach((p: any) => {
-        if (fuzzyMatch(p.name || '', query) || fuzzyMatch(p.email || '', query)) {
-          allResults.push({
-            id: p.id,
-            type: 'partner',
-            title: p.name || p.email,
-            subtitle: p.email,
-            icon: 'people',
-            color: '#6366F1',
-          });
-        }
-      });
+      // Partners
+      if (Array.isArray(partners)) {
+        partners.forEach((p: any) => {
+          if (fuzzyMatch(p.name || '', query) || fuzzyMatch(p.email || '', query)) {
+            allResults.push({
+              id: p.id,
+              type: 'partner',
+              title: p.name || p.email,
+              subtitle: p.email,
+              icon: 'people',
+              color: '#6366F1',
+            });
+          }
+        });
+      }
     }
 
     return allResults.slice(0, 25); // Limit results
