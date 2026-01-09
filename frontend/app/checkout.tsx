@@ -145,7 +145,12 @@ const ReviewStep = ({ cartItems, getTotal, getOriginalTotal, getTotalSavings, la
             >
               <View style={styles.reviewItemImage}>
                 {item.product?.image ? (
-                  <Image source={{ uri: item.product.image }} style={styles.reviewImg} resizeMode="cover" />
+                  <Image 
+                    source={{ uri: item.product.image }} 
+                    style={styles.reviewImg} 
+                    contentFit="cover"
+                    cachePolicy="disk"
+                  />
                 ) : (
                   <View style={[styles.reviewImgPlaceholder, { backgroundColor: colors.border }]}>
                     <Ionicons name="cube-outline" size={24} color={colors.textSecondary} />
