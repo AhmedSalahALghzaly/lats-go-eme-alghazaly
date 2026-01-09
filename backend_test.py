@@ -10,7 +10,7 @@ import sys
 from typing import Dict, Any, Optional
 
 # Backend URL - using external URL from environment
-BASE_URL = "https://shopenhance-1.preview.emergentagent.com/api"
+BASE_URL = "https://auto-offline.preview.emergentagent.com/api"
 
 class BackendTester:
     def __init__(self):

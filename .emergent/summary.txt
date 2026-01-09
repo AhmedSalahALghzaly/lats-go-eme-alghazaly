@@ -1,202 +1,182 @@
 <analysis>
 <original_problem_statement>
-The user wants to fix three critical bugs in an existing e-commerce application and then add several UI/UX enhancements.
+The user initially requested to fix three critical bugs (Bundle Offer Cart Logic, Admin Delete Functionality, New Admin Access) and then add several UI/UX enhancements (Header UI, Dynamic Category Images, Product Card UI).
 
-**Initial Bug Fixes Requested:**
-1.  **Bundle Offer Cart Logic:** When a bundle is added to the cart, all its products should be added. If any product from the bundle is removed, the bundle discount should be voided for all remaining products from that bundle.
-2.  **Admin Delete Functionality:** The delete buttons for Promotions and Bundle Offers in the admin panel are non-functional. The user wants to ensure deletion is permanent in the database.
-3.  **New Admin Access:** Newly created admins do not see the Admin Panel icon in the app's footer navigation.
+During this session, the user reprioritized the tasks. The  enhancement was completed first. The bug fixes for Bundle Logic and Admin Deletion were deferred for later verification. The Category Image feature was also deferred.
 
-**Subsequent Feature/Enhancement Requests:**
-1.  **Header UI Update:** Modify the  component to restore a brand text next to the logo, resize the logo, change the text, and adjust colors and spacing based on several rounds of feedback.
-2.  **Dynamic Category Images:** Replace static icons for product categories with dynamic images uploaded by the admin. This should be reflected on the home screen, categories screen, and in the admin panel.
-3.  **Product Card UI Enhancement:** Redesign the  component to display more product details (brand, country, SKU, compatible car model) in a more modern and space-efficient layout.
+**New tasks and bugs addressed in this session:**
+1.  **Product Card Enhancement:** Redesign the product card to show more details (Brand, SKU, Country, etc.). This was completed successfully after multiple iterations and backend modifications.
+2.  **Font Timeout Bug:** A web-only font loading timeout error on app startup was fixed using .
+3.  **Car Model Page Bug:** Products compatible with a specific car model were not being displayed. This was fixed in the backend.
+4.  **UI Cleanup:** The View All text in the product brands section on the home page was removed.
+5.  **Car Brand Images:** Car brand list and detail pages were updated to show dynamic brand images from the API instead of static icons.
+6.  **Global Search Feature:** The global search functionality was added to the Advanced Owner dashboard.
+7.  **Performance Improvements:** Basic authentication validation on app startup and database indexing on the backend were implemented.
+8.  **Offline-First Strategy:** A comprehensive plan for making the app fully functional offline was requested by the user, analyzed by the agent, and documented in .
 
+**The next set of tasks is to implement the offline optimization plan.**
 </original_problem_statement>
-**User's preferred language**: The user communicates in both English and Arabic (العربية). The agent has recently been responding in Arabic. The next agent **MUST** continue to respond in Arabic unless the user switches back to English.
+
+**User's preferred language**: العربية (Arabic). The next agent **MUST** respond in Arabic.
 
 **what currently exists?**
-A full-stack React Native (Expo) and FastAPI e-commerce application. The initial three critical bugs have been addressed with in-depth fixes. The most significant fix was implementing an Axios interceptor to send the authentication token with every API request, which was the root cause of the delete functionality failure. UI enhancements for the  component have been completed. The feature to display dynamic images for categories has been partially implemented but is currently not working as expected and is under investigation. The category list has been removed from the home screen per the user's request.
+A full-stack React Native (Expo) and FastAPI e-commerce application. The  component has been completely redesigned and is functioning correctly. Several critical bugs related to data fetching on the car model page and image display on brand pages have been resolved. The backend has been enhanced with database indexes for better performance, and the frontend now includes a token validation check on startup. A Global Search feature has been successfully added to the owner's dashboard. A comprehensive plan for offline-first functionality has been created and saved as  and .
 
 **Last working item**:
-- Last item agent was working: The agent was about to start implementing the UI/UX enhancements for the  component as requested by the user. This involves adding new product details and redesigning the card layout. The agent had viewed the relevant files and the product data structure.
-- Status: NOT STARTED
-- Agent Testing Done: N
-- Which testing method agent to use? Frontend testing agent
-- User Testing Done: N
+- Last item agent was working: The agent analyzed the user's detailed request for a full offline-first architecture. It reviewed the existing sync/cache implementation (, ) and created a comprehensive implementation plan, saving it as . It then confirmed with the user that this plan will be the basis for the next session.
+- Status: FINISHED
+- Agent Testing Done: N/A
+- Which testing method agent to use? N/A
+- User Testing Done: Y
 
 **All Pending/In progress Issue list**:
-- Issue 1: Category images are not displaying after being uploaded. (P0 - HIGHEST)
-- Issue 2: Verification pending for the fix of Admin Delete Functionality. (P1)
-- Issue 3: Verification pending for the fix of Bundle Offer Cart Logic. (P1)
+-   **Issue 1: Bundle Offer Cart Logic (P1)**: When a product from a bundle is removed from the cart, the bundle discount is not correctly voided for the remaining products from that same bundle.
+-   **Issue 2: Admin Delete Functionality (P1)**: The delete buttons for Promotions and Bundle Offers in the admin panel might still be non-functional, pending user verification.
+-   **Issue 3: Category Image Display (P2)**: The feature to replace static category icons with dynamic, admin-uploaded images is not working.
 
   Issues Detail:
   - Issue 1: 
-     - **Description**: The user reported that after adding a new sub-category (فلتر / Filter) with an image, the image does not replace the default icon on the categories screen.
-     - **Attempted fixes**: 
-        1. Modified  and  to conditionally render an  component if  is present.
-        2. Added an  field to the  and  Pydantic models in .
-        3. Corrected a field name mismatch: updated  to send  instead of  to the backend.
-        4. Added  in  and  in the  backend endpoint to trace the image data.
-     - **Next debug checklist**:
-        1. Ask the user to try adding/editing a category with an image again.
-        2. Check the backend logs (==> Press Ctrl-C to exit <==
-car-brands HTTP/1.1" 200 OK
-INFO:     10.64.129.77:53578 - "GET /api/car-models HTTP/1.1" 200 OK
-INFO:     10.64.133.221:59082 - "GET /api/categories/all HTTP/1.1" 200 OK
-INFO:     10.64.128.199:44560 - "GET /api/product-brands HTTP/1.1" 200 OK
-INFO:     10.64.133.198:51498 - "GET /api/orders/all HTTP/1.1" 200 OK
-INFO:     10.64.133.198:51506 - "GET /api/distributors HTTP/1.1" 200 OK
-INFO:     10.64.133.198:51498 - "GET /api/suppliers HTTP/1.1" 200 OK
-INFO:     10.64.133.221:59090 - "GET /api/customers HTTP/1.1" 200 OK
-INFO:     10.64.139.6:42916 - "GET /api/product-brands HTTP/1.1" 200 OK
-INFO:     10.64.139.7:37232 - "GET /api/car-models HTTP/1.1" 200 OK
-INFO:     10.64.139.7:37218 - "GET /api/car-brands HTTP/1.1" 200 OK
-INFO:     10.64.139.7:37238 - "GET /api/products?limit=1000 HTTP/1.1" 200 OK
-INFO:     10.64.129.77:53590 - "GET /api/categories/all HTTP/1.1" 200 OK
-INFO:     10.64.129.107:33002 - "GET /api/suppliers HTTP/1.1" 200 OK
-INFO:     10.64.133.221:59090 - "GET /api/distributors HTTP/1.1" 200 OK) for the  statement output to see if the base64 data is received.
-        3. Check the browser/device console for the  output from  to confirm the image data is being set in the state and sent with the API call.
-        4. If data is received by the backend, verify it's being correctly saved to the MongoDB  collection.
-        5. If data is not received, the issue is in the frontend state management within .
-     - Why fix this issue and what will be achieved with the fix?: This is a user-requested feature to modernize the UI by replacing static icons with dynamic, admin-managed images, improving the app's visual appeal.
-     - Status:  IN PROGRESS
+     - Attempted fixes: A fix was implemented in a previous session, but the user has deferred testing. The agent has not re-verified this during the current session.
+     - Next debug checklist: Ask the user to test the flow: 1. Add a bundle to cart. 2. Remove one product from the bundle. 3. Check if the discount is removed from the other products in the bundle. If it fails, check the  logic again.
+     - Why fix this issue and what will be achieved with the fix?: Fixes a critical e-commerce logic flaw, ensuring correct pricing.
+     - Status:  USER VERIFICATION PENDING
      - Is recurring issue? Y
-     - Should Test frontend/backend/both after fix? Both
-     - Blocked on other issue: No
+     - Should Test frontend/backend/both after fix? Frontend (manual testing by user).
+     - Blocked on other issue: No. User has explicitly deferred this.
 
-  - Issue 2:
-     - **Description**: The fix for non-functional delete buttons (Promotions, Bundles) needs to be confirmed by the user.
-     - **Attempted fixes**: The root cause was identified as the auth token not being sent with API requests. An Axios interceptor was added in  to attach the  header to all requests.
-     - **Next debug checklist**: Ask the user to test the delete functionality in the Admin Marketing Suite.
-     - Why fix this issue and what will be achieved with this?: This will restore core admin functionality.
-     - Status: USER VERIFICATION PENDING
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? Frontend (manual test by user)
-     - Blocked on other issue: No
-
+  - Issue 2: 
+     - Attempted fixes: An Axios interceptor was added in a previous session to fix the root cause (missing auth token). In this session, the agent added more detailed error logging to the delete functions in  to aid debugging if the issue persists.
+     - Next debug checklist: Ask the user to test the delete functionality in the Admin Marketing Suite. Check the device/browser console logs for the new error messages if it fails.
+     - Why fix this issue and what will be achieved with the fix?: Restores core admin functionality.
+     - Status:  USER VERIFICATION PENDING
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? Frontend (manual testing by user).
+     - Blocked on other issue: No. User has explicitly deferred this.
+  
   - Issue 3:
-     - **Description**: The fix for the bundle cart logic needs to be confirmed by the user.
-     - **Attempted fixes**: The root cause was  using the wrong function to add items. The fix involved creating a new  function in  and using it correctly in .
-     - **Next debug checklist**: Ask the user to test the flow: add a bundle offer to the cart, then remove one product from that bundle, and verify the discount is removed from the other products in the bundle.
-     - Why fix this issue and what will be achieved with this?: This fixes a critical e-commerce logic flaw.
-     - Status: USER VERIFICATION PENDING
-     - Is recurring issue? N
-     - Should Test frontend/backend/both after fix? Frontend (manual test by user)
-     - Blocked on other issue: No
+     - Attempted fixes: None in this session. The user explicitly deprioritized this task.
+     - Next debug checklist: Follow the debug checklist from the previous summary: check if base64 data is reaching the backend and being saved to MongoDB.
+     - Why fix this issue and what will be achieved with the fix?: Improves the app's visual appeal by allowing dynamic, admin-managed category images.
+     - Status: NOT STARTED
+     - Is recurring issue? Y
+     - Should Test frontend/backend/both after fix? Both.
+     - Blocked on other issue: No. User has explicitly deferred this.
 
 **In progress Task List**:
-  There are no in-progress tasks, only the issues listed above.
+- None.
 
 **Upcoming and Future Tasks**
-- **Upcoming Tasks**:
-    - **P0: Enhance ProductCard Details and Layout**.
-        - **File**: 
-        - **Actions**:
-            1.  Modify  to include , , , .
-            2.  Adjust layout to display these new fields below the product name.
-            3.  Ensure graceful handling of missing data.
-        - **Related Files**: Update data fetching in  and  to retrieve and pass the new data to .
+The user has approved a multi-phase plan for offline optimization and performance enhancements, detailed in . The tasks should be completed sequentially, with user verification at each step.
+
+- **Upcoming Tasks (P0 - Next session's work):**
+    - **Task 1: Implement  caching for all images.** This is the first step from the user-approved plan to ensure images are available offline.
+        - **Files to modify**: , , , , and any other component that renders images from the API.
+        - **Action**: Replace   components with  and configure its caching policy.
+    - **Task 2: Enhance .** Provide more granular feedback to the user (e.g., Last synced..., 3 actions pending).
+    - **Task 3: Implement Network Monitor + Offline Banner.** Use  to globally track online status and show a banner when the user is offline.
+
+- **Future Tasks (P1 and P2):**
+    - Improve Offline Queue (, ).
+    - Performance Optimization (Apply ,  to components like ).
+    - UI/UX Refinements & Error Boundaries.
+    - Resolve the deferred issues (Bundle Logic, Admin Delete, Category Images) when the user reprioritizes them.
 
 **Completed work in this session**
-- List of all completed tasks with file and method name:
-  - **Bug Fix (Auth & Deletion)**: Implemented an Axios request interceptor in  to send the auth token with all API calls, fixing the non-functional delete buttons.
-  - **Bug Fix (Bundle Cart Logic)**: Implemented  in  and correctly invoked it from .
-  - **Bug Fix (New Admin Access)**: Created a new endpoint  in  and updated  to fetch admin data globally.
-  - **UI Enhancement (Header)**: Updated  to add brand text, resize the logo, and adjust styling based on multiple rounds of user feedback.
-  - **UI Cleanup (Home Screen)**: Removed the categories section from  as requested by the user.
-
-- Recently completed:
-  - Header UI update (DONE)
-  - Admin access logic fix (DONE)
-  - Auth token interceptor implementation (DONE)
-
-**Earlier issues found/mentioned but not fixed**
-   - The issue of category images not displaying is the primary unresolved problem and is listed under All Pending/In progress Issue list. No other issues were mentioned and missed.
-
-**Known issue recurrence from previous fork**
-  - None.
+- **Feature:  Redesign:** Completely redesigned the component to show Brand, SKU, Country, and compatible car model. This included modifying  to enrich the data on  and  endpoints.
+- **Bug Fix: Font Loading Timeout:** Fixed a web-only font loading timeout error by using  to modify the  library, changing the timeout from 6s to 90s.
+- **Bug Fix: Car Model Product Listing:** Fixed a bug on the car model detail page () where compatible products weren't showing. The fix involved correcting a backend query in  to search in the correct field ().
+- **Feature: Global Search on Owner Page:** Added a global search icon and modal to the owner dashboard (). This involved adding logic to fetch all necessary data (customers, suppliers, etc.) into the Zustand store to make them searchable.
+- **Bug Fix: Global Search Crashes:** Fixed crashes in the Global Search component by correcting a haptic service call and adding  checks to prevent iterating on non-array data.
+- **Improvement: Database Indexing:** Added multiple MongoDB indexes in  via the FastAPI startup event to improve query performance on products, users, sessions, and other collections.
+- **Improvement: Auth Validation on Startup:** Implemented a session validation check in  that runs when the app loads, logging the user out if their token is invalid.
+- **Documentation: Created  and ** to document and plan future work based on user requests.
 
 **Code Architecture**
 
 
 **Key Technical Concepts**
 - **Backend**: FastAPI, MongoDB (via ), Pydantic models.
-- **Frontend**: React Native, Expo, TypeScript.
-- **State Management**: Zustand with  and .
-- **API Communication**: Axios, with a custom request interceptor for authentication.
-- **Routing**: Expo file-based routing ().
+- **Frontend**: React Native, Expo, TypeScript, Expo Router.
+- **State Management**: Zustand with  and . A basic offline queue and sync mechanism exists.
+- **API Communication**: Axios with a custom request interceptor for authentication.
+- **Package Patching**:  is used to apply custom modifications to  dependencies (specifically ).
+- **Database Optimization**: Indexes are now created on the MongoDB collections during the backend's startup sequence.
 
 **key DB schema**
-  - : 
-  - : 
-  - : 
-  - : 
+-   :  (Used for product details)
+-   :  (An index was added on )
+-   :  (An index was added on )
+-   : 
+-   : 
 
 **changes in tech stack**
-  - None.
+-    was added to manage modifications to node modules.
 
 **All files of reference**
-- : Modified to add  to category models and a new  endpoint. Added logging.
-- : Modified to add the  function.
-- : Modified to call  on auth state changes.
-- : Modified to add the Axios interceptor for auth headers and the new  API call.
-- : Modified to use the new  function.
-- : Modified to fetch admin data globally.
-- : Modified extensively to update UI per user requests.
-- : Modified to support displaying .
-- : Modified to support displaying . Added logging.
-- : Modified to handle  on creation/update. Added logging.
-- : Modified to remove the categories section.
-- : Next file to be modified.
+-   : **CRITICAL.** Contains the detailed, user-approved plan for the next series of tasks.
+-   : Contains a general list of potential improvements.
+-   : Heavily modified to enrich product data on list endpoints and to add database indexes on startup.
+-   : Completely rewritten to display a new design with more product details.
+-   : Modified to add the Global Search feature and to pre-fetch all data required for the search.
+-   : Modified to be more robust by adding  checks.
+-   : Modified to add a  action that runs on startup.
+-   : Modified to add  and the  script.
+-   : New file created by  to fix the font timeout issue.
 
 **Areas that need refactoring**:
-- None identified at the moment.
+- The  file is becoming large. As suggested in , splitting it into multiple stores (authStore, cartStore, dataStore) would improve maintainability.
 
 **key api endpoints**
-- : Creates a new category. Now accepts .
-- : Fetches all categories.
-- : User login.
-- : Deletes a promotion.
-- : Deletes a bundle offer.
-- : **New endpoint** for any authenticated user to get a list of admin emails.
+-   : Modified to return enriched product data including brand name and compatible car model.
+-   : Also modified to return enriched product data.
+-   : Modified to fix a bug by querying for products using both  and the legacy  field.
 
 **Critical Info for New Agent**
-- **Authentication is CRITICAL**: The application was failing to perform authenticated actions (like delete) because the  stored in Zustand was not being sent with API requests. This was fixed by adding an Axios request interceptor in . Any new API calls will automatically have the auth header, but be aware of this fix if any auth issues reappear.
-- **Category Images Debugging**: The main pending issue is that category images aren't being saved/displayed. The agent has added logging on both frontend and backend. The next step is to trigger the action (add/edit a category with an image) and inspect the logs to pinpoint the failure.
-- **User Verification**: Three major bug fixes (auth/delete, bundle cart, admin access) have been implemented but not yet confirmed by the user. The next agent should be prepared to address any feedback if the fixes are not working as expected.
+-   **Follow the Plan:** Your primary objective is to start implementing the tasks outlined in . The user has explicitly requested to start with  caching and wants to verify each major step before you proceed to the next.
+-   **Deferred Issues:** The user has consciously deferred fixing the bundle logic and admin delete functionality. Do not work on these unless the user reprioritizes them. Be prepared to address them if the user decides to test and finds they are still broken.
+-   **Font Timeout Patch:** A patch for  is in place. If you run yarn install v1.22.22
+[1/4] Resolving packages...
+success Already up-to-date.
+$ patch-package
+patch-package 8.0.1
+Applying patches...
+expo-font@13.3.2 ✔
+Done in 0.55s. or  and the app is re-bundled, this patch should be applied automatically. If you see a font timeout error on the web preview, it means the patch failed to apply.
+-   **Global Search Data Dependency:** The Global Search component relies on data being pre-loaded into the Zustand store. The owner dashboard now does this, but be mindful of this dependency if the component is ever reused elsewhere.
 
 **documents created in this job**
-  - None.
+-   
+-   
+-   
 
 **Last 10 User Messages and any pending HUMAN messages**
-1.  **User**: Excellent. Next task: Enhance ... (Details the new task).
-2.  **Agent**: Acknowledges and provides a summary of the logging/debugging additions for the category image issue, asking if the user wants to test it.
-3.  **User**: Did not change, delete the categories section from the home screen, and just apply the image display to the main categories page.
-4.  **Agent**: Provides a summary of the fixes for the category image display issue (correcting field names, etc.) and states new categories should now work.
-5.  **User**: The icons didn't change to the uploaded image. I added a sub-category Filter with an image and it didn't show up. Make the image the primary display instead of the icon.
-6.  **Agent**: Provides a summary of the implementation for displaying category images.
-7.  **User**: You are an expert... (Starts new task to replace category icons with images).
-8.  **Agent**: Confirms the final  update is complete.
-9.  **User**: Excellent. One last modification: change the logo width from 70 to 59.
-10. **Agent**: Confirms the  update for color and spacing.
+1.  **User:** I will fork. We will work on: 1.  caching, 2. , 3. Network Monitor, 4. Offline Queue, 5. Performance, 6. UI/UX. (Task list for next session).
+2.  **Agent:** Acknowledges the plan for the next session.
+3.  **User:** Asks for a final report for improvements, to be worked on later.
+4.  **Agent:** Acknowledges, analyzes the user's detailed offline-first request, and prepares the final report.
+5.  **User:** Provides a very detailed plan/vision for how the offline functionality should work and asks the agent to analyze it and create a final report.
+6.  **Agent:** Acknowledges and states it will provide an improvement plan based on the current architecture.
+7.  **User:** Asks for suggestions for full offline support and automatic sync.
+8.  **Agent:** Asks for verification of the Global Search fix.
+9.  **User:** Reports a crash ( is not a function) when typing in the Global Search bar.
+10. **Agent:** Asks for verification after fixing the Global Search data fetching.
 
 **Project Health Check:**
-- **Broken**: The feature for displaying dynamic images for categories is currently broken. Data is not being saved or displayed correctly.
-- **Mocked**: No mocked data is being used.
+-   **Broken**: The core bugs (Bundle Logic, Admin Deletion) are unverified and potentially still broken. The category image feature is also broken. The user is aware and has deferred these.
+-   **Mocked**: No mocked data is being used.
 
 **3rd Party Integrations**
-- No new integrations have been added. The project uses standard React Native and FastAPI libraries.
+-   No new integrations.
 
 **Testing status**
-- Testing agent used after significant changes: YES (backend testing agent was used once).
-- Troubleshoot agent used after agent stuck in loop: NO.
-- Test files created: None.
-- Known regressions: The category image feature is not working post-implementation.
+-   Testing agent used after significant changes: NO
+-   Troubleshoot agent used after agent stuck in loop: NO
+-   Test files created: []
+-   Known regressions: The user reported that the car model page stopped showing products, which was a regression introduced by recent changes. This was identified and fixed during the session.
 
 **Credentials to test flow:**
-- Credentials have not been explicitly mentioned. The agent should assume login/signup functionality exists and can be used for testing.
+- Credentials not explicitly mentioned. Assume standard login/signup flow for testing.
 
 **What agent forgot to execute**
-- The agent has not forgotten any specific task. However, the task to fix the category image display is still incomplete. The agent correctly identified the need for more debugging and added logging, but the user gave a new task before the debugging cycle was complete. The next agent should prioritize resolving the pending issue with category images before or alongside the new  task.
+- The agent has not forgotten any tasks. It has correctly followed the user's shifting priorities, deferring old tasks and completing new ones as requested. It successfully documented the user's long-term vision into an actionable plan for the next session.
 </analysis>
