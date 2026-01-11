@@ -1,0 +1,118 @@
+# Al-Ghazaly Auto Parts - ArgoCD Notifications ConfigMap
+# Configures notifications for deployment events
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  # Notification services
+  service.slack: |
+    token: $slack-token
+    
+  service.webhook.github: |
+    url: https://api.github.com
+    headers:
+      - name: Authorization
+        value: token $github-token
+
+  # Notification templates
+  template.app-deployed: |
+    message: |
+      🚀 *{{.app.metadata.name}}* has been deployed!
+      
+      *Application:* {{.app.metadata.name}}
+      *Environment:* {{.app.metadata.labels.environment}}
+      *Revision:* {{.app.status.sync.revision | truncate 7}}
+      *Status:* {{.app.status.sync.status}}
+      *Health:* {{.app.status.health.status}}
+    slack:
+      attachments: |
+        [{
+          "color": "#18be52",
+          "fields": [
+            { "title": "Application", "value": "{{.app.metadata.name}}", "short": true },
+            { "title": "Environment", "value": "{{.app.metadata.labels.environment}}", "short": true },
+            { "title": "Revision", "value": "{{.app.status.sync.revision | truncate 7}}", "short": true },
+            { "title": "Synced At", "value": "{{.app.status.operationState.finishedAt}}", "short": true }
+          ]
+        }]
+
+  template.app-health-degraded: |
+    message: |
+      ⚠️ *{{.app.metadata.name}}* health is DEGRADED!
+      
+      *Application:* {{.app.metadata.name}}
+      *Environment:* {{.app.metadata.labels.environment}}
+      *Health:* {{.app.status.health.status}}
+      *Message:* {{.app.status.health.message}}
+    slack:
+      attachments: |
+        [{
+          "color": "#f4c030",
+          "fields": [
+            { "title": "Application", "value": "{{.app.metadata.name}}", "short": true },
+            { "title": "Health Status", "value": "{{.app.status.health.status}}", "short": true },
+            { "title": "Message", "value": "{{.app.status.health.message}}", "short": false }
+          ]
+        }]
+
+  template.app-sync-failed: |
+    message: |
+      ❌ *{{.app.metadata.name}}* sync FAILED!
+      
+      *Application:* {{.app.metadata.name}}
+      *Environment:* {{.app.metadata.labels.environment}}
+      *Error:* {{.app.status.operationState.message}}
+    slack:
+      attachments: |
+        [{
+          "color": "#e01e5a",
+          "fields": [
+            { "title": "Application", "value": "{{.app.metadata.name}}", "short": true },
+            { "title": "Environment", "value": "{{.app.metadata.labels.environment}}", "short": true },
+            { "title": "Error", "value": "{{.app.status.operationState.message}}", "short": false }
+          ]
+        }]
+
+  template.app-sync-running: |
+    message: |
+      🔄 *{{.app.metadata.name}}* sync in progress...
+      
+      *Application:* {{.app.metadata.name}}
+      *Revision:* {{.app.status.operationState.operation.sync.revision | truncate 7}}
+
+  # Triggers
+  trigger.on-deployed: |
+    - description: Application is synced and healthy
+      send:
+        - app-deployed
+      when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status == 'Healthy'
+
+  trigger.on-health-degraded: |
+    - description: Application health has degraded
+      send:
+        - app-health-degraded
+      when: app.status.health.status == 'Degraded'
+
+  trigger.on-sync-failed: |
+    - description: Application sync has failed
+      send:
+        - app-sync-failed
+      when: app.status.operationState.phase in ['Error', 'Failed']
+
+  trigger.on-sync-running: |
+    - description: Application sync is running
+      send:
+        - app-sync-running
+      when: app.status.operationState.phase in ['Running']
+
+  # Default subscriptions
+  subscriptions: |
+    - recipients:
+        - slack:alghazaly-deployments
+      triggers:
+        - on-deployed
+        - on-health-degraded
+        - on-sync-failed

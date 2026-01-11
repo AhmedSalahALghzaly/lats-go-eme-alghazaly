@@ -1,0 +1,50 @@
+# Al-Ghazaly Auto Parts - App of Apps Pattern
+# Master application that manages all other applications
+# This enables GitOps for ArgoCD applications themselves
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alghazaly-apps
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: app-of-apps
+    app.kubernetes.io/part-of: alghazaly-auto-parts
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: alghazaly
+
+  source:
+    repoURL: https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3.git
+    targetRevision: main
+    path: argocd/applications
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+      allowEmpty: false
+
+    syncOptions:
+      - CreateNamespace=false
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  info:
+    - name: Pattern
+      value: App of Apps
+    - name: Description
+      value: Manages all Al-Ghazaly ArgoCD applications

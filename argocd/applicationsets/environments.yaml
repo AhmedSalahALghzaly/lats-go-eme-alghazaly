@@ -1,0 +1,123 @@
+# Al-Ghazaly Auto Parts - ApplicationSet for Multi-Environment Deployment
+# Automatically creates applications for multiple environments
+
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: alghazaly-environments
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: alghazaly-applicationset
+    app.kubernetes.io/part-of: alghazaly-auto-parts
+spec:
+  generators:
+    # Matrix generator: environments × components
+    - matrix:
+        generators:
+          # Environments
+          - list:
+              elements:
+                - env: dev
+                  namespace: alghazaly-dev
+                  branch: develop
+                  autoSync: true
+                  selfHeal: true
+                  prune: true
+                  replicas: "1"
+                - env: staging
+                  namespace: alghazaly-staging
+                  branch: staging
+                  autoSync: true
+                  selfHeal: true
+                  prune: false
+                  replicas: "2"
+                - env: production
+                  namespace: alghazaly
+                  branch: main
+                  autoSync: false  # Manual sync for production
+                  selfHeal: false
+                  prune: false
+                  replicas: "3"
+          # Components
+          - list:
+              elements:
+                - component: backend
+                  path: k8s/backend
+                  port: "8001"
+                - component: frontend
+                  path: k8s/frontend
+                  port: "80"
+
+  template:
+    metadata:
+      name: 'alghazaly-{{component}}-{{env}}'
+      namespace: argocd
+      labels:
+        app.kubernetes.io/name: '{{component}}'
+        app.kubernetes.io/part-of: alghazaly-auto-parts
+        environment: '{{env}}'
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: alghazaly
+
+      source:
+        repoURL: https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3.git
+        targetRevision: '{{branch}}'
+        path: '{{path}}'
+
+        kustomize:
+          images:
+            - 'ghcr.io/your-org/alghazaly/{{component}}:{{branch}}'
+          commonLabels:
+            environment: '{{env}}'
+          # Environment-specific patches
+          patches:
+            - target:
+                kind: Deployment
+              patch: |-
+                - op: replace
+                  path: /spec/replicas
+                  value: {{replicas}}
+
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: '{{namespace}}'
+
+      syncPolicy:
+        automated:
+          prune: '{{prune}}'
+          selfHeal: '{{selfHeal}}'
+          allowEmpty: false
+
+        syncOptions:
+          - CreateNamespace=true
+          - PrunePropagationPolicy=foreground
+          - ServerSideApply=true
+
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            factor: 2
+            maxDuration: 3m
+
+      revisionHistoryLimit: 10
+
+      ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          jsonPointers:
+            - /spec/replicas
+
+      info:
+        - name: Environment
+          value: '{{env}}'
+        - name: Component
+          value: '{{component}}'
+        - name: Branch
+          value: '{{branch}}'
+
+  # Sync policy for the ApplicationSet itself
+  syncPolicy:
+    preserveResourcesOnDeletion: true

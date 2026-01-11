@@ -1,0 +1,48 @@
+# Al-Ghazaly Auto Parts - Infrastructure Application
+# Manages shared infrastructure components (ingress, network policies, etc.)
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alghazaly-infrastructure
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: infrastructure
+    app.kubernetes.io/part-of: alghazaly-auto-parts
+    environment: production
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: alghazaly
+
+  source:
+    repoURL: https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3.git
+    targetRevision: main
+    path: k8s
+    
+    # Only include infrastructure files
+    directory:
+      recurse: false
+      include: '{namespace.yaml,ingress.yaml,network-policy.yaml,pdb.yaml}'
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: alghazaly
+
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 1m
+
+  revisionHistoryLimit: 5

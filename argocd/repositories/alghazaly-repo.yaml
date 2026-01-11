@@ -1,0 +1,25 @@
+# Al-Ghazaly Auto Parts - ArgoCD Repository Credentials
+# Configures access to private Git repositories
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: alghazaly-repo
+  namespace: argocd
+  labels:
+    argocd.argoproj.io/secret-type: repository
+stringData:
+  type: git
+  url: https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3.git
+  # For public repos, credentials are optional
+  # For private repos, use one of the following:
+  
+  # Option 1: Username + Personal Access Token
+  # username: your-github-username
+  # password: ghp_your-personal-access-token
+  
+  # Option 2: SSH Key
+  # sshPrivateKey: |
+  #   -----BEGIN OPENSSH PRIVATE KEY-----
+  #   ...
+  #   -----END OPENSSH PRIVATE KEY-----

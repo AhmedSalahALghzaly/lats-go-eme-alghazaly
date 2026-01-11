@@ -1,0 +1,121 @@
+# Al-Ghazaly Auto Parts - ArgoCD Project
+# Defines boundaries and permissions for the application
+
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: alghazaly
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: alghazaly
+    app.kubernetes.io/part-of: alghazaly-auto-parts
+  # Finalizer ensures proper cleanup
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Al-Ghazaly Auto Parts Application Project
+
+  # Source repositories allowed for this project
+  sourceRepos:
+    - 'https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3.git'
+    - 'https://github.com/your-org/alghazaly-*'  # Wildcard for related repos
+
+  # Destination clusters and namespaces
+  destinations:
+    # Development environment
+    - namespace: alghazaly-dev
+      server: https://kubernetes.default.svc
+    # Staging environment
+    - namespace: alghazaly-staging
+      server: https://kubernetes.default.svc
+    # Production environment
+    - namespace: alghazaly
+      server: https://kubernetes.default.svc
+    # ArgoCD namespace (for app-of-apps)
+    - namespace: argocd
+      server: https://kubernetes.default.svc
+
+  # Cluster resources allowed to be managed
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+    - group: 'networking.k8s.io'
+      kind: Ingress
+    - group: 'cert-manager.io'
+      kind: Certificate
+    - group: 'cert-manager.io'
+      kind: ClusterIssuer
+
+  # Namespace resources allowed (empty means all)
+  namespaceResourceWhitelist:
+    - group: ''
+      kind: '*'
+    - group: 'apps'
+      kind: '*'
+    - group: 'autoscaling'
+      kind: '*'
+    - group: 'batch'
+      kind: '*'
+    - group: 'networking.k8s.io'
+      kind: '*'
+    - group: 'policy'
+      kind: '*'
+
+  # Deny certain resources in production
+  namespaceResourceBlacklist:
+    - group: ''
+      kind: ResourceQuota
+    - group: ''
+      kind: LimitRange
+
+  # Roles for fine-grained access control
+  roles:
+    # Developer role - can sync but not delete
+    - name: developer
+      description: Developer access to view and sync applications
+      policies:
+        - p, proj:alghazaly:developer, applications, get, alghazaly/*, allow
+        - p, proj:alghazaly:developer, applications, sync, alghazaly/*, allow
+        - p, proj:alghazaly:developer, logs, get, alghazaly/*, allow
+      groups:
+        - alghazaly-developers
+
+    # DevOps role - full access
+    - name: devops
+      description: DevOps full access to manage applications
+      policies:
+        - p, proj:alghazaly:devops, applications, *, alghazaly/*, allow
+        - p, proj:alghazaly:devops, logs, get, alghazaly/*, allow
+        - p, proj:alghazaly:devops, exec, create, alghazaly/*, allow
+      groups:
+        - alghazaly-devops
+
+    # Read-only role for monitoring
+    - name: readonly
+      description: Read-only access for monitoring
+      policies:
+        - p, proj:alghazaly:readonly, applications, get, alghazaly/*, allow
+        - p, proj:alghazaly:readonly, logs, get, alghazaly/*, allow
+      groups:
+        - alghazaly-viewers
+
+  # Sync windows - restrict deployments during certain times
+  syncWindows:
+    # Allow deployments during business hours (Sunday-Thursday for Middle East)
+    - kind: allow
+      schedule: '0 8 * * 0-4'  # 8 AM
+      duration: 10h
+      applications:
+        - '*-production'
+      namespaces:
+        - alghazaly
+      clusters:
+        - '*'
+    # Deny production deployments on weekends
+    - kind: deny
+      schedule: '0 0 * * 5-6'  # Friday-Saturday
+      duration: 48h
+      applications:
+        - '*-production'
+      namespaces:
+        - alghazaly

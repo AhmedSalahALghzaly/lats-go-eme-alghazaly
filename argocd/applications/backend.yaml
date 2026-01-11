@@ -1,0 +1,87 @@
+# Al-Ghazaly Auto Parts - Backend Application
+# ArgoCD Application for FastAPI backend deployment
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alghazaly-backend
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: backend
+    app.kubernetes.io/part-of: alghazaly-auto-parts
+    environment: production
+  # Cascade delete when application is deleted
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  # Project reference
+  project: alghazaly
+
+  # Source configuration
+  source:
+    repoURL: https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3.git
+    targetRevision: main
+    path: k8s/backend
+
+    # Kustomize configuration
+    kustomize:
+      # Override image tag
+      images:
+        - ghcr.io/your-org/alghazaly/backend:latest
+      # Common labels
+      commonLabels:
+        app.kubernetes.io/managed-by: argocd
+        environment: production
+
+  # Destination cluster and namespace
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: alghazaly
+
+  # Sync policy
+  syncPolicy:
+    # Automatic sync configuration
+    automated:
+      # Auto-prune resources not in Git
+      prune: false  # Disabled for production safety
+      # Auto-heal drift
+      selfHeal: true
+      # Allow empty resources
+      allowEmpty: false
+
+    # Sync options
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ServerSideApply=true
+      - ApplyOutOfSyncOnly=true
+
+    # Retry configuration
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  # Resource tracking
+  revisionHistoryLimit: 10
+
+  # Health checks
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas  # Ignore replica count (managed by HPA)
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+      jsonPointers:
+        - /status
+
+  # Info section for documentation
+  info:
+    - name: Documentation
+      value: https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3/blob/main/DEVOPS_PLAN.md
+    - name: Slack Channel
+      value: '#alghazaly-deployments'

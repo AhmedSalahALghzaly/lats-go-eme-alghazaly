@@ -1,0 +1,63 @@
+# Al-Ghazaly Auto Parts - Frontend Application
+# ArgoCD Application for React Native web frontend deployment
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: alghazaly-frontend
+  namespace: argocd
+  labels:
+    app.kubernetes.io/name: frontend
+    app.kubernetes.io/part-of: alghazaly-auto-parts
+    environment: production
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: alghazaly
+
+  source:
+    repoURL: https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3.git
+    targetRevision: main
+    path: k8s/frontend
+
+    kustomize:
+      images:
+        - ghcr.io/your-org/alghazaly/frontend:latest
+      commonLabels:
+        app.kubernetes.io/managed-by: argocd
+        environment: production
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: alghazaly
+
+  syncPolicy:
+    automated:
+      prune: false
+      selfHeal: true
+      allowEmpty: false
+
+    syncOptions:
+      - CreateNamespace=true
+      - PrunePropagationPolicy=foreground
+      - PruneLast=true
+      - ServerSideApply=true
+
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+
+  revisionHistoryLimit: 10
+
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/replicas
+
+  info:
+    - name: Documentation
+      value: https://github.com/AhmedSalahALghzaly/Go-ALghazaly-Final-go-Now-3/blob/main/DEVOPS_PLAN.md

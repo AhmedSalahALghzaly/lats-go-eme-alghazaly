@@ -1,0 +1,10 @@
+# ArgoCD Namespace
+# Usually created by ArgoCD installation, but included for completeness
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: argocd
+  labels:
+    app.kubernetes.io/name: argocd
+    app.kubernetes.io/part-of: argocd
