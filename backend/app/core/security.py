@@ -4,7 +4,10 @@ Security and Authentication Helpers
 from fastapi import Request
 from datetime import datetime, timezone
 from .config import PRIMARY_OWNER_EMAIL
-from .database import db
+from .database import get_database
+
+def get_db():
+    return get_database()
 
 def serialize_doc(doc):
     """Convert MongoDB document to JSON-serializable format"""
@@ -28,6 +31,7 @@ async def get_session_token(request: Request):
 
 async def get_current_user(request: Request):
     """Get current authenticated user from session"""
+    db = get_db()
     token = await get_session_token(request)
     if not token:
         return None
@@ -47,6 +51,7 @@ async def get_current_user(request: Request):
 
 async def get_user_role(user):
     """Determine user role: owner, partner, admin, subscriber, or user"""
+    db = get_db()
     if not user:
         return "guest"
     
