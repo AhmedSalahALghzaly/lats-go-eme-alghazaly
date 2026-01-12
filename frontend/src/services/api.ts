@@ -172,7 +172,7 @@ export const orderApi = {
   updateDiscount: (id: string, discount: number) => api.patch(`/orders/${id}/discount`, { discount }),
   delete: (id: string) => api.delete(`/orders/${id}`),
   getPendingCount: (userId: string) => api.get(`/orders/pending-count/${userId}`),
-  getById: (id: string) => api.get(`/admin/orders/${id}`),
+  getById: (id: string) => api.get(`/orders/admin/${id}`),
 };
 
 // Legacy aliases
