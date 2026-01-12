@@ -419,7 +419,7 @@ export const UnifiedShoppingHub: React.FC<UnifiedShoppingHubProps> = ({
           country: checkoutForm.country,
           delivery_instructions: checkoutForm.deliveryInstructions,
           payment_method: checkoutForm.paymentMethod,
-          items: cartItems.map(item => ({
+          items: safeCartItems.map(item => ({
             product_id: item.product_id,
             quantity: item.quantity,
           })),
