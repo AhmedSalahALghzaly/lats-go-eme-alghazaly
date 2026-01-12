@@ -369,11 +369,18 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               disabled && styles.disabled,
             ]}
             onPress={handlePress}
-            disabled={disabled || isLoading}
+            disabled={disabled || isLoading || isCompressing}
             activeOpacity={0.7}
           >
-            {isLoading ? (
-              <ActivityIndicator size="small" color={colors.primary} />
+            {isLoading || isCompressing ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                {isCompressing && (
+                  <Text style={[styles.compressingText, { color: colors.textSecondary }]}>
+                    {language === 'ar' ? 'جاري الضغط...' : 'Compressing...'}
+                  </Text>
+                )}
+              </View>
             ) : value ? (
               <View style={styles.imageContainer}>
                 <Image
