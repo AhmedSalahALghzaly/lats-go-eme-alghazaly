@@ -45,7 +45,7 @@ export default function OrderDetailAdmin() {
 
   const fetchOrder = async () => {
     try {
-      const response = await api.get(`/admin/orders/${id}`);
+      const response = await api.get(`/orders/admin/${id}`);
       setOrder(response.data);
       if (response.data?.discount > 0) {
         setDiscountInput(response.data.discount.toString());
