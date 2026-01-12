@@ -119,17 +119,21 @@ export default function OwnerDashboard() {
   // Connect WebSocket for real-time updates
   useWebSocket();
 
-  // Calculate live metrics from store
+  // Calculate live metrics from store - ensure arrays are safe
+  const safeOrders = Array.isArray(orders) ? orders : [];
+  const safeCustomers = Array.isArray(customers) ? customers : [];
+  const safeProducts = Array.isArray(products) ? products : [];
+  
   const metrics = {
-    todayOrders: orders.filter((o: any) => {
+    todayOrders: safeOrders.filter((o: any) => {
       const today = new Date().toDateString();
       return new Date(o.created_at).toDateString() === today;
     }).length,
-    pendingOrders: orders.filter((o: any) => o.status === 'pending').length,
-    totalRevenue: orders.reduce((sum: number, o: any) => sum + (o.total || 0), 0),
-    activeCustomers: customers.length,
-    totalProducts: products.length,
-    lowStock: products.filter((p: any) => (p.quantity || p.stock_quantity || 0) < 10).length,
+    pendingOrders: safeOrders.filter((o: any) => o.status === 'pending').length,
+    totalRevenue: safeOrders.reduce((sum: number, o: any) => sum + (o.total || 0), 0),
+    activeCustomers: safeCustomers.length,
+    totalProducts: safeProducts.length,
+    lowStock: safeProducts.filter((p: any) => (p.quantity || p.stock_quantity || 0) < 10).length,
   };
 
   const isRTL = language === 'ar';
