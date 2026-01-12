@@ -95,7 +95,9 @@ export default function CustomersScreen() {
 
   // Sort customers based on mode
   const sortedCustomers = useMemo(() => {
-    const customerList = [...customers];
+    // Ensure customers is an array
+    const safeCustomers = Array.isArray(customers) ? customers : [];
+    const customerList = [...safeCustomers];
     
     if (sortMode === 'most_purchased') {
       return customerList.sort((a, b) => {
@@ -113,11 +115,14 @@ export default function CustomersScreen() {
   }, [customers, sortMode]);
 
   // Calculate totals
-  const totals = useMemo(() => ({
-    totalCustomers: customers.length,
-    totalOrders: customers.reduce((sum, c) => sum + (c.order_count || c.total_orders || 0), 0),
-    totalValue: customers.reduce((sum, c) => sum + (c.total_spent || c.total_value || 0), 0),
-  }), [customers]);
+  const totals = useMemo(() => {
+    const safeCustomers = Array.isArray(customers) ? customers : [];
+    return {
+      totalCustomers: safeCustomers.length,
+      totalOrders: safeCustomers.reduce((sum, c) => sum + (c.order_count || c.total_orders || 0), 0),
+      totalValue: safeCustomers.reduce((sum, c) => sum + (c.total_spent || c.total_value || 0), 0),
+    };
+  }, [customers]);
 
   // Navigate to customer profile with user_id
   const handleCustomerPress = (customer) => {
