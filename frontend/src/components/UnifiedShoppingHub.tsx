@@ -760,7 +760,7 @@ export const UnifiedShoppingHub: React.FC<UnifiedShoppingHubProps> = ({
               </View>
             </View>
 
-            {favorites.length === 0 ? (
+            {(!Array.isArray(favorites) || favorites.length === 0) ? (
               <View style={styles.emptyState}>
                 <Ionicons name="heart-outline" size={48} color={colors.border} />
                 <Text style={[styles.emptyStateText, { color: colors.textSecondary }]}>
