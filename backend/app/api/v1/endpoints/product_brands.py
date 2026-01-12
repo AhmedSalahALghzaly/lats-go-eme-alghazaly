@@ -37,6 +37,16 @@ async def create_product_brand(brand: ProductBrandCreate):
     await manager.broadcast({"type": "sync", "tables": ["product_brands"]})
     return serialize_doc(doc)
 
+@router.put("/{brand_id}")
+async def update_product_brand(brand_id: str, brand: ProductBrandCreate):
+    await db.product_brands.update_one(
+        {"_id": brand_id},
+        {"$set": {**brand.dict(), "updated_at": datetime.now(timezone.utc)}}
+    )
+    updated = await db.product_brands.find_one({"_id": brand_id})
+    await manager.broadcast({"type": "sync", "tables": ["product_brands"]})
+    return serialize_doc(updated)
+
 @router.delete("/{brand_id}")
 async def delete_product_brand(brand_id: str):
     await db.product_brands.update_one(
