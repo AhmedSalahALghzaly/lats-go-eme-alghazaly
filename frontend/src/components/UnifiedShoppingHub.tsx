@@ -859,7 +859,7 @@ export const UnifiedShoppingHub: React.FC<UnifiedShoppingHubProps> = ({
                   </TouchableOpacity>
                 </View>
               ) : (
-                cartItems.map((item, index) => {
+                safeCartItems.map((item, index) => {
                   const originalPrice = item.original_unit_price || item.product?.price || 0;
                   const finalPrice = item.final_unit_price || item.product?.price || 0;
                   const hasDiscount = originalPrice > finalPrice;
