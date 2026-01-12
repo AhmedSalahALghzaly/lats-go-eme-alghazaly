@@ -2,9 +2,11 @@
  * Background Sync Service
  * v3.0 - Enhanced with Partial Sync, Conflict Resolution, and Snapshot Support
  * Automatically syncs data from server to local Zustand store
+ * Integrated with offlineDatabaseService for persistent storage
  */
 import { useAppStore } from '../store/appStore';
 import { useDataCacheStore, OfflineAction, SyncResult } from '../store/useDataCacheStore';
+import { offlineDatabaseService } from './offlineDatabaseService';
 import { 
   carBrandApi, 
   carModelApi, 
