@@ -258,8 +258,8 @@ const ProductCardComponent: React.FC<ProductCardProps> = ({
 
   const imageContainerStyle = useMemo(() => [
     styles.imageContainer, 
-    { backgroundColor: colors.surface }
-  ], [colors.surface]);
+    { backgroundColor: 'transparent' }
+  ], []);
 
   return (
     <TouchableOpacity
