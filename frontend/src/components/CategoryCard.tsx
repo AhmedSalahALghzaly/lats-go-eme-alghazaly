@@ -103,6 +103,7 @@ const CategoryCardComponent: React.FC<CategoryCardProps> = ({ category, size = '
               borderRadius: containerSize / 2,
             }}
             contentFit="cover"
+            backgroundColor="transparent"
             cachePolicy="disk"
             transition={200}
           />
