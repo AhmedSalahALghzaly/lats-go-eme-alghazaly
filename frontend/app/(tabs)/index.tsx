@@ -356,19 +356,16 @@ export default function HomeScreen() {
   });
 
   return (
-    <View style={[styles.container]}>
-      {/* Glassblur Background Effect - Full screen behind all content */}
+    <View style={styles.container}>
+      {/* Glassblur Background Effect with gradient overlay */}
       <LinearGradient
-        colors={['#0f1624', '#1a2744', '#0d1b2a', '#1b263b']}
+        colors={['#0a1628', '#152238', '#1a2744', '#0d1b2a']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={StyleSheet.absoluteFill}
       />
-      <BlurView
-        intensity={60}
-        tint="dark"
-        style={StyleSheet.absoluteFill}
-      />
+      {/* Glass overlay effect */}
+      <View style={styles.glassOverlay} />
       
       <Header showBack={false} />
       
