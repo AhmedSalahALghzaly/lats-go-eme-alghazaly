@@ -267,13 +267,15 @@ const ProductCardComponent: React.FC<ProductCardProps> = ({
       onPress={handleCardPress}
       activeOpacity={0.7}
     >
-      {/* Image Container */}
+      {/* Image Container - with transparency support */}
       <View style={imageContainerStyle}>
         {product.image_url ? (
-          <RNImage
+          <Image
             source={{ uri: product.image_url }}
             style={styles.image}
-            resizeMode="cover"
+            contentFit="cover"
+            cachePolicy="disk"
+            transition={200}
           />
         ) : (
           <Ionicons name="cube-outline" size={48} color={colors.textSecondary} />
