@@ -34,8 +34,29 @@ import * as Haptics from 'expo-haptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Home screen product card width: 10% increase from 150 = 165
-const HOME_PRODUCT_CARD_WIDTH = 165;
+// Product card sizing with dynamic screen-based calculation
+// Base width: 150px, max enlargement: 19% = 178.5px
+const BASE_CARD_WIDTH = 150;
+const MAX_ENLARGEMENT_PERCENT = 0.19;
+const MAX_CARD_WIDTH = Math.floor(BASE_CARD_WIDTH * (1 + MAX_ENLARGEMENT_PERCENT)); // 178px
+
+// Calculate optimal card width based on screen size
+// Ensures cards fit nicely with proper gaps (2 cards per row on mobile)
+const calculateCardWidth = () => {
+  const horizontalPadding = 16 * 2; // Container padding
+  const cardGap = 12; // Gap between cards
+  const availableWidth = SCREEN_WIDTH - horizontalPadding;
+  
+  // Calculate how many cards fit with minimum width
+  const minCardsPerRow = Math.floor(availableWidth / (BASE_CARD_WIDTH + cardGap));
+  const optimalWidth = Math.floor((availableWidth - (cardGap * (minCardsPerRow - 1))) / minCardsPerRow);
+  
+  // Clamp to max enlargement
+  return Math.min(optimalWidth, MAX_CARD_WIDTH);
+};
+
+// Home screen product card width with dynamic sizing (up to 19% enlargement)
+const HOME_PRODUCT_CARD_WIDTH = calculateCardWidth();
 
 export default function HomeScreen() {
   const { colors } = useTheme();
