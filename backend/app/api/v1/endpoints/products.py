@@ -199,10 +199,12 @@ async def get_product(product_id: str):
 async def create_product(product: ProductCreate, request: Request):
     user = await get_current_user(request)
     admin_id = None
+    admin_name = None
     if user:
         admin = await db.admins.find_one({"email": user.get("email"), "deleted_at": None})
         if admin:
             admin_id = admin["_id"]
+            admin_name = admin.get("name", user.get("name", user.get("email")))
     
     doc = {
         "_id": f"prod_{uuid.uuid4().hex[:8]}",
@@ -215,6 +217,15 @@ async def create_product(product: ProductCreate, request: Request):
     }
     await db.products.insert_one(doc)
     await manager.broadcast({"type": "sync", "tables": ["products"]})
+    
+    # Notify admins about new product
+    await notify_admins_product_change(
+        product_name=product.name or product.name_ar or "New Product",
+        product_id=doc["_id"],
+        action="created",
+        admin_name=admin_name
+    )
+    
     return serialize_doc(doc)
 
 @router.put("/{product_id}")
