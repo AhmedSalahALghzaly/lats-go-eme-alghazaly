@@ -454,7 +454,8 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
                   borderRadius: borderRadius - 4,
                 },
               ]}
-              resizeMode="cover"
+              contentFit="cover"
+              backgroundColor="transparent"
             />
             <TouchableOpacity
               style={[styles.removeButton, { backgroundColor: colors.error }]}
