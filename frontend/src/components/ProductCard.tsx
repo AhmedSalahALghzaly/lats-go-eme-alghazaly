@@ -444,6 +444,7 @@ const styles = StyleSheet.create({
     height: 115,
     alignItems: 'center',
     justifyContent: 'center',
+    backgroundColor: 'transparent',
   },
   image: {
     width: '100%',
