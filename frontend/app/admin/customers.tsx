@@ -1,10 +1,10 @@
 /**
  * Customers Admin - Using Unified Shopping Hub
  * Displays customer list with integrated profile view via UnifiedShoppingHub
- * With Real-Time Status Indicators
+ * With Real-Time Status Indicators (High-Performance Reanimated-based)
  */
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Animated, Modal } from 'react-native';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -33,18 +33,11 @@ export default function CustomersAdmin() {
   const [showProfile, setShowProfile] = useState(false);
   const [initialTab, setInitialTab] = useState('favorites');
 
-  // Pulsing animation for order indicator
-  const pulseAnim = useRef(new Animated.Value(1)).current;
+  // Note: Removed manual pulseAnim - OrderStatusIndicator now handles its own high-performance animation
+  // using react-native-reanimated with withRepeat and withSequence
 
   useEffect(() => {
     fetchCustomers();
-    // Start pulsing animation - 1 second cycle (faster)
-    Animated.loop(
-      Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.2, duration: 500, useNativeDriver: true }),
-        Animated.timing(pulseAnim, { toValue: 1, duration: 500, useNativeDriver: true }),
-      ])
-    ).start();
   }, []);
 
   // Handle customerId query param for direct navigation
