@@ -456,6 +456,7 @@ export const InteractiveCarSelector: React.FC = () => {
               source={{ uri: isBrand ? (brand.logo_url || brand.logo) : model.image_url }}
               style={isBrand ? styles.brandLogo : styles.modelImage}
               contentFit="contain"
+              backgroundColor="transparent"
               transition={200}
             />
           ) : (
