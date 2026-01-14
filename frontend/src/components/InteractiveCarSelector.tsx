@@ -183,12 +183,13 @@ const ProductCardItem: React.FC<ProductCardItemProps> = React.memo(({
 
 const productCardItemStyles = StyleSheet.create({
   wrapper: {
-    width: '48%',
-    marginHorizontal: '1%',
+    // Dynamic width: 2 items per row with responsive sizing
+    width: (SCREEN_WIDTH - 48) / 2,
+    marginHorizontal: 4,
     marginBottom: 12,
   },
   card: {
-    borderRadius: 14,
+    borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
     shadowOffset: { width: 0, height: 4 },
@@ -198,32 +199,32 @@ const productCardItemStyles = StyleSheet.create({
   },
   image: {
     width: '100%',
-    height: 120,
+    height: 140,
     backgroundColor: 'transparent',
   },
   placeholder: {
     width: '100%',
-    height: 120,
+    height: 140,
     alignItems: 'center',
     justifyContent: 'center',
   },
   info: {
-    padding: 10,
-    gap: 6,
+    padding: 12,
+    gap: 8,
   },
   name: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '600',
-    lineHeight: 18,
+    lineHeight: 20,
   },
   priceTag: {
     alignSelf: 'flex-start',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 10,
   },
   price: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
   },
 });
