@@ -356,9 +356,9 @@ export const DynamicOfferSlider: React.FC<DynamicOfferSliderProps> = ({
                       )}
                     </View>
 
-                    {/* Right Side - Discount & Action */}
+                    {/* Right Side - Discount at top, Pulse indicator in middle, Price at bottom */}
                     <View style={styles.actionSection}>
-                      {/* Discount Badge */}
+                      {/* Discount Badge - TOP */}
                       {discount > 0 && (
                         <LinearGradient
                           colors={[palette.accent, palette.icon]}
@@ -371,8 +371,8 @@ export const DynamicOfferSlider: React.FC<DynamicOfferSliderProps> = ({
                         </LinearGradient>
                       )}
 
-                      {/* Interactive Action Icon - Only show for bundle_offer, hide for promotion/slider */}
-                      {!hideIcon && item.type === 'bundle_offer' && (
+                      {/* Interactive Pulse Icon - MIDDLE (centered between discount and price) */}
+                      {!hideIcon && (item.type === 'bundle_offer' || item.type === 'bundle') && (
                         <TouchableOpacity
                           onPress={() => handleItemPress(item)}
                           activeOpacity={0.7}
