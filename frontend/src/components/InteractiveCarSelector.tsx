@@ -967,10 +967,10 @@ export const InteractiveCarSelector: React.FC = () => {
         ) : (
           <View style={styles.flashListContainer}>
             <FlashList
-              data={filteredProducts}
-              numColumns={2}
+              data={filteredProducts.slice(0, 9)}
+              numColumns={3}
               keyExtractor={(item: Product) => item.id}
-              estimatedItemSize={190}
+              estimatedItemSize={170}
               contentContainerStyle={styles.productsGrid}
               renderItem={({ item, index }: { item: Product; index: number }) => (
                 <ProductCardItem
