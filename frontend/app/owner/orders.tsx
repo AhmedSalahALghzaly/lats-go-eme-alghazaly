@@ -64,10 +64,22 @@ export default function OrdersScreen() {
   const fetchOrders = async () => {
     setLoading(true);
     try {
-      const response = await ordersApi.getAll();
-      setOrders(response.data || []);
+      // CRITICAL FIX: Use getAllAdmin for owner/admin to get ALL orders
+      // getAll() only returns current user's orders
+      const response = await ordersApi.getAllAdmin();
+      const ordersData = response.data?.orders || [];
+      setOrders(ordersData);
+      console.log('[OrdersScreen] Fetched orders:', ordersData.length);
     } catch (error) {
       console.error('Error fetching orders:', error);
+      // If getAllAdmin fails (permission denied), try getAll as fallback
+      try {
+        const fallbackResponse = await ordersApi.getAll();
+        setOrders(fallbackResponse.data?.orders || fallbackResponse.data || []);
+      } catch (fallbackError) {
+        console.error('Fallback also failed:', fallbackError);
+        setOrders([]);
+      }
     } finally {
       setLoading(false);
     }
