@@ -1115,12 +1115,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   placeholderIcon: {
-    width: 70,
-    height: 70,
-    borderRadius: 33,
+    width: 77,
+    height: 77,
+    borderRadius: 37,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 5,
+    marginBottom: 1,
   },
   gridItemText: {
     fontSize: 13,
