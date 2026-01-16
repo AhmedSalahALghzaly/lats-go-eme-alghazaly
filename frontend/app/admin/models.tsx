@@ -389,6 +389,24 @@ export default function ModelsAdmin() {
             </View>
           </View>
 
+          {/* Chassis Number Input */}
+          <View style={styles.formGroup}>
+            <Text style={[styles.label, { color: colors.text }]}>
+              {language === 'ar' ? 'رقم الشاسيه (VIN)' : 'Chassis Number (VIN)'}
+            </Text>
+            <TextInput
+              style={[styles.input, { backgroundColor: colors.surface, borderColor: colors.border, color: colors.text }]}
+              value={chassisNumber}
+              onChangeText={setChassisNumber}
+              placeholder={language === 'ar' ? 'مثال: JTDKN3DU5A0...' : 'e.g., JTDKN3DU5A0...'}
+              placeholderTextColor={colors.textSecondary}
+              autoCapitalize="characters"
+            />
+            <Text style={[styles.helperText, { color: colors.textSecondary }]}>
+              {language === 'ar' ? 'رقم الهيكل للبحث المباشر' : 'Vehicle Identification Number for direct search'}
+            </Text>
+          </View>
+
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
           <TouchableOpacity
