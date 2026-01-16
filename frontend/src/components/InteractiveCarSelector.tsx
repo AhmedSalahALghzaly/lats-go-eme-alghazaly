@@ -1492,24 +1492,27 @@ const styles = StyleSheet.create({
   chassisGridCardInfo: {
     padding: 6,
     gap: 1,
+    alignItems: 'center',
   },
   chassisGridCardName: {
     fontSize: 10,
     fontWeight: '700',
     lineHeight: 12,
+    textAlign: 'center',
   },
   chassisGridCardBrand: {
     fontSize: 8,
     fontWeight: '600',
+    textAlign: 'center',
   },
   chassisGridCardYear: {
     fontSize: 7,
     fontWeight: '500',
+    textAlign: 'center',
   },
   chassisGridTag: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
     paddingHorizontal: 4,
     paddingVertical: 1,
     borderRadius: 3,
