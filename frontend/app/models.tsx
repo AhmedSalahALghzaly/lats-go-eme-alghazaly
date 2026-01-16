@@ -413,4 +413,19 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
+  chassisInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 4,
+  },
+  chassisText: {
+    fontSize: 11,
+    fontWeight: '600',
+    letterSpacing: 0.5,
+  },
 });
