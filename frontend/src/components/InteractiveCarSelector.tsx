@@ -810,7 +810,7 @@ export const InteractiveCarSelector: React.FC = () => {
         />
 
         {/* Dual Anchor Button Row - RTL aware */}
-        <View style={[styles.anchorRow, isRTL && styles.anchorRowRTL]}>
+        <View style={styles.anchorRow}>
           {/* Left Button: Car Selector (in LTR) / Chassis (in RTL) */}
           {isRTL ? (
             /* Chassis Button for RTL - shows on LEFT */
