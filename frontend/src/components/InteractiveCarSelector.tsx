@@ -1564,8 +1564,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   modelImage: {
-    width: 90,
-    height: 70,
+    width: 100,
+    height: 100,
     borderRadius: 12,
   },
   placeholderIcon: {
@@ -1574,12 +1574,12 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 0,
+    marginBottom: 1,
   },
   gridItemText: {
     fontSize: 13,
     fontWeight: '700',
-    marginTop: 0,
+    marginTop: 1,
     textAlign: 'center',
   },
   gridItemSubtext: {
