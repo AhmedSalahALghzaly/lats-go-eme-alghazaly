@@ -965,34 +965,62 @@ export const InteractiveCarSelector: React.FC = () => {
             </Animated.View>
           )}
 
-          {/* Chassis Number Selector Button - Electric Blue */}
-          <AnimatedTouchable
-            style={[
-              styles.anchorButton,
-              {
-                backgroundColor: selectorState === 'chassis_search'
-                  ? '#00A8FF'
-                  : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
-                borderColor: '#00A8FF',
-                shadowColor: '#00A8FF',
-              },
-              chassisGlowStyle,
-            ]}
-            onPress={handleChassisAnchorPress}
-            activeOpacity={0.8}
-          >
-            <Animated.View style={vinAnimStyle}>
-              {selectorState === 'chassis_search' ? (
-                <Ionicons name="close" size={26} color="#FFF" />
-              ) : (
+          {/* Right Button: Chassis Selector (in LTR) / Car (in RTL) */}
+          {isRTL ? (
+            /* Car Selector Button for RTL - shows on RIGHT */
+            <AnimatedTouchable
+              style={[
+                styles.anchorButton,
+                {
+                  backgroundColor: selectorState === 'brands' || selectorState === 'models' || selectorState === 'products' 
+                    ? mood?.primary || colors.primary 
+                    : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                  borderColor: mood?.primary || colors.primary,
+                  shadowColor: mood?.primary || colors.primary,
+                },
+                iconGlowStyle,
+              ]}
+              onPress={handleCarAnchorPress}
+              activeOpacity={0.8}
+            >
+              <Animated.View style={[carRotationStyle, morphStyle]}>
                 <MaterialCommunityIcons
-                  name="barcode"
+                  name={selectorState !== 'collapsed' && selectorState !== 'chassis_search' ? 'close' : currentIcon}
                   size={26}
-                  color={'#00A8FF'}
+                  color={selectorState === 'brands' || selectorState === 'models' || selectorState === 'products' ? '#FFF' : mood?.primary || colors.primary}
                 />
-              )}
-            </Animated.View>
-          </AnimatedTouchable>
+              </Animated.View>
+            </AnimatedTouchable>
+          ) : (
+            /* Chassis Number Selector Button for LTR - Electric Blue - shows on RIGHT */
+            <AnimatedTouchable
+              style={[
+                styles.anchorButton,
+                {
+                  backgroundColor: selectorState === 'chassis_search'
+                    ? '#00A8FF'
+                    : isDark ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.05)',
+                  borderColor: '#00A8FF',
+                  shadowColor: '#00A8FF',
+                },
+                chassisGlowStyle,
+              ]}
+              onPress={handleChassisAnchorPress}
+              activeOpacity={0.8}
+            >
+              <Animated.View style={vinAnimStyle}>
+                {selectorState === 'chassis_search' ? (
+                  <Ionicons name="close" size={26} color="#FFF" />
+                ) : (
+                  <MaterialCommunityIcons
+                    name="barcode"
+                    size={26}
+                    color={'#00A8FF'}
+                  />
+                )}
+              </Animated.View>
+            </AnimatedTouchable>
+          )}
         </View>
 
         {/* Grid Container for Brands/Models */}
