@@ -14,11 +14,35 @@ from ....services.websocket import manager
 router = APIRouter(prefix="/car-models")
 
 @router.get("")
-async def get_car_models(brand_id: Optional[str] = None):
+async def get_car_models(brand_id: Optional[str] = None, search: Optional[str] = None):
+    """Get all car models, optionally filtered by brand_id or search query (name/chassis_number)"""
     query = {"deleted_at": None}
     if brand_id:
         query["brand_id"] = brand_id
+    
+    # If search is provided, search by name, name_ar, or chassis_number
+    if search:
+        search_regex = {"$regex": search, "$options": "i"}
+        query["$or"] = [
+            {"name": search_regex},
+            {"name_ar": search_regex},
+            {"chassis_number": search_regex}
+        ]
+    
     models = await db.car_models.find(query).sort("name", 1).to_list(1000)
+    return [serialize_doc(m) for m in models]
+
+@router.get("/search-by-chassis")
+async def search_by_chassis(chassis: str):
+    """Search car models by chassis number (VIN)"""
+    if not chassis or len(chassis) < 3:
+        raise HTTPException(status_code=400, detail="Chassis number must be at least 3 characters")
+    
+    query = {
+        "deleted_at": None,
+        "chassis_number": {"$regex": chassis, "$options": "i"}
+    }
+    models = await db.car_models.find(query).sort("name", 1).to_list(100)
     return [serialize_doc(m) for m in models]
 
 @router.get("/{model_id}")
