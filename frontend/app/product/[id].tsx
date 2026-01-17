@@ -378,6 +378,39 @@ export default function ProductDetailScreen() {
           </ScrollView>
         )}
 
+        {/* Supplier Contact Button - Only visible if supplier is linked */}
+        {product.supplier && (
+          <TouchableOpacity
+            style={styles.supplierButton}
+            onPress={() => router.push(`/owner/suppliers?viewMode=profile&id=${product.supplier.id}`)}
+            activeOpacity={0.85}
+          >
+            <LinearGradient
+              colors={['#0D9488', '#14B8A6', '#2DD4BF']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.supplierGradient}
+            >
+              <View style={styles.supplierContent}>
+                <View style={styles.supplierIconContainer}>
+                  <Ionicons name="briefcase" size={22} color="#FFF" />
+                </View>
+                <View style={styles.supplierTextContainer}>
+                  <Text style={styles.supplierLabel}>
+                    {language === 'ar' ? 'مورد هذا المنتج' : 'Product Supplier'}
+                  </Text>
+                  <Text style={styles.supplierName}>
+                    {language === 'ar' && product.supplier.name_ar 
+                      ? product.supplier.name_ar 
+                      : product.supplier.name}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.8)" />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
         {/* Product Info */}
         <View style={styles.infoContainer}>
           {/* Rating Summary */}
