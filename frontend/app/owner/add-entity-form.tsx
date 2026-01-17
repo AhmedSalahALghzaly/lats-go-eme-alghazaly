@@ -352,21 +352,20 @@ export default function AddEntityFormScreen() {
               {formData.profile_image ? (
                 <TouchableOpacity
                   style={styles.profileImageWrapper}
-                  onPress={() => setFormData(prev => ({ ...prev, profile_image: '' }))}
+                  onPress={pickProfileImage}
+                  onLongPress={() => setFormData(prev => ({ ...prev, profile_image: '' }))}
                 >
-                  <BlurView intensity={15} tint="light" style={styles.profileImagePlaceholder}>
-                    <Ionicons
-                      name={entityType === 'supplier' ? 'briefcase' : 'car'}
-                      size={50}
-                      color={primaryColor}
-                    />
-                    <Text style={styles.profileImageText}>
-                      {isRTL ? 'صورة محملة' : 'Image Uploaded'}
-                    </Text>
-                  </BlurView>
+                  <Image 
+                    source={{ uri: formData.profile_image }} 
+                    style={styles.profileImageActual}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.profileImageOverlay}>
+                    <Ionicons name="camera" size={24} color="#FFF" />
+                  </View>
                 </TouchableOpacity>
               ) : (
-                <TouchableOpacity style={styles.profileImagePlaceholder}>
+                <TouchableOpacity style={styles.profileImagePlaceholder} onPress={pickProfileImage}>
                   <Ionicons
                     name={entityType === 'supplier' ? 'briefcase' : 'car'}
                     size={50}
@@ -378,6 +377,30 @@ export default function AddEntityFormScreen() {
                 </TouchableOpacity>
               )}
             </View>
+          </View>
+
+          {/* Slider Images Section */}
+          <View style={styles.sliderImagesSection}>
+            <Text style={styles.sectionTitle}>
+              {isRTL ? 'صور إضافية' : 'Additional Images'}
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.sliderImagesScroll}>
+              {formData.slider_images.map((img, index) => (
+                <TouchableOpacity 
+                  key={index} 
+                  style={styles.sliderImageItem}
+                  onPress={() => removeSliderImage(index)}
+                >
+                  <Image source={{ uri: img }} style={styles.sliderImageThumb} />
+                  <View style={styles.sliderImageRemove}>
+                    <Ionicons name="close-circle" size={20} color="#EF4444" />
+                  </View>
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity style={[styles.addSliderImageBtn, { borderColor: primaryColor }]} onPress={addSliderImage}>
+                <Ionicons name="add" size={30} color={primaryColor} />
+              </TouchableOpacity>
+            </ScrollView>
           </View>
 
           {/* Form Fields */}
