@@ -209,6 +209,16 @@ async def get_product(product_id: str):
     if p.get("product_brand_id"):
         brand = await db.product_brands.find_one({"_id": p["product_brand_id"]})
         p["product_brand"] = serialize_doc(brand)
+        
+        # Fetch supplier linked to this product brand
+        if brand and brand.get("supplier_id"):
+            supplier = await db.suppliers.find_one({
+                "_id": brand["supplier_id"], 
+                "deleted_at": None
+            })
+            if supplier:
+                p["supplier"] = serialize_doc(supplier)
+    
     if p.get("category_id"):
         cat = await db.categories.find_one({"_id": p["category_id"]})
         p["category"] = serialize_doc(cat)
