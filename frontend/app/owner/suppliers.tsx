@@ -209,21 +209,28 @@ export default function SuppliersScreen() {
   // Profile View
   if (viewMode === 'profile' && selectedSupplier) {
     const linkedBrandObjects = productBrands.filter((b: any) => 
-      (selectedSupplier.linked_brands || []).includes(b.id)
+      (selectedSupplier.linked_product_brand_ids || selectedSupplier.linked_brands || []).includes(b.id)
     );
+
+    // Get display name based on language
+    const displayName = isRTL && selectedSupplier.name_ar ? selectedSupplier.name_ar : selectedSupplier.name;
+    const displayAddress = isRTL && selectedSupplier.address_ar ? selectedSupplier.address_ar : selectedSupplier.address;
+    const displayDescription = isRTL && selectedSupplier.description_ar ? selectedSupplier.description_ar : selectedSupplier.description;
 
     return (
       <View style={styles.container}>
         <LinearGradient colors={['#0D9488', '#14B8A6', '#2DD4BF']} style={StyleSheet.absoluteFill} />
         <ScrollView style={styles.scrollView} contentContainerStyle={[styles.scrollContent, { paddingTop: insets.top }]}>
           <View style={[styles.header, isRTL && styles.headerRTL]}>
-            <TouchableOpacity style={styles.backButton} onPress={() => setViewMode('list')}>
+            <TouchableOpacity style={styles.backButton} onPress={() => { setViewMode('list'); setSelectedSupplier(null); router.setParams({ viewMode: undefined, id: undefined }); }}>
               <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={24} color="#FFF" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>{selectedSupplier.name}</Text>
-            <TouchableOpacity style={styles.editButton} onPress={() => openEditMode(selectedSupplier)}>
-              <Ionicons name="pencil" size={20} color="#FFF" />
-            </TouchableOpacity>
+            <Text style={styles.headerTitle}>{displayName}</Text>
+            {isOwnerOrAdmin && (
+              <TouchableOpacity style={styles.editButton} onPress={() => router.push(`/owner/add-entity-form?entityType=supplier&id=${selectedSupplier.id}`)}>
+                <Ionicons name="pencil" size={20} color="#FFF" />
+              </TouchableOpacity>
+            )}
           </View>
 
           {/* Profile Image */}
@@ -237,50 +244,109 @@ export default function SuppliersScreen() {
             )}
           </View>
 
-          {/* Contact Info */}
+          {/* Arabic Name (if available and different) */}
+          {selectedSupplier.name_ar && selectedSupplier.name_ar !== selectedSupplier.name && (
+            <Text style={styles.arabicNameText}>{selectedSupplier.name_ar}</Text>
+          )}
+
+          {/* Contact Info - ALL FIELDS */}
           <View style={styles.infoCard}>
             <BlurView intensity={15} tint="light" style={styles.infoBlur}>
-              {selectedSupplier.phone && (
+              <Text style={styles.infoSectionTitle}>{isRTL ? 'معلومات الاتصال' : 'Contact Information'}</Text>
+              
+              {/* Phone Numbers */}
+              {selectedSupplier.phone_numbers && selectedSupplier.phone_numbers.length > 0 ? (
+                selectedSupplier.phone_numbers.map((phone: string, index: number) => (
+                  <TouchableOpacity key={index} style={styles.infoRow} onPress={() => Linking.openURL(`tel:${phone}`)}>
+                    <Ionicons name="call" size={20} color="#14B8A6" />
+                    <Text style={styles.infoText}>{phone}</Text>
+                    <Ionicons name="chevron-forward" size={16} color="#14B8A6" />
+                  </TouchableOpacity>
+                ))
+              ) : selectedSupplier.phone ? (
                 <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`tel:${selectedSupplier.phone}`)}>
                   <Ionicons name="call" size={20} color="#14B8A6" />
                   <Text style={styles.infoText}>{selectedSupplier.phone}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#14B8A6" />
                 </TouchableOpacity>
-              )}
+              ) : null}
+
+              {/* Email */}
               {selectedSupplier.contact_email && (
                 <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(`mailto:${selectedSupplier.contact_email}`)}>
                   <Ionicons name="mail" size={20} color="#14B8A6" />
                   <Text style={styles.infoText}>{selectedSupplier.contact_email}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#14B8A6" />
                 </TouchableOpacity>
               )}
-              {selectedSupplier.address && (
-                <View style={styles.infoRow}>
-                  <Ionicons name="location" size={20} color="#14B8A6" />
-                  <Text style={styles.infoText}>{selectedSupplier.address}</Text>
-                </View>
-              )}
-              {selectedSupplier.website && (
-                <TouchableOpacity style={styles.websiteButton} onPress={() => Linking.openURL(selectedSupplier.website)}>
-                  <Ionicons name="globe" size={20} color="#FFF" />
-                  <Text style={styles.websiteText}>{isRTL ? 'زيارة الموقع' : 'Visit Website'}</Text>
+
+              {/* Website */}
+              {(selectedSupplier.website_url || selectedSupplier.website) && (
+                <TouchableOpacity style={styles.infoRow} onPress={() => Linking.openURL(selectedSupplier.website_url || selectedSupplier.website)}>
+                  <Ionicons name="globe" size={20} color="#14B8A6" />
+                  <Text style={[styles.infoText, { flex: 1 }]} numberOfLines={1}>{selectedSupplier.website_url || selectedSupplier.website}</Text>
+                  <Ionicons name="chevron-forward" size={16} color="#14B8A6" />
                 </TouchableOpacity>
               )}
             </BlurView>
           </View>
 
-          {/* Description */}
-          {selectedSupplier.description && (
+          {/* Address Section */}
+          {(selectedSupplier.address || selectedSupplier.address_ar) && (
+            <View style={styles.infoCard}>
+              <BlurView intensity={15} tint="light" style={styles.infoBlur}>
+                <Text style={styles.infoSectionTitle}>{isRTL ? 'العنوان' : 'Address'}</Text>
+                <View style={styles.infoRow}>
+                  <Ionicons name="location" size={20} color="#14B8A6" />
+                  <Text style={[styles.infoText, { flex: 1 }]}>{displayAddress}</Text>
+                </View>
+                {/* Show both addresses if different */}
+                {selectedSupplier.address_ar && selectedSupplier.address && selectedSupplier.address !== selectedSupplier.address_ar && (
+                  <View style={[styles.infoRow, { marginTop: 8 }]}>
+                    <Ionicons name="location-outline" size={20} color="#14B8A6" />
+                    <Text style={[styles.infoText, { flex: 1, fontStyle: 'italic' }]}>
+                      {isRTL ? selectedSupplier.address : selectedSupplier.address_ar}
+                    </Text>
+                  </View>
+                )}
+              </BlurView>
+            </View>
+          )}
+
+          {/* Description Section */}
+          {(selectedSupplier.description || selectedSupplier.description_ar) && (
             <View style={styles.descriptionCard}>
               <BlurView intensity={15} tint="light" style={styles.descriptionBlur}>
                 <Text style={styles.descriptionTitle}>{isRTL ? 'الوصف' : 'Description'}</Text>
-                <Text style={styles.descriptionText}>{selectedSupplier.description}</Text>
+                <Text style={styles.descriptionText}>{displayDescription}</Text>
+                {/* Show both descriptions if different */}
+                {selectedSupplier.description_ar && selectedSupplier.description && selectedSupplier.description !== selectedSupplier.description_ar && (
+                  <Text style={[styles.descriptionText, { marginTop: 12, fontStyle: 'italic', opacity: 0.8 }]}>
+                    {isRTL ? selectedSupplier.description : selectedSupplier.description_ar}
+                  </Text>
+                )}
               </BlurView>
+            </View>
+          )}
+
+          {/* Slider Images Gallery */}
+          {selectedSupplier.slider_images && selectedSupplier.slider_images.length > 0 && (
+            <View style={styles.gallerySection}>
+              <Text style={styles.brandsSectionTitle}>{isRTL ? 'معرض الصور' : 'Image Gallery'}</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.brandsCarousel}>
+                {selectedSupplier.slider_images.map((img: string, index: number) => (
+                  <View key={index} style={styles.galleryImageContainer}>
+                    <Image source={{ uri: img }} style={styles.galleryImage} />
+                  </View>
+                ))}
+              </ScrollView>
             </View>
           )}
 
           {/* Linked Brands Carousel */}
           {linkedBrandObjects.length > 0 && (
             <View style={styles.brandsSection}>
-              <Text style={styles.brandsSectionTitle}>{isRTL ? 'العلامات التجارية' : 'Linked Brands'}</Text>
+              <Text style={styles.brandsSectionTitle}>{isRTL ? 'العلامات التجارية المرتبطة' : 'Linked Brands'}</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.brandsCarousel}>
                 {linkedBrandObjects.map((brand: any) => (
                   <TouchableOpacity key={brand.id} style={styles.brandCircle}>
@@ -289,7 +355,7 @@ export default function SuppliersScreen() {
                     ) : (
                       <Ionicons name="pricetag" size={24} color="#14B8A6" />
                     )}
-                    <Text style={styles.brandName} numberOfLines={1}>{brand.name}</Text>
+                    <Text style={styles.brandName} numberOfLines={1}>{isRTL && brand.name_ar ? brand.name_ar : brand.name}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
