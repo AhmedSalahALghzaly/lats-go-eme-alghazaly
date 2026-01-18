@@ -138,16 +138,22 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Icons Section - Far left in RTL, Far right in LTR */}
         <View style={[styles.iconsSection, isRTL && styles.iconsSectionRTL]}>
-          {/* Subscription Request Icon */}
+          {/* Subscription Request Icon - Golden for subscribers */}
           <TouchableOpacity 
-            onPress={() => router.push('/subscription-request')} 
-            style={styles.iconButton}
+            onPress={() => !isUserSubscriber && router.push('/subscription-request')} 
+            style={[styles.iconButton, isUserSubscriber && styles.subscriberIconButton]}
+            disabled={isUserSubscriber}
           >
             <Ionicons 
-              name="card-outline" 
+              name={isUserSubscriber ? "card" : "card-outline"}
               size={22} 
-              color={headerIconColor} 
+              color={isUserSubscriber ? '#FFD700' : headerIconColor}
             />
+            {isUserSubscriber && (
+              <View style={styles.goldenBadge}>
+                <Ionicons name="star" size={8} color="#FFD700" />
+              </View>
+            )}
           </TouchableOpacity>
 
           {/* Profile/User Icon */}
