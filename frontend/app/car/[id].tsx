@@ -129,7 +129,7 @@ export default function CarModelDetailScreen() {
                     resizeMode="cover"
                   />
                 ) : (
-                  <Ionicons name="person-circle" size={44} color={colors.error} />
+                  <Ionicons name="person-circle" size={44} color={colors.primary} />
                 )}
               </View>
               <View style={styles.distributorTextContainer}>
@@ -142,8 +142,8 @@ export default function CarModelDetailScreen() {
                     : carModel.distributor.name}
                 </Text>
               </View>
-              <View style={[styles.distributorArrowContainer, { backgroundColor: colors.error + '20' }]}>
-                <Ionicons name="chevron-forward" size={18} color={colors.error} />
+              <View style={[styles.distributorArrowContainer, { backgroundColor: colors.primary + '20' }]}>
+                <Ionicons name="chevron-forward" size={18} color={colors.primary} />
               </View>
             </View>
           </TouchableOpacity>
