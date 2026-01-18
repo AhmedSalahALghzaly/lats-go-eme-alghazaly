@@ -84,8 +84,8 @@ export default function SubscriptionsScreen() {
 
   // Navigate to customer personal profile page
   const navigateToCustomerProfile = (customerId: string) => {
-    // Navigate to customer profile in owner/customers with profile view
-    router.push(`/owner/customers?viewMode=profile&id=${customerId}`);
+    // Navigate to customer profile in admin/customers with customerId param
+    router.push(`/admin/customers?customerId=${customerId}`);
   };
 
   // Handle subscriber row click - navigate to customer profile
