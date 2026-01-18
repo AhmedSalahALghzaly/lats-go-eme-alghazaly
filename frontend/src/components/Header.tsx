@@ -130,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
         <View style={[styles.iconsSection, isRTL && styles.iconsSectionRTL]}>
           {/* Subscription Request Icon */}
           <TouchableOpacity 
-            onPress={() => router.push('/(tabs)/subscription-request')} 
+            onPress={() => router.push('/subscription-request')} 
             style={styles.iconButton}
           >
             <Ionicons 
