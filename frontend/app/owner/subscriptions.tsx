@@ -10,6 +10,9 @@ import {
   TouchableOpacity,
   TextInput,
   RefreshControl,
+  Modal,
+  Dimensions,
+  Linking,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -23,6 +26,8 @@ import { VoidDeleteGesture } from '../../src/components/ui/VoidDeleteGesture';
 import { ErrorCapsule } from '../../src/components/ui/ErrorCapsule';
 import { ConfettiEffect } from '../../src/components/ui/ConfettiEffect';
 
+const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
 type TabType = 'subscribers' | 'requests';
 
 export default function SubscriptionsScreen() {
@@ -31,6 +36,7 @@ export default function SubscriptionsScreen() {
   const language = useAppStore((state) => state.language);
   const subscribers = useAppStore((state) => state.subscribers);
   const setSubscribers = useAppStore((state) => state.setSubscribers);
+  const customers = useAppStore((state) => state.customers);
   const isRTL = language === 'ar';
 
   const [activeTab, setActiveTab] = useState<TabType>('subscribers');
@@ -41,6 +47,8 @@ export default function SubscriptionsScreen() {
   const [error, setError] = useState<string | null>(null);
   const [showConfetti, setShowConfetti] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
+  const [selectedRequest, setSelectedRequest] = useState<any>(null);
+  const [showRequestDetail, setShowRequestDetail] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -64,6 +72,37 @@ export default function SubscriptionsScreen() {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Find customer by email or phone
+  const findCustomerByContact = (email?: string, phone?: string) => {
+    return customers.find((c: any) => 
+      (email && c.email?.toLowerCase() === email?.toLowerCase()) ||
+      (phone && c.phone === phone)
+    );
+  };
+
+  // Navigate to customer profile
+  const navigateToCustomer = (customerId: string) => {
+    router.push(`/owner/customers?viewMode=profile&id=${customerId}`);
+  };
+
+  // Handle subscriber row click - navigate to customer profile
+  const handleSubscriberPress = (sub: any) => {
+    const customer = findCustomerByContact(sub.email, sub.phone);
+    if (customer) {
+      navigateToCustomer(customer.id);
+    } else {
+      // If no customer found, show an alert or do nothing
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+  };
+
+  // Handle request row click - show details modal
+  const handleRequestPress = (req: any) => {
+    setSelectedRequest(req);
+    setShowRequestDetail(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
 
   // Add subscriber with confetti
   const handleAddSubscriber = async () => {
@@ -160,6 +199,33 @@ export default function SubscriptionsScreen() {
 
   const pendingRequests = requests.filter((r: any) => r.status === 'pending');
 
+  // Render request detail row
+  const renderDetailRow = (icon: string, label: string, value: string, onPress?: () => void) => {
+    if (!value) return null;
+    
+    const content = (
+      <View style={styles.detailRow}>
+        <View style={styles.detailIconContainer}>
+          <Ionicons name={icon as any} size={18} color="#8B5CF6" />
+        </View>
+        <View style={styles.detailContent}>
+          <Text style={styles.detailLabel}>{label}</Text>
+          <Text style={styles.detailValue}>{value}</Text>
+        </View>
+        {onPress && <Ionicons name="chevron-forward" size={18} color="#9CA3AF" />}
+      </View>
+    );
+
+    if (onPress) {
+      return (
+        <TouchableOpacity key={label} onPress={onPress}>
+          {content}
+        </TouchableOpacity>
+      );
+    }
+    return <View key={label}>{content}</View>;
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={['#5B21B6', '#7C3AED', '#8B5CF6']} style={StyleSheet.absoluteFill} />
@@ -231,26 +297,38 @@ export default function SubscriptionsScreen() {
                 <Text style={styles.emptyText}>{isRTL ? 'لا يوجد مشتركين' : 'No subscribers yet'}</Text>
               </View>
             ) : (
-              subscribers.map((sub: any) => (
-                <VoidDeleteGesture key={sub.id} onDelete={() => handleDeleteSubscriber(sub.id)}>
-                  <TouchableOpacity style={styles.card}>
-                    <BlurView intensity={15} tint="light" style={styles.cardBlur}>
-                      <View style={styles.avatar}>
-                        <Ionicons name="card" size={24} color="#8B5CF6" />
-                      </View>
-                      <View style={styles.info}>
-                        <Text style={styles.name}>{sub.name || sub.email}</Text>
-                        <Text style={styles.date}>
-                          {isRTL ? 'منذ' : 'Since'} {new Date(sub.created_at).toLocaleDateString()}
-                        </Text>
-                      </View>
-                      <View style={styles.swipeHint}>
-                        <Ionicons name="arrow-back" size={16} color="rgba(255,255,255,0.4)" />
-                      </View>
-                    </BlurView>
-                  </TouchableOpacity>
-                </VoidDeleteGesture>
-              ))
+              subscribers.map((sub: any) => {
+                const customer = findCustomerByContact(sub.email, sub.phone);
+                return (
+                  <VoidDeleteGesture key={sub.id} onDelete={() => handleDeleteSubscriber(sub.id)}>
+                    <TouchableOpacity 
+                      style={styles.card}
+                      onPress={() => handleSubscriberPress(sub)}
+                      activeOpacity={0.7}
+                    >
+                      <BlurView intensity={15} tint="light" style={styles.cardBlur}>
+                        <View style={styles.avatar}>
+                          <Ionicons name="card" size={24} color="#8B5CF6" />
+                        </View>
+                        <View style={styles.info}>
+                          <Text style={styles.name}>{sub.name || sub.email}</Text>
+                          <Text style={styles.date}>
+                            {isRTL ? 'منذ' : 'Since'} {new Date(sub.created_at).toLocaleDateString()}
+                          </Text>
+                        </View>
+                        {customer && (
+                          <View style={styles.customerBadge}>
+                            <Ionicons name="person" size={14} color="#10B981" />
+                          </View>
+                        )}
+                        <View style={styles.swipeHint}>
+                          <Ionicons name={isRTL ? 'arrow-forward' : 'arrow-back'} size={16} color="rgba(255,255,255,0.4)" />
+                        </View>
+                      </BlurView>
+                    </TouchableOpacity>
+                  </VoidDeleteGesture>
+                );
+              })
             )
           ) : (
             requests.length === 0 ? (
@@ -259,39 +337,62 @@ export default function SubscriptionsScreen() {
                 <Text style={styles.emptyText}>{isRTL ? 'لا توجد طلبات' : 'No requests yet'}</Text>
               </View>
             ) : (
-              requests.map((req: any) => (
-                <VoidDeleteGesture key={req.id} onDelete={() => handleDeleteRequest(req.id)}>
-                  <View style={styles.card}>
-                    <BlurView intensity={15} tint="light" style={styles.cardBlur}>
-                      <View style={[styles.avatar, { backgroundColor: req.status === 'approved' ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)' }]}>
-                        <Ionicons 
-                          name={req.status === 'approved' ? 'checkmark-circle' : 'mail'} 
-                          size={24} 
-                          color={req.status === 'approved' ? '#10B981' : '#F59E0B'} 
-                        />
-                      </View>
-                      <View style={styles.info}>
-                        <Text style={styles.name}>{req.customer_name}</Text>
-                        <Text style={styles.email}>{req.customer_email}</Text>
-                        <Text style={styles.date}>{req.business_name}</Text>
-                      </View>
-                      {req.status === 'pending' && (
-                        <TouchableOpacity 
-                          style={styles.approveButton}
-                          onPress={() => handleApproveRequest(req.id)}
-                        >
-                          <Ionicons name="checkmark" size={20} color="#FFF" />
-                        </TouchableOpacity>
-                      )}
-                      {req.status === 'approved' && (
-                        <View style={styles.approvedBadge}>
-                          <Text style={styles.approvedText}>{isRTL ? 'موافق' : 'Approved'}</Text>
+              requests.map((req: any) => {
+                const customer = findCustomerByContact(undefined, req.phone);
+                return (
+                  <VoidDeleteGesture key={req.id} onDelete={() => handleDeleteRequest(req.id)}>
+                    <TouchableOpacity 
+                      style={styles.card}
+                      onPress={() => handleRequestPress(req)}
+                      activeOpacity={0.7}
+                    >
+                      <BlurView intensity={15} tint="light" style={styles.cardBlur}>
+                        <View style={[styles.avatar, { backgroundColor: req.status === 'approved' ? 'rgba(16,185,129,0.2)' : 'rgba(245,158,11,0.2)' }]}>
+                          <Ionicons 
+                            name={req.status === 'approved' ? 'checkmark-circle' : 'mail'} 
+                            size={24} 
+                            color={req.status === 'approved' ? '#10B981' : '#F59E0B'} 
+                          />
                         </View>
-                      )}
-                    </BlurView>
-                  </View>
-                </VoidDeleteGesture>
-              ))
+                        <View style={styles.info}>
+                          <Text style={styles.name}>{req.customer_name}</Text>
+                          <Text style={styles.email}>{req.phone}</Text>
+                          <Text style={styles.date}>{req.governorate}</Text>
+                        </View>
+                        <View style={styles.actionButtons}>
+                          {req.status === 'pending' && (
+                            <TouchableOpacity 
+                              style={styles.approveButton}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                handleApproveRequest(req.id);
+                              }}
+                            >
+                              <Ionicons name="checkmark" size={18} color="#FFF" />
+                            </TouchableOpacity>
+                          )}
+                          {customer && (
+                            <TouchableOpacity 
+                              style={styles.profileButton}
+                              onPress={(e) => {
+                                e.stopPropagation();
+                                navigateToCustomer(customer.id);
+                              }}
+                            >
+                              <Ionicons name="person" size={18} color="#FFF" />
+                            </TouchableOpacity>
+                          )}
+                          {req.status === 'approved' && !customer && (
+                            <View style={styles.approvedBadge}>
+                              <Text style={styles.approvedText}>{isRTL ? 'موافق' : 'OK'}</Text>
+                            </View>
+                          )}
+                        </View>
+                      </BlurView>
+                    </TouchableOpacity>
+                  </VoidDeleteGesture>
+                );
+              })
             )
           )}
         </View>
@@ -325,6 +426,112 @@ export default function SubscriptionsScreen() {
           </View>
         </View>
       )}
+
+      {/* Request Detail Modal */}
+      <Modal
+        visible={showRequestDetail}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowRequestDetail(false)}
+      >
+        <View style={styles.detailModalOverlay}>
+          <TouchableOpacity 
+            style={styles.detailModalBackdrop} 
+            onPress={() => setShowRequestDetail(false)} 
+            activeOpacity={1}
+          />
+          <View style={styles.detailModalContent}>
+            {/* Modal Header */}
+            <View style={styles.detailModalHeader}>
+              <Text style={styles.detailModalTitle}>
+                {isRTL ? 'تفاصيل طلب الاشتراك' : 'Subscription Request Details'}
+              </Text>
+              <TouchableOpacity 
+                style={styles.detailModalClose}
+                onPress={() => setShowRequestDetail(false)}
+              >
+                <Ionicons name="close" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Status Badge */}
+            {selectedRequest && (
+              <View style={[
+                styles.statusBadge,
+                { backgroundColor: selectedRequest.status === 'approved' ? '#D1FAE5' : '#FEF3C7' }
+              ]}>
+                <Ionicons 
+                  name={selectedRequest.status === 'approved' ? 'checkmark-circle' : 'time'} 
+                  size={16} 
+                  color={selectedRequest.status === 'approved' ? '#10B981' : '#F59E0B'} 
+                />
+                <Text style={[
+                  styles.statusText,
+                  { color: selectedRequest.status === 'approved' ? '#10B981' : '#F59E0B' }
+                ]}>
+                  {selectedRequest.status === 'approved' 
+                    ? (isRTL ? 'تمت الموافقة' : 'Approved')
+                    : (isRTL ? 'قيد الانتظار' : 'Pending')
+                  }
+                </Text>
+              </View>
+            )}
+
+            {/* Details */}
+            <ScrollView style={styles.detailScroll} showsVerticalScrollIndicator={false}>
+              {selectedRequest && (
+                <>
+                  {renderDetailRow('person', isRTL ? 'اسم العميل' : 'Customer Name', selectedRequest.customer_name)}
+                  {renderDetailRow(
+                    'call', 
+                    isRTL ? 'رقم الهاتف' : 'Phone Number', 
+                    selectedRequest.phone,
+                    () => Linking.openURL(`tel:${selectedRequest.phone}`)
+                  )}
+                  {renderDetailRow('location', isRTL ? 'المحافظة' : 'Governorate', selectedRequest.governorate)}
+                  {renderDetailRow('home', isRTL ? 'القرية/المنطقة' : 'Village/Area', selectedRequest.village)}
+                  {renderDetailRow('navigate', isRTL ? 'العنوان بالتفصيل' : 'Detailed Address', selectedRequest.address)}
+                  {renderDetailRow('car', isRTL ? 'موديل السيارة' : 'Car Model', selectedRequest.car_model)}
+                  {selectedRequest.description && renderDetailRow(
+                    'document-text', 
+                    isRTL ? 'ملاحظات إضافية' : 'Additional Notes', 
+                    selectedRequest.description
+                  )}
+                  {renderDetailRow(
+                    'calendar', 
+                    isRTL ? 'تاريخ الطلب' : 'Request Date', 
+                    new Date(selectedRequest.created_at).toLocaleDateString('ar-EG', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  )}
+                </>
+              )}
+            </ScrollView>
+
+            {/* Action Buttons */}
+            {selectedRequest && selectedRequest.status === 'pending' && (
+              <View style={styles.detailActions}>
+                <TouchableOpacity 
+                  style={[styles.detailActionButton, styles.approveActionButton]}
+                  onPress={() => {
+                    handleApproveRequest(selectedRequest.id);
+                    setShowRequestDetail(false);
+                  }}
+                >
+                  <Ionicons name="checkmark-circle" size={20} color="#FFF" />
+                  <Text style={styles.detailActionText}>
+                    {isRTL ? 'الموافقة على الطلب' : 'Approve Request'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -358,7 +565,10 @@ const styles = StyleSheet.create({
   email: { fontSize: 13, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
   date: { fontSize: 12, color: 'rgba(255,255,255,0.5)', marginTop: 2 },
   swipeHint: { opacity: 0.5 },
-  approveButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center' },
+  customerBadge: { width: 28, height: 28, borderRadius: 14, backgroundColor: 'rgba(16,185,129,0.2)', alignItems: 'center', justifyContent: 'center', marginRight: 8 },
+  actionButtons: { flexDirection: 'row', gap: 8, alignItems: 'center' },
+  approveButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#10B981', alignItems: 'center', justifyContent: 'center' },
+  profileButton: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#3B82F6', alignItems: 'center', justifyContent: 'center' },
   approvedBadge: { backgroundColor: 'rgba(16,185,129,0.3)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8 },
   approvedText: { fontSize: 12, color: '#10B981', fontWeight: '600' },
   emptyState: { alignItems: 'center', paddingVertical: 60 },
@@ -373,4 +583,23 @@ const styles = StyleSheet.create({
   cancelButtonText: { fontSize: 16, fontWeight: '600', color: '#6B7280' },
   confirmButton: { backgroundColor: '#8B5CF6' },
   confirmButtonText: { fontSize: 16, fontWeight: '600', color: '#FFF' },
+  // Request Detail Modal Styles
+  detailModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'flex-end' },
+  detailModalBackdrop: { flex: 1 },
+  detailModalContent: { backgroundColor: '#FFF', borderTopLeftRadius: 24, borderTopRightRadius: 24, maxHeight: '85%', paddingBottom: 20 },
+  detailModalHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  detailModalTitle: { fontSize: 18, fontWeight: '700', color: '#1F2937' },
+  detailModalClose: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center' },
+  statusBadge: { flexDirection: 'row', alignItems: 'center', alignSelf: 'flex-start', marginHorizontal: 20, marginTop: 16, paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20, gap: 6 },
+  statusText: { fontSize: 13, fontWeight: '600' },
+  detailScroll: { paddingHorizontal: 20, paddingTop: 16, maxHeight: 400 },
+  detailRow: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F3F4F6' },
+  detailIconContainer: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#F3F4F6', alignItems: 'center', justifyContent: 'center', marginRight: 12 },
+  detailContent: { flex: 1 },
+  detailLabel: { fontSize: 12, color: '#9CA3AF', marginBottom: 4 },
+  detailValue: { fontSize: 15, color: '#1F2937', fontWeight: '500' },
+  detailActions: { paddingHorizontal: 20, paddingTop: 16 },
+  detailActionButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderRadius: 12, gap: 8 },
+  approveActionButton: { backgroundColor: '#10B981' },
+  detailActionText: { fontSize: 16, fontWeight: '600', color: '#FFF' },
 });
