@@ -613,6 +613,106 @@ export default function SubscriptionsScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Task 1: Subscriber Detail Modal */}
+      <Modal
+        visible={showSubscriberDetail}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setShowSubscriberDetail(false)}
+      >
+        <View style={styles.detailModalOverlay}>
+          <TouchableOpacity 
+            style={styles.detailModalBackdrop} 
+            onPress={() => setShowSubscriberDetail(false)} 
+            activeOpacity={1}
+          />
+          <View style={styles.detailModalContent}>
+            {/* Modal Header */}
+            <View style={styles.detailModalHeader}>
+              <Text style={styles.detailModalTitle}>
+                {isRTL ? 'تفاصيل المشترك' : 'Subscriber Details'}
+              </Text>
+              <TouchableOpacity 
+                style={styles.detailModalClose}
+                onPress={() => setShowSubscriberDetail(false)}
+              >
+                <Ionicons name="close" size={24} color="#6B7280" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Status Badge */}
+            {selectedSubscriber && (
+              <View style={[styles.statusBadge, { backgroundColor: '#D1FAE5' }]}>
+                <Ionicons name="checkmark-circle" size={16} color="#10B981" />
+                <Text style={[styles.statusText, { color: '#10B981' }]}>
+                  {isRTL ? 'مشترك نشط' : 'Active Subscriber'}
+                </Text>
+              </View>
+            )}
+
+            {/* Details */}
+            <ScrollView style={styles.detailScroll} showsVerticalScrollIndicator={false}>
+              {selectedSubscriber && (
+                <>
+                  {renderDetailRow('person', isRTL ? 'الاسم' : 'Name', selectedSubscriber.name || '-')}
+                  {renderDetailRow(
+                    'mail', 
+                    isRTL ? 'البريد الإلكتروني' : 'Email', 
+                    selectedSubscriber.email || '-',
+                    selectedSubscriber.email ? () => Linking.openURL(`mailto:${selectedSubscriber.email}`) : undefined
+                  )}
+                  {renderDetailRow(
+                    'call', 
+                    isRTL ? 'رقم الهاتف' : 'Phone Number', 
+                    selectedSubscriber.phone || '-',
+                    selectedSubscriber.phone ? () => Linking.openURL(`tel:${selectedSubscriber.phone}`) : undefined
+                  )}
+                  {renderDetailRow('location', isRTL ? 'المحافظة' : 'Governorate', selectedSubscriber.governorate || '-')}
+                  {renderDetailRow('home', isRTL ? 'القرية/المنطقة' : 'Village/Area', selectedSubscriber.village || '-')}
+                  {renderDetailRow('navigate', isRTL ? 'العنوان' : 'Address', selectedSubscriber.address || '-')}
+                  {renderDetailRow('car', isRTL ? 'موديل السيارة' : 'Car Model', selectedSubscriber.car_model || '-')}
+                  {renderDetailRow(
+                    'calendar', 
+                    isRTL ? 'تاريخ الاشتراك' : 'Subscription Date', 
+                    selectedSubscriber.created_at ? new Date(selectedSubscriber.created_at).toLocaleDateString('ar-EG', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    }) : '-'
+                  )}
+                </>
+              )}
+            </ScrollView>
+
+            {/* Action: Navigate to Customer Profile */}
+            {selectedSubscriber && (
+              <View style={styles.detailActions}>
+                {(() => {
+                  const customer = findCustomerByContact(selectedSubscriber.email, selectedSubscriber.phone);
+                  if (customer) {
+                    return (
+                      <TouchableOpacity 
+                        style={[styles.detailActionButton, { backgroundColor: '#3B82F6' }]}
+                        onPress={() => {
+                          setShowSubscriberDetail(false);
+                          navigateToCustomerProfile(customer.id);
+                        }}
+                      >
+                        <Ionicons name="person" size={20} color="#FFF" />
+                        <Text style={styles.detailActionText}>
+                          {isRTL ? 'عرض ملف العميل' : 'View Customer Profile'}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  }
+                  return null;
+                })()}
+              </View>
+            )}
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 }
