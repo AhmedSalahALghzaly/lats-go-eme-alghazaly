@@ -75,6 +75,7 @@ export default function SubscriptionRequestScreen() {
   // Form state
   const [formData, setFormData] = useState({
     customer_name: '',
+    email: '',
     phone: '',
     governorate: '',
     village: '',
