@@ -148,20 +148,41 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Icons Section - Far left in RTL, Far right in LTR */}
         <View style={[styles.iconsSection, isRTL && styles.iconsSectionRTL]}>
-          {/* Subscription Request Icon - Golden for subscribers */}
+          {/* Subscription Request Icon - Different states */}
           <TouchableOpacity 
-            onPress={() => !isUserSubscriber && router.push('/subscription-request')} 
-            style={[styles.iconButton, isUserSubscriber && styles.subscriberIconButton]}
-            disabled={isUserSubscriber}
+            onPress={() => {
+              if (subscriptionStatus === 'none') {
+                router.push('/subscription-request');
+              }
+            }} 
+            style={[
+              styles.iconButton, 
+              subscriptionStatus === 'subscriber' && styles.subscriberIconButton,
+              subscriptionStatus === 'pending' && styles.pendingIconButton,
+            ]}
+            disabled={subscriptionStatus !== 'none'}
           >
             <Ionicons 
-              name={isUserSubscriber ? "card" : "card-outline"}
+              name={
+                subscriptionStatus === 'subscriber' ? "card" : 
+                subscriptionStatus === 'pending' ? "time" : 
+                "card-outline"
+              }
               size={22} 
-              color={isUserSubscriber ? '#FFD700' : headerIconColor}
+              color={
+                subscriptionStatus === 'subscriber' ? '#FFD700' : 
+                subscriptionStatus === 'pending' ? '#F59E0B' : 
+                headerIconColor
+              }
             />
-            {isUserSubscriber && (
+            {subscriptionStatus === 'subscriber' && (
               <View style={styles.goldenBadge}>
                 <Ionicons name="star" size={8} color="#FFD700" />
+              </View>
+            )}
+            {subscriptionStatus === 'pending' && (
+              <View style={styles.pendingBadge}>
+                <Ionicons name="hourglass" size={8} color="#F59E0B" />
               </View>
             )}
           </TouchableOpacity>
