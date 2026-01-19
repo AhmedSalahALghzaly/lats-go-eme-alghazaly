@@ -210,36 +210,44 @@ export default function CarModelDetailScreen() {
 
         {/* Car Info */}
         <View style={styles.infoContainer}>
-          {/* Catalog Badge - Golden for subscribers, disabled for non-subscribers */}
-          {carModel.catalog_pdf && (
-            <TouchableOpacity 
-              style={[
-                styles.catalogBadge, 
-                { backgroundColor: '#FFD70020' },
-                !subscriptionStatus || subscriptionStatus === 'none' ? styles.catalogBadgeDisabled : {}
-              ]}
-              onPress={() => {
-                if (subscriptionStatus === 'subscriber') {
-                  // Download/Open PDF for subscribers
-                  if (carModel.catalog_pdf) {
-                    Linking.openURL(carModel.catalog_pdf);
-                  }
-                }
-              }}
-              disabled={!subscriptionStatus || subscriptionStatus === 'none'}
-              activeOpacity={subscriptionStatus === 'subscriber' ? 0.7 : 1}
-            >
-              <Ionicons name="document-text" size={16} color="#FFD700" />
-              <Text style={styles.catalogText}>
-                {language === 'ar' ? 'كتالوج الموديل' : 'Model Catalog'}
-              </Text>
-              {subscriptionStatus === 'subscriber' ? (
+          {/* Catalog Badge - Always visible, Golden for subscribers, disabled for non-subscribers */}
+          <TouchableOpacity 
+            style={[
+              styles.catalogBadge, 
+              { backgroundColor: '#FFD70020' },
+              (!subscriptionStatus || subscriptionStatus === 'none') && styles.catalogBadgeDisabled
+            ]}
+            onPress={() => {
+              if (subscriptionStatus === 'subscriber' && carModel.catalog_pdf) {
+                // Download/Open PDF for subscribers
+                Linking.openURL(carModel.catalog_pdf);
+              } else if (subscriptionStatus === 'subscriber' && !carModel.catalog_pdf) {
+                // No catalog available
+                Alert.alert(
+                  language === 'ar' ? 'غير متاح' : 'Not Available',
+                  language === 'ar' ? 'لا يوجد كتالوج متاح لهذا الموديل حالياً' : 'No catalog available for this model yet'
+                );
+              } else {
+                // Not a subscriber - navigate to subscription
+                router.push('/subscription-request');
+              }
+            }}
+            activeOpacity={0.7}
+          >
+            <Ionicons name="document-text" size={16} color="#FFD700" />
+            <Text style={styles.catalogText}>
+              {language === 'ar' ? 'كتالوج الموديل' : 'Model Catalog'}
+            </Text>
+            {subscriptionStatus === 'subscriber' ? (
+              carModel.catalog_pdf ? (
                 <Ionicons name="download-outline" size={14} color="#FFD700" />
               ) : (
-                <Ionicons name="lock-closed" size={14} color="#FFD70080" />
-              )}
-            </TouchableOpacity>
-          )}
+                <Ionicons name="time-outline" size={14} color="#FFD70080" />
+              )
+            ) : (
+              <Ionicons name="lock-closed" size={14} color="#FFD70080" />
+            )}
+          </TouchableOpacity>
 
           {/* Brand Badge - Clickable */}
           {carModel.brand && (
