@@ -34,6 +34,8 @@ export default function ModelsAdmin() {
   const [chassisNumber, setChassisNumber] = useState('');
   const [modelImage, setModelImage] = useState<string | null>(null);
   const [imageUrl, setImageUrl] = useState('');
+  const [catalogPdf, setCatalogPdf] = useState<string | null>(null);
+  const [catalogPdfName, setCatalogPdfName] = useState('');
 
   // Edit mode state
   const [editingModel, setEditingModel] = useState<any>(null);
