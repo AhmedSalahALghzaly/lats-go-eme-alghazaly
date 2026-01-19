@@ -209,6 +209,37 @@ export default function CarModelDetailScreen() {
 
         {/* Car Info */}
         <View style={styles.infoContainer}>
+          {/* Catalog Badge - Golden for subscribers, disabled for non-subscribers */}
+          {carModel.catalog_pdf && (
+            <TouchableOpacity 
+              style={[
+                styles.catalogBadge, 
+                { backgroundColor: '#FFD70020' },
+                !subscriptionStatus || subscriptionStatus === 'none' ? styles.catalogBadgeDisabled : {}
+              ]}
+              onPress={() => {
+                if (subscriptionStatus === 'subscriber') {
+                  // Download/Open PDF for subscribers
+                  if (carModel.catalog_pdf) {
+                    Linking.openURL(carModel.catalog_pdf);
+                  }
+                }
+              }}
+              disabled={!subscriptionStatus || subscriptionStatus === 'none'}
+              activeOpacity={subscriptionStatus === 'subscriber' ? 0.7 : 1}
+            >
+              <Ionicons name="document-text" size={16} color="#FFD700" />
+              <Text style={styles.catalogText}>
+                {language === 'ar' ? 'كتالوج الموديل' : 'Model Catalog'}
+              </Text>
+              {subscriptionStatus === 'subscriber' ? (
+                <Ionicons name="download-outline" size={14} color="#FFD700" />
+              ) : (
+                <Ionicons name="lock-closed" size={14} color="#FFD70080" />
+              )}
+            </TouchableOpacity>
+          )}
+
           {/* Brand Badge - Clickable */}
           {carModel.brand && (
             <TouchableOpacity 
