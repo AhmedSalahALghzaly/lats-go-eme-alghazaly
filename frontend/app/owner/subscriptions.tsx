@@ -104,6 +104,13 @@ export default function SubscriptionsScreen() {
     }
   };
 
+  // Handle subscriber details view (blue button)
+  const handleSubscriberDetails = (sub: any) => {
+    setSelectedSubscriber(sub);
+    setShowSubscriberDetail(true);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
   // Handle request row click - show details modal
   const handleRequestPress = (req: any) => {
     setSelectedRequest(req);
@@ -111,7 +118,17 @@ export default function SubscriptionsScreen() {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
-  // Add subscriber with confetti
+  // Copy email to clipboard
+  const copyToClipboard = async (text: string) => {
+    await Clipboard.setStringAsync(text);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    Alert.alert(
+      isRTL ? 'تم النسخ' : 'Copied',
+      isRTL ? 'تم نسخ البريد الإلكتروني' : 'Email copied to clipboard'
+    );
+  };
+
+  // Add subscriber with confetti - Task 3: Refresh user state
   const handleAddSubscriber = async () => {
     if (!newEmail.trim()) return;
 
@@ -123,6 +140,13 @@ export default function SubscriptionsScreen() {
       const res = await subscriberApi.create(newEmail.trim());
       // Add to list and refresh
       await fetchData();
+      
+      // Task 3: Force refresh user state to activate golden icon immediately
+      const validateSession = useAppStore.getState().validateSession;
+      if (validateSession) {
+        await validateSession();
+      }
+      
       setShowConfetti(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (err: any) {
