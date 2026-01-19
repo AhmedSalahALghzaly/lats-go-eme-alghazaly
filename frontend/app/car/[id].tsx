@@ -150,6 +150,27 @@ export default function CarModelDetailScreen() {
                 <Ionicons name="chevron-forward" size={18} color={colors.primary} />
               </View>
             </View>
+            {/* Subscribe CTA Banner - Only for non-subscribers */}
+            {showSubscribeButton && (
+              <View style={styles.subscribeBannerContainer}>
+                <LinearGradient
+                  colors={['#1a1a2e', '#2d2d44']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 0 }}
+                  style={styles.subscribeBanner}
+                >
+                  <View style={styles.subscribeBannerGoldBorder} />
+                  <Ionicons name="star" size={16} color="#FFD700" />
+                  <Text style={styles.subscribeBannerText}>
+                    {language === 'ar' 
+                      ? 'اشترك للتواصل وظهور البيانات والكتالوج' 
+                      : 'Subscribe to contact & view data & catalog'}
+                  </Text>
+                  <Ionicons name="star" size={16} color="#FFD700" />
+                  <View style={styles.subscribeBannerGoldBorderRight} />
+                </LinearGradient>
+              </View>
+            )}
           </TouchableOpacity>
         )}
 
