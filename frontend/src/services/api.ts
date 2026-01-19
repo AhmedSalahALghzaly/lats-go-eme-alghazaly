@@ -278,6 +278,8 @@ export const subscriptionRequestApi = {
   create: (data: any) => api.post('/subscription-requests', data),
   approve: (id: string) => api.patch(`/subscription-requests/${id}/approve`),
   delete: (id: string) => api.delete(`/subscription-requests/${id}`),
+  getStatus: (email?: string, phone?: string) => 
+    api.get('/subscription-status', { params: { email, phone } }),
 };
 
 // Notification APIs
