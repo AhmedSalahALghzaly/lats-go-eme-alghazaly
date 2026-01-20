@@ -24,6 +24,19 @@ export default function PriceHideAdmin() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
+  // Search state
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Filtered products based on search
+  const filteredProducts = products.filter((product) => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    const name = (product.name || '').toLowerCase();
+    const nameAr = (product.name_ar || '').toLowerCase();
+    const sku = (product.sku || '').toLowerCase();
+    return name.includes(query) || nameAr.includes(query) || sku.includes(query);
+  });
+
   useEffect(() => {
     fetchProducts();
   }, []);
