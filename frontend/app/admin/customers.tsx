@@ -2,9 +2,11 @@
  * Customers Admin - Using Unified Shopping Hub
  * Displays customer list with integrated profile view via UnifiedShoppingHub
  * With Real-Time Status Indicators (High-Performance Reanimated-based)
+ * OPTIMIZED: Uses FlashList for high-performance customer list rendering
  */
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Image, Modal } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
