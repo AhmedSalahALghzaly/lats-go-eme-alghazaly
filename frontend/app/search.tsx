@@ -23,8 +23,8 @@ import { carBrandsApi, carModelsApi, productBrandsApi, categoriesApi, cartApi } 
 // Constants for responsive grid layout
 const HORIZONTAL_PADDING = 24; // Total horizontal padding (12 left + 12 right)
 const CARD_MARGIN = 6; // Margin on each side of the card
-const MAX_CARD_WIDTH = 184; // Maximum card width (15% increase from 160)
-const MIN_CARD_WIDTH = 150; // Minimum card width for readability
+const MAX_CARD_WIDTH = 193; // Maximum card width (5% increase from 184: 184 * 1.05 = 193)
+const MIN_CARD_WIDTH = 158; // Minimum card width for readability (5% increase from 150)
 
 export default function SearchScreen() {
   const params = useLocalSearchParams();
