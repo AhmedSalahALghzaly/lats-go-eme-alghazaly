@@ -81,57 +81,40 @@ export default function CarModelDetailScreen() {
       
       // Check if it's a base64 data URI
       if (catalogData.startsWith('data:application/pdf;base64,')) {
-        const base64Data = catalogData.replace('data:application/pdf;base64,', '');
         
-        // Handle web platform
+        // Handle web platform - Open PDF in new tab for viewing/downloading
         if (Platform.OS === 'web') {
-          try {
-            // Create blob and trigger download
-            const byteCharacters = atob(base64Data);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const blob = new Blob([byteArray], { type: 'application/pdf' });
-            
-            // Create download link
-            const downloadUrl = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.style.display = 'none';
-            link.href = downloadUrl;
-            link.setAttribute('download', fileName);
-            
-            // Append to body, click, and cleanup
-            document.body.appendChild(link);
-            link.click();
-            
-            // Cleanup after a short delay
-            setTimeout(() => {
-              document.body.removeChild(link);
-              window.URL.revokeObjectURL(downloadUrl);
-            }, 100);
-            
+          // Simply open the data URI in a new window - browser will handle it
+          const pdfWindow = window.open('', '_blank');
+          if (pdfWindow) {
+            pdfWindow.document.write(`
+              <!DOCTYPE html>
+              <html>
+                <head>
+                  <title>${fileName}</title>
+                  <style>
+                    body { margin: 0; padding: 0; }
+                    embed { width: 100%; height: 100vh; }
+                  </style>
+                </head>
+                <body>
+                  <embed src="${catalogData}" type="application/pdf" width="100%" height="100%">
+                </body>
+              </html>
+            `);
+            pdfWindow.document.close();
+          } else {
+            // If popup blocked, show alert with instructions
             Alert.alert(
-              language === 'ar' ? 'تم التحميل' : 'Downloaded',
-              language === 'ar' ? 'تم تحميل الكتالوج بنجاح' : 'Catalog downloaded successfully'
+              language === 'ar' ? 'تنبيه' : 'Notice',
+              language === 'ar' 
+                ? 'يرجى السماح بالنوافذ المنبثقة لعرض الكتالوج' 
+                : 'Please allow popups to view the catalog'
             );
-          } catch (webError) {
-            console.error('Web download error:', webError);
-            // Fallback: open in new tab
-            const newWindow = window.open();
-            if (newWindow) {
-              newWindow.document.write(`
-                <html>
-                  <body style="margin:0;padding:0;">
-                    <iframe src="${catalogData}" style="width:100%;height:100vh;border:none;"></iframe>
-                  </body>
-                </html>
-              `);
-            }
           }
         } else {
           // Mobile platforms - use FileSystem and Sharing
+          const base64Data = catalogData.replace('data:application/pdf;base64,', '');
           const fileUri = `${FileSystem.cacheDirectory}${fileName}`;
           
           // Write base64 to file
