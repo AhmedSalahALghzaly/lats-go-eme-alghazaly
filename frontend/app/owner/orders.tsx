@@ -212,7 +212,7 @@ export default function OrdersScreen() {
           ))}
         </ScrollView>
 
-        {/* Orders List */}
+        {/* Orders List - OPTIMIZED with FlashList */}
         <View style={styles.listContainer}>
           {filteredOrders.length === 0 ? (
             <View style={styles.emptyState}>
@@ -222,50 +222,55 @@ export default function OrdersScreen() {
               </Text>
             </View>
           ) : (
-            filteredOrders.map((order: any) => {
-              const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
-              return (
-                <TouchableOpacity 
-                  key={order.id} 
-                  style={styles.orderCard}
-                  onPress={() => router.push(`/admin/order/${order.id}`)}
-                  activeOpacity={0.7}
-                >
-                  <BlurView intensity={15} tint="light" style={styles.orderBlur}>
-                    {/* Status Badge */}
-                    <View style={[styles.statusBadge, { backgroundColor: statusConfig.color + '30' }]}>
-                      <Ionicons name={statusConfig.icon as any} size={16} color={statusConfig.color} />
-                      <Text style={[styles.statusText, { color: statusConfig.color }]}>
-                        {isRTL ? statusConfig.labelAr : statusConfig.labelEn}
-                      </Text>
-                    </View>
-
-                    {/* Order Info */}
-                    <View style={styles.orderInfo}>
-                      <View style={styles.orderHeader}>
-                        <Text style={styles.orderId}>#{order.id?.slice(-8) || 'N/A'}</Text>
-                        <Text style={styles.orderDate}>{formatDate(order.created_at)}</Text>
-                      </View>
-                      
-                      <Text style={styles.customerName} numberOfLines={1}>
-                        {order.customer_name || order.customer_email || (isRTL ? 'عميل' : 'Customer')}
-                      </Text>
-
-                      <View style={styles.orderFooter}>
-                        <Text style={styles.itemCount}>
-                          {order.items?.length || 0} {isRTL ? 'منتجات' : 'items'}
-                        </Text>
-                        <Text style={styles.orderTotal}>
-                          {(order.total || 0).toLocaleString()} {isRTL ? 'ج.م' : 'EGP'}
+            <FlashList
+              data={filteredOrders}
+              renderItem={({ item: order }) => {
+                const statusConfig = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending;
+                return (
+                  <TouchableOpacity 
+                    style={styles.orderCard}
+                    onPress={() => router.push(`/admin/order/${order.id}`)}
+                    activeOpacity={0.7}
+                  >
+                    <BlurView intensity={15} tint="light" style={styles.orderBlur}>
+                      {/* Status Badge */}
+                      <View style={[styles.statusBadge, { backgroundColor: statusConfig.color + '30' }]}>
+                        <Ionicons name={statusConfig.icon as any} size={16} color={statusConfig.color} />
+                        <Text style={[styles.statusText, { color: statusConfig.color }]}>
+                          {isRTL ? statusConfig.labelAr : statusConfig.labelEn}
                         </Text>
                       </View>
-                    </View>
 
-                    <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.4)" />
-                  </BlurView>
-                </TouchableOpacity>
-              );
-            })
+                      {/* Order Info */}
+                      <View style={styles.orderInfo}>
+                        <View style={styles.orderHeader}>
+                          <Text style={styles.orderId}>#{order.id?.slice(-8) || 'N/A'}</Text>
+                          <Text style={styles.orderDate}>{formatDate(order.created_at)}</Text>
+                        </View>
+                        
+                        <Text style={styles.customerName} numberOfLines={1}>
+                          {order.customer_name || order.customer_email || (isRTL ? 'عميل' : 'Customer')}
+                        </Text>
+
+                        <View style={styles.orderFooter}>
+                          <Text style={styles.itemCount}>
+                            {order.items?.length || 0} {isRTL ? 'منتجات' : 'items'}
+                          </Text>
+                          <Text style={styles.orderTotal}>
+                            {(order.total || 0).toLocaleString()} {isRTL ? 'ج.م' : 'EGP'}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.4)" />
+                    </BlurView>
+                  </TouchableOpacity>
+                );
+              }}
+              keyExtractor={(order) => order.id}
+              estimatedItemSize={100}
+              scrollEnabled={false}
+            />
           )}
         </View>
 
