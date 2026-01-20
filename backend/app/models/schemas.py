@@ -24,6 +24,7 @@ class CarModelCreate(BaseModel):
     description_ar: Optional[str] = None
     variants: List[dict] = []
     chassis_number: Optional[str] = None  # VIN/Chassis Number for direct lookup
+    catalog_pdf: Optional[str] = None  # Base64 encoded PDF or URL
 
 class ProductBrandCreate(BaseModel):
     name: str
