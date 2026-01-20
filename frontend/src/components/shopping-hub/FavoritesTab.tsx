@@ -1,9 +1,11 @@
 /**
  * FavoritesTab - Favorites list display tab
  * Shows user's favorite products with actions
+ * OPTIMIZED: Uses FlashList for superior memory and rendering performance
  */
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { GlassCard } from '../ui/GlassCard';
@@ -33,6 +35,62 @@ export const FavoritesTab: React.FC<FavoritesTabProps> = ({
 
   const safeFavorites = Array.isArray(favorites) ? favorites : [];
 
+  // Memoized render item for FlashList
+  const renderFavoriteItem = useCallback(({ item }: { item: any }) => (
+    <TouchableOpacity
+      style={[styles.productCard, { borderColor: colors.border }]}
+      onPress={() => router.push(`/product/${item.product_id || item.product?.id}`)}
+      activeOpacity={0.7}
+    >
+      <View style={[styles.productThumb, { backgroundColor: colors.surface }]}>
+        {item.product?.image_url ? (
+          <Image source={{ uri: item.product.image_url }} style={styles.productImage} />
+        ) : (
+          <Ionicons name="cube-outline" size={24} color={colors.textSecondary} />
+        )}
+      </View>
+
+      <View style={styles.productInfo}>
+        <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
+          {language === 'ar' ? item.product?.name_ar : item.product?.name}
+        </Text>
+        {item.product?.sku && (
+          <Text style={[styles.productSku, { color: colors.textSecondary }]}>
+            SKU: {item.product.sku}
+          </Text>
+        )}
+        <Text style={[styles.productPrice, { color: NEON_NIGHT_THEME.primary }]}>
+          {item.product?.price?.toFixed(0)} ج.م
+        </Text>
+      </View>
+
+      <View style={styles.productActions}>
+        <TouchableOpacity
+          style={[styles.iconActionBtn, { backgroundColor: NEON_NIGHT_THEME.primary }]}
+          onPress={(e) => {
+            e.stopPropagation();
+            onAddToCart(item.product);
+          }}
+        >
+          <Ionicons name="cart-outline" size={18} color="#FFF" />
+        </TouchableOpacity>
+        {!isAdminView && (
+          <TouchableOpacity
+            style={[styles.iconActionBtn, { backgroundColor: '#EF4444' }]}
+            onPress={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(item.product_id || item.product?.id);
+            }}
+          >
+            <Ionicons name="heart-dislike-outline" size={18} color="#FFF" />
+          </TouchableOpacity>
+        )}
+      </View>
+    </TouchableOpacity>
+  ), [colors, language, isAdminView, router, onAddToCart, onToggleFavorite]);
+
+  const keyExtractor = useCallback((item: any) => item.product_id || item.id || String(Math.random()), []);
+
   return (
     <GlassCard>
       <View style={[styles.sectionHeader, isRTL && styles.rowReverse]}>
@@ -50,59 +108,15 @@ export const FavoritesTab: React.FC<FavoritesTabProps> = ({
           title={language === 'ar' ? 'لا توجد منتجات مفضلة' : 'No favorites yet'}
         />
       ) : (
-        safeFavorites.map((item) => (
-          <TouchableOpacity
-            key={item.product_id || item.id}
-            style={[styles.productCard, { borderColor: colors.border }]}
-            onPress={() => router.push(`/product/${item.product_id || item.product?.id}`)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.productThumb, { backgroundColor: colors.surface }]}>
-              {item.product?.image_url ? (
-                <Image source={{ uri: item.product.image_url }} style={styles.productImage} />
-              ) : (
-                <Ionicons name="cube-outline" size={24} color={colors.textSecondary} />
-              )}
-            </View>
-
-            <View style={styles.productInfo}>
-              <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
-                {language === 'ar' ? item.product?.name_ar : item.product?.name}
-              </Text>
-              {item.product?.sku && (
-                <Text style={[styles.productSku, { color: colors.textSecondary }]}>
-                  SKU: {item.product.sku}
-                </Text>
-              )}
-              <Text style={[styles.productPrice, { color: NEON_NIGHT_THEME.primary }]}>
-                {item.product?.price?.toFixed(0)} ج.م
-              </Text>
-            </View>
-
-            <View style={styles.productActions}>
-              <TouchableOpacity
-                style={[styles.iconActionBtn, { backgroundColor: NEON_NIGHT_THEME.primary }]}
-                onPress={(e) => {
-                  e.stopPropagation();
-                  onAddToCart(item.product);
-                }}
-              >
-                <Ionicons name="cart-outline" size={18} color="#FFF" />
-              </TouchableOpacity>
-              {!isAdminView && (
-                <TouchableOpacity
-                  style={[styles.iconActionBtn, { backgroundColor: '#EF4444' }]}
-                  onPress={(e) => {
-                    e.stopPropagation();
-                    onToggleFavorite(item.product_id || item.product?.id);
-                  }}
-                >
-                  <Ionicons name="heart-dislike-outline" size={18} color="#FFF" />
-                </TouchableOpacity>
-              )}
-            </View>
-          </TouchableOpacity>
-        ))
+        <View style={styles.listContainer}>
+          <FlashList
+            data={safeFavorites}
+            renderItem={renderFavoriteItem}
+            keyExtractor={keyExtractor}
+            estimatedItemSize={80}
+            scrollEnabled={false}
+          />
+        </View>
       )}
     </GlassCard>
   );
