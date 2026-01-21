@@ -292,9 +292,6 @@ export default function ProductsAdmin() {
         result = await adminSync.updateProduct(editingProduct.id, productData);
         
         if (result.success) {
-          setProducts(prev => prev.map(p => 
-            p.id === editingProduct.id ? { ...p, ...productData, ...result.data } : p
-          ));
           showToast(language === 'ar' ? 'تم تحديث المنتج بنجاح' : 'Product updated successfully', 'success');
         } else {
           setError(result.error || 'Failed to update product');
@@ -304,8 +301,6 @@ export default function ProductsAdmin() {
         result = await adminSync.createProduct(productData);
         
         if (result.success) {
-          const productsRes = await productsApi.getAllAdmin();
-          setProducts(productsRes.data?.products || []);
           showToast(language === 'ar' ? 'تم إضافة المنتج بنجاح' : 'Product created successfully', 'success');
         } else {
           setError(result.error || 'Failed to create product');
@@ -316,6 +311,8 @@ export default function ProductsAdmin() {
       if (result.success) {
         setShowSuccess(true);
         resetForm();
+        // Refetch products to update the list
+        await refetch();
         setTimeout(() => setShowSuccess(false), 2000);
       }
     } catch (error: any) {
