@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Enhanced Notification System Testing for Al-Ghazaly Auto Parts API
-Tests the notification service integration with order status updates, promotional notifications, and admin activity notifications.
+Admin and Owner Panel Backend API Testing for Al-Ghazaly Auto Parts API
+Comprehensive testing of all admin and owner panel backend APIs including CRUD operations.
 """
 
 import asyncio
