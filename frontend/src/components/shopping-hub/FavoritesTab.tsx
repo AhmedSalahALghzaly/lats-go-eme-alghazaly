@@ -1,8 +1,9 @@
 /**
  * FavoritesTab - Favorites list display tab
- * FIXED: FlashList now handles scrolling as primary scroll container
+ * REDESIGNED: Larger product cards with SKU and compatible car models
+ * FIXED: Proper list spacing and FlashList configuration
  */
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, Text, StyleSheet, Pressable, Image, RefreshControl } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
@@ -35,58 +36,130 @@ export const FavoritesTab: React.FC<FavoritesTabProps> = ({
   const { language } = useTranslation();
   const router = useRouter();
 
-  const safeFavorites = Array.isArray(favorites) ? favorites : [];
+  const safeFavorites = useMemo(() => 
+    Array.isArray(favorites) ? favorites : [], 
+    [favorites]
+  );
 
-  // Render favorite item for FlashList
-  const renderFavoriteItem = useCallback(({ item }: { item: any }) => (
-    <Pressable
-      style={[styles.productCard, { backgroundColor: colors.card, borderColor: colors.border }]}
-      onPress={() => router.push(`/product/${item.product_id || item.product?.id}`)}
-    >
-      <View style={[styles.productThumb, { backgroundColor: colors.surface }]}>
-        {item.product?.image_url ? (
-          <Image source={{ uri: item.product.image_url }} style={styles.productImage} />
-        ) : (
-          <Ionicons name="cube-outline" size={20} color={colors.textSecondary} />
-        )}
-      </View>
+  // Format compatible car models for display
+  const formatCarModels = useCallback((product: any) => {
+    if (!product?.compatible_car_models || product.compatible_car_models.length === 0) {
+      return null;
+    }
+    const models = product.compatible_car_models;
+    if (models.length <= 2) {
+      return models.map((m: any) => m.name || m).join(', ');
+    }
+    const firstTwo = models.slice(0, 2).map((m: any) => m.name || m).join(', ');
+    return `${firstTwo} +${models.length - 2} ${language === 'ar' ? 'أخرى' : 'more'}`;
+  }, [language]);
 
-      <View style={styles.productInfo}>
-        <Text style={[styles.productName, { color: colors.text }]} numberOfLines={1}>
-          {language === 'ar' ? item.product?.name_ar : item.product?.name}
-        </Text>
-        <Text style={[styles.productPrice, { color: NEON_NIGHT_THEME.primary }]}>
-          {item.product?.price?.toFixed(0)} ج.م
-        </Text>
-      </View>
+  // Render professional favorite item card
+  const renderFavoriteItem = useCallback(({ item }: { item: any }) => {
+    const product = item.product || {};
+    const productId = item.product_id || product.id;
+    const carModelsDisplay = formatCarModels(product);
+    const sku = product.sku || 'N/A';
+    const price = product.price || 0;
+    const hasDiscount = product.original_price && product.original_price > price;
 
-      <View style={styles.productActions}>
-        <Pressable
-          style={[styles.iconActionBtn, { backgroundColor: NEON_NIGHT_THEME.primary }]}
-          onPress={() => onAddToCart(item.product)}
-        >
-          <Ionicons name="cart-outline" size={16} color="#FFF" />
-        </Pressable>
-        {!isAdminView && (
+    return (
+      <Pressable
+        style={[styles.productCard, { backgroundColor: colors.card, borderColor: colors.border }]}
+        onPress={() => router.push(`/product/${productId}`)}
+      >
+        {/* Product Image */}
+        <View style={[styles.productThumb, { backgroundColor: colors.surface }]}>
+          {product.image_url || (product.images && product.images[0]) ? (
+            <Image 
+              source={{ uri: product.images?.[0] || product.image_url }} 
+              style={styles.productImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <Ionicons name="cube-outline" size={32} color={colors.textSecondary} />
+          )}
+        </View>
+
+        {/* Product Info */}
+        <View style={styles.productInfo}>
+          {/* Product Name */}
+          <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
+            {language === 'ar' ? product.name_ar : product.name}
+          </Text>
+
+          {/* SKU Badge */}
+          <View style={[styles.skuContainer, { backgroundColor: colors.surface }]}>
+            <Ionicons name="barcode-outline" size={12} color={colors.textSecondary} />
+            <Text style={[styles.skuText, { color: colors.textSecondary }]}>
+              SKU: {sku}
+            </Text>
+          </View>
+
+          {/* Compatible Car Models */}
+          {carModelsDisplay && (
+            <View style={[styles.carModelsContainer, { backgroundColor: '#3B82F6' + '15' }]}>
+              <Ionicons name="car-outline" size={12} color="#3B82F6" />
+              <Text style={[styles.carModelsText, { color: '#3B82F6' }]} numberOfLines={1}>
+                {carModelsDisplay}
+              </Text>
+            </View>
+          )}
+
+          {/* Price Row */}
+          <View style={[styles.priceRow, isRTL && styles.rowReverse]}>
+            {hasDiscount && (
+              <Text style={[styles.originalPrice, { color: colors.textSecondary }]}>
+                {product.original_price?.toFixed(0)} ج.م
+              </Text>
+            )}
+            <Text style={[styles.productPrice, { color: NEON_NIGHT_THEME.primary }]}>
+              {price.toFixed(0)} ج.م
+            </Text>
+            {hasDiscount && (
+              <View style={styles.discountBadge}>
+                <Text style={styles.discountText}>
+                  -{Math.round(((product.original_price - price) / product.original_price) * 100)}%
+                </Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* Actions */}
+        <View style={styles.productActions}>
           <Pressable
-            style={[styles.iconActionBtn, { backgroundColor: '#EF4444' }]}
-            onPress={() => onToggleFavorite(item.product_id || item.product?.id)}
+            style={[styles.actionBtn, { backgroundColor: NEON_NIGHT_THEME.primary }]}
+            onPress={() => onAddToCart(product)}
           >
-            <Ionicons name="heart-dislike-outline" size={16} color="#FFF" />
+            <Ionicons name="cart-outline" size={18} color="#FFF" />
+            <Text style={styles.actionBtnText}>
+              {language === 'ar' ? 'أضف' : 'Add'}
+            </Text>
           </Pressable>
-        )}
-      </View>
-    </Pressable>
-  ), [colors, language, router, isAdminView, onAddToCart, onToggleFavorite]);
+          {!isAdminView && (
+            <Pressable
+              style={[styles.removeBtn, { backgroundColor: '#EF4444' + '15' }]}
+              onPress={() => onToggleFavorite(productId)}
+            >
+              <Ionicons name="heart-dislike-outline" size={18} color="#EF4444" />
+            </Pressable>
+          )}
+        </View>
+      </Pressable>
+    );
+  }, [colors, language, router, isAdminView, isRTL, onAddToCart, onToggleFavorite, formatCarModels]);
 
   // List header with section title
   const ListHeaderComponent = useCallback(() => (
-    <View style={[styles.sectionHeader, isRTL && styles.rowReverse]}>
-      <Text style={[styles.sectionTitle, { color: colors.text }]}>
-        {language === 'ar' ? 'المنتجات المفضلة' : 'Favorite Products'}
-      </Text>
-      <View style={[styles.countBadge, { backgroundColor: NEON_NIGHT_THEME.primary }]}>
-        <Text style={styles.countBadgeText}>{safeFavorites.length}</Text>
+    <View style={styles.sectionHeader}>
+      <View style={[styles.headerRow, isRTL && styles.rowReverse]}>
+        <Text style={[styles.sectionTitle, { color: colors.text }]}>
+          {language === 'ar' ? 'المنتجات المفضلة' : 'Favorite Products'}
+        </Text>
+        <View style={[styles.countBadge, { backgroundColor: NEON_NIGHT_THEME.primary }]}>
+          <Text style={styles.countBadgeText}>{safeFavorites.length}</Text>
+        </View>
       </View>
     </View>
   ), [colors, language, isRTL, safeFavorites.length]);
@@ -102,6 +175,7 @@ export const FavoritesTab: React.FC<FavoritesTabProps> = ({
       <EmptyState
         icon="heart-outline"
         title={language === 'ar' ? 'لا توجد منتجات مفضلة' : 'No favorites yet'}
+        subtitle={language === 'ar' ? 'أضف منتجات إلى المفضلة من صفحة المنتج' : 'Add products to favorites from product page'}
       />
     </View>
   ), [language, colors]);
@@ -111,12 +185,13 @@ export const FavoritesTab: React.FC<FavoritesTabProps> = ({
       data={safeFavorites}
       renderItem={renderFavoriteItem}
       keyExtractor={(item, index) => item.product_id || item.id || `fav-item-${index}`}
-      estimatedItemSize={70}
+      estimatedItemSize={160}
       ListHeaderComponent={ListHeaderComponent}
       ListFooterComponent={ListFooterComponent}
       ListEmptyComponent={ListEmptyComponent}
       contentContainerStyle={styles.listContainer}
       showsVerticalScrollIndicator={false}
+      extraData={safeFavorites.length}
       refreshControl={
         onRefresh ? (
           <RefreshControl
@@ -133,81 +208,146 @@ export const FavoritesTab: React.FC<FavoritesTabProps> = ({
 const styles = StyleSheet.create({
   listContainer: {
     paddingHorizontal: 16,
-    paddingTop: 8,
   },
   sectionHeader: {
+    paddingTop: 8,
+    marginBottom: 12,
+  },
+  headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 12,
-    paddingHorizontal: 4,
   },
   rowReverse: {
     flexDirection: 'row-reverse',
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: 18,
     fontWeight: '700',
   },
   countBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
   },
   countBadgeText: {
     color: '#FFF',
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   emptyContainer: {
     marginTop: 8,
     borderRadius: 16,
-    padding: 16,
+    padding: 24,
     borderWidth: 1,
   },
   productCard: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-    borderRadius: 12,
+    padding: 14,
+    borderRadius: 16,
     borderWidth: 1,
-    marginBottom: 8,
+    marginBottom: 12,
   },
   productThumb: {
-    width: 44,
-    height: 44,
-    borderRadius: 8,
+    width: 90,
+    height: 90,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
   },
   productImage: {
-    width: 44,
-    height: 44,
+    width: 90,
+    height: 90,
+    borderRadius: 12,
   },
   productInfo: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 12,
+    justifyContent: 'space-between',
   },
   productName: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '600',
-    marginBottom: 2,
+    marginBottom: 6,
+    lineHeight: 20,
+  },
+  skuContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+    gap: 4,
+    marginBottom: 4,
+  },
+  skuText: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  carModelsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    gap: 4,
+    marginBottom: 6,
+    maxWidth: '100%',
+  },
+  carModelsText: {
+    fontSize: 11,
+    fontWeight: '500',
+    flexShrink: 1,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  originalPrice: {
+    fontSize: 12,
+    textDecorationLine: 'line-through',
   },
   productPrice: {
-    fontSize: 14,
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  discountBadge: {
+    backgroundColor: '#10B981',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  discountText: {
+    color: '#FFF',
+    fontSize: 10,
     fontWeight: '700',
   },
   productActions: {
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    paddingLeft: 8,
+  },
+  actionBtn: {
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 10,
     gap: 6,
   },
-  iconActionBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
+  actionBtnText: {
+    color: '#FFF',
+    fontSize: 13,
+    fontWeight: '600',
+  },
+  removeBtn: {
+    padding: 10,
+    borderRadius: 10,
+    marginTop: 8,
   },
 });
 

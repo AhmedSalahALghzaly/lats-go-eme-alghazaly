@@ -3,6 +3,7 @@
  * Provides data fetching for cart, favorites, and orders
  * Uses centralized query keys for cache management
  * 
+ * FIXED: Enhanced cache invalidation for real-time state synchronization
  * FIXED: Removed Zustand updates from queryFn to prevent infinite re-renders
  */
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -37,6 +38,7 @@ const processFavoritesData = (favoritesData: any[]): any[] => {
       price: fav.price,
       image_url: fav.image_url,
       sku: fav.sku,
+      compatible_car_models: fav.compatible_car_models || [],
     },
   }));
 };
@@ -181,6 +183,7 @@ export function useShoppingHubQuery(enabled = true) {
 
 /**
  * Hook for cart mutations (add, update, remove)
+ * FIXED: Enhanced cache invalidation for immediate UI updates
  */
 export function useCartMutations() {
   const queryClient = useQueryClient();
@@ -190,6 +193,7 @@ export function useCartMutations() {
       return cartApi.add(productId);
     },
     onSuccess: () => {
+      // Immediately invalidate and refetch cart data
       queryClient.invalidateQueries({ queryKey: shoppingHubKeys.cart });
     },
   });
@@ -199,10 +203,13 @@ export function useCartMutations() {
       return cartApi.update(productId, quantity);
     },
     onMutate: async ({ productId, quantity }) => {
+      // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: shoppingHubKeys.cart });
+      
+      // Snapshot previous value
       const previousCart = queryClient.getQueryData<any[]>(shoppingHubKeys.cart);
       
-      // Optimistic update
+      // Optimistically update the cache immediately
       queryClient.setQueryData(shoppingHubKeys.cart, (old: any[]) => {
         if (!old) return old;
         if (quantity <= 0) {
@@ -216,11 +223,13 @@ export function useCartMutations() {
       return { previousCart };
     },
     onError: (err, variables, context) => {
+      // Rollback on error
       if (context?.previousCart) {
         queryClient.setQueryData(shoppingHubKeys.cart, context.previousCart);
       }
     },
-    onSettled: () => {
+    onSuccess: () => {
+      // Refetch to ensure server sync
       queryClient.invalidateQueries({ queryKey: shoppingHubKeys.cart });
     },
   });
@@ -233,7 +242,7 @@ export function useCartMutations() {
       await queryClient.cancelQueries({ queryKey: shoppingHubKeys.cart });
       const previousCart = queryClient.getQueryData<any[]>(shoppingHubKeys.cart);
       
-      // Optimistic removal
+      // Optimistic removal - instant UI feedback
       queryClient.setQueryData(shoppingHubKeys.cart, (old: any[]) => {
         if (!old) return old;
         return old.filter(item => item.product_id !== productId);
@@ -246,7 +255,7 @@ export function useCartMutations() {
         queryClient.setQueryData(shoppingHubKeys.cart, context.previousCart);
       }
     },
-    onSettled: () => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: shoppingHubKeys.cart });
     },
   });
@@ -255,8 +264,19 @@ export function useCartMutations() {
     mutationFn: async () => {
       return cartApi.clear();
     },
-    onSuccess: () => {
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: shoppingHubKeys.cart });
+      const previousCart = queryClient.getQueryData<any[]>(shoppingHubKeys.cart);
       queryClient.setQueryData(shoppingHubKeys.cart, []);
+      return { previousCart };
+    },
+    onError: (err, variables, context) => {
+      if (context?.previousCart) {
+        queryClient.setQueryData(shoppingHubKeys.cart, context.previousCart);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: shoppingHubKeys.cart });
     },
   });
 
@@ -270,6 +290,7 @@ export function useCartMutations() {
 
 /**
  * Hook for favorites mutations
+ * FIXED: Enhanced cache invalidation for immediate UI updates
  */
 export function useFavoritesMutations() {
   const queryClient = useQueryClient();
@@ -282,7 +303,7 @@ export function useFavoritesMutations() {
       await queryClient.cancelQueries({ queryKey: shoppingHubKeys.favorites });
       const previousFavorites = queryClient.getQueryData<any[]>(shoppingHubKeys.favorites);
       
-      // Optimistic toggle - remove if exists
+      // Optimistic toggle - remove if exists for instant UI feedback
       queryClient.setQueryData(shoppingHubKeys.favorites, (old: any[]) => {
         if (!old) return old;
         const exists = old.some(f => f.product_id === productId);
@@ -299,7 +320,8 @@ export function useFavoritesMutations() {
         queryClient.setQueryData(shoppingHubKeys.favorites, context.previousFavorites);
       }
     },
-    onSettled: () => {
+    onSuccess: () => {
+      // Always refetch to ensure sync with server
       queryClient.invalidateQueries({ queryKey: shoppingHubKeys.favorites });
     },
   });
