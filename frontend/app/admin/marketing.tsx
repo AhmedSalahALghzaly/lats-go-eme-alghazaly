@@ -246,14 +246,14 @@ export default function MarketingSuiteScreen() {
       };
 
       if (editingPromotion) {
-        await promotionApi.update(editingPromotion.id, data);
+        await updatePromotion.mutateAsync({ id: editingPromotion.id, data });
       } else {
-        await promotionApi.create(data);
+        await createPromotion.mutateAsync(data);
       }
 
       setShowPromotionModal(false);
       resetPromotionForm();
-      fetchData();
+      showToast(language === 'ar' ? 'تم الحفظ بنجاح' : 'Saved successfully', 'success');
     } catch (error) {
       console.error('Error saving promotion:', error);
       Alert.alert('Error', 'Failed to save promotion');
@@ -291,14 +291,14 @@ export default function MarketingSuiteScreen() {
       };
 
       if (editingBundle) {
-        await bundleOfferApi.update(editingBundle.id, data);
+        await updateBundle.mutateAsync({ id: editingBundle.id, data });
       } else {
-        await bundleOfferApi.create(data);
+        await createBundle.mutateAsync(data);
       }
 
       setShowBundleModal(false);
       resetBundleForm();
-      fetchData();
+      showToast(language === 'ar' ? 'تم الحفظ بنجاح' : 'Saved successfully', 'success');
     } catch (error) {
       console.error('Error saving bundle:', error);
       Alert.alert('Error', 'Failed to save bundle offer');
@@ -320,10 +320,8 @@ export default function MarketingSuiteScreen() {
           onPress: async () => {
             try {
               console.log('Attempting to delete promotion:', id);
-              const response = await promotionApi.delete(id);
-              console.log('Delete promotion response:', response);
+              await deletePromotionMutation.mutateAsync(id);
               showToast(language === 'ar' ? 'تم حذف العرض بنجاح' : 'Promotion deleted successfully', 'success');
-              fetchData();
             } catch (error: any) {
               console.error('Error deleting promotion:', error);
               console.error('Error response:', error?.response?.data);
@@ -354,10 +352,8 @@ export default function MarketingSuiteScreen() {
           onPress: async () => {
             try {
               console.log('Attempting to delete bundle:', id);
-              const response = await bundleOfferApi.delete(id);
-              console.log('Delete bundle response:', response);
+              await deleteBundleMutation.mutateAsync(id);
               showToast(language === 'ar' ? 'تم حذف الحزمة بنجاح' : 'Bundle deleted successfully', 'success');
-              fetchData();
             } catch (error: any) {
               console.error('Error deleting bundle:', error);
               console.error('Error response:', error?.response?.data);
