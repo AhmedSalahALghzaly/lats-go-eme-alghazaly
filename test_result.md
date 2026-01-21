@@ -828,15 +828,17 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Al-Ghazaly Auto Parts Mobile App End-to-End Testing"
-    - "Mobile responsiveness and UI functionality"
-    - "Navigation and user experience testing"
-    - "Authentication and security verification"
+    - "UnifiedShoppingHub Critical Bug Fixes Verification"
+    - "Shopping Hub (Cart/Favorites/Orders) tabs functionality"
+    - "FlashList scrolling verification"
+    - "Categories screen data display"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
 
 agent_communication:
+  - agent: "main"
+    message: "URGENT BUG FIXES APPLIED - TESTING REQUIRED: 1) Fixed infinite re-render loop in UnifiedShoppingHub by removing Zustand sync from queryFn - now uses useEffect for state sync instead. 2) Fixed FlashList scrolling issue - removed parent ScrollView from CartTab, FavoritesTab, OrdersTab so FlashList can control its own scrolling. 3) Compact card design in CartTab for better UI. Files modified: UnifiedShoppingHub.tsx, useShoppingHubQuery.ts, useShoppingHubData.ts, CartTab.tsx, FavoritesTab.tsx, OrdersTab.tsx. Need to verify: a) /cart route loads without 'Maximum update depth exceeded' error, b) Scrolling works in Cart, Favorites, Orders tabs, c) Categories screen shows correct category count (should show 5 main categories, 0 subcategories)."
   - agent: "main"
     message: "Phase 1 Technical Fixes implemented: (1) orders.filter safety check in owner/index.tsx Quick Stats, (2) Removed conflicting pulseAnim from customers.tsx - OrderStatusIndicator uses internal reanimated animation, (3) ProductCard now uses expo-image with transparent background, (4) GlassCard and index.tsx now have BlurView integration for frosted glass effect"
   - agent: "testing"
