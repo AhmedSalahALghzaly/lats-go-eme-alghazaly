@@ -1,5 +1,5 @@
 /**
- * Home Screen - Optimized with React Query and FlashList
+ * Home Screen - Optimized with React Query
  * Main landing page with car brands, offers, products, and search
  */
 import React, { useState, useCallback, useRef, useMemo, memo, useEffect } from 'react';
@@ -16,8 +16,8 @@ import {
   Keyboard,
   Dimensions,
   Platform,
+  FlatList,
 } from 'react-native';
-import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
@@ -31,7 +31,7 @@ import { useTheme } from '../../src/hooks/useTheme';
 import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAppStore } from '../../src/store/appStore';
 import { cartApi, favoritesApi } from '../../src/services/api';
-import { Skeleton, ProductCardSkeleton, CategoryCardSkeleton } from '../../src/components/ui/Skeleton';
+import { Skeleton, ProductCardSkeleton } from '../../src/components/ui/Skeleton';
 import { syncService } from '../../src/services/syncService';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
@@ -39,7 +39,7 @@ import { useHomeScreenQuery } from '../../src/hooks/queries';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// Product card sizing with dynamic screen-based calculation
+// Product card sizing
 const BASE_CARD_WIDTH = 150;
 const MAX_ENLARGEMENT_PERCENT = 0.19;
 const MAX_CARD_WIDTH = Math.floor(BASE_CARD_WIDTH * (1 + MAX_ENLARGEMENT_PERCENT));
@@ -55,7 +55,7 @@ const calculateCardWidth = () => {
 
 const HOME_PRODUCT_CARD_WIDTH = calculateCardWidth();
 
-// Memoized horizontal list item components for performance
+// Memoized components
 const MemoizedBrandCard = memo(AnimatedBrandCard);
 const MemoizedProductCard = memo(ProductCard);
 
@@ -111,18 +111,19 @@ export default function HomeScreen() {
     refetch,
   } = useHomeScreenQuery();
 
-  // Local state for search and UI interactions
+  // Local state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
   const searchAnim = useRef(new Animated.Value(0)).current;
   const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [productQuantities, setProductQuantities] = useState<Record<string, number>>({});
   const [cartLoadingStates, setCartLoadingStates] = useState<Record<string, boolean>>({});
   const [addedToCartStates, setAddedToCartStates] = useState<Record<string, boolean>>({});
 
   // Sync favorites from query
   useEffect(() => {
-    setFavorites(favoritesSet);
+    if (favoritesSet instanceof Set) {
+      setFavorites(favoritesSet);
+    }
   }, [favoritesSet]);
 
   // Start sync service
@@ -131,7 +132,7 @@ export default function HomeScreen() {
     return () => syncService.stop();
   }, []);
 
-  // Search filter with useMemo for performance
+  // Search filter
   const filteredProducts = useMemo(() => {
     if (searchQuery.trim() === '') {
       return products;
@@ -152,7 +153,7 @@ export default function HomeScreen() {
       duration: 200,
       useNativeDriver: false,
     }).start();
-  }, [isSearchFocused]);
+  }, [isSearchFocused, searchAnim]);
 
   const getName = useCallback((item: any) => {
     return language === 'ar' && item.name_ar ? item.name_ar : item.name;
@@ -170,7 +171,6 @@ export default function HomeScreen() {
       await cartApi.addItem(product.id, quantity);
       addToLocalCart({ product_id: product.id, quantity: quantity, product });
       setAddedToCartStates(prev => ({ ...prev, [product.id]: true }));
-      setProductQuantities(prev => ({ ...prev, [product.id]: 1 }));
       
       setTimeout(() => {
         setAddedToCartStates(prev => ({ ...prev, [product.id]: false }));
@@ -181,25 +181,6 @@ export default function HomeScreen() {
       setCartLoadingStates(prev => ({ ...prev, [product.id]: false }));
     }
   }, [user, router, addToLocalCart]);
-
-  const handleIncreaseQuantity = useCallback((productId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setProductQuantities(prev => ({
-      ...prev,
-      [productId]: (prev[productId] || 1) + 1
-    }));
-  }, []);
-
-  const handleDecreaseQuantity = useCallback((productId: string) => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setProductQuantities(prev => {
-      const current = prev[productId] || 1;
-      if (current > 1) {
-        return { ...prev, [productId]: current - 1 };
-      }
-      return prev;
-    });
-  }, []);
 
   const handleToggleFavorite = useCallback(async (productId: string) => {
     if (!user) {
@@ -222,7 +203,7 @@ export default function HomeScreen() {
     }
   }, [user, router]);
 
-  // Render product item for FlashList
+  // Render product item
   const renderProductItem = useCallback(({ item: product }: { item: any }) => (
     <MemoizedProductCard
       product={product}
@@ -237,7 +218,6 @@ export default function HomeScreen() {
       <View style={[styles.container, { backgroundColor: colors.background }]}>
         <Header showBack={false} />
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          {/* Car Brands Skeleton */}
           <View style={styles.section}>
             <View style={[styles.sectionHeader, isRTL && styles.sectionHeaderRTL]}>
               <Skeleton width={120} height={20} />
@@ -252,16 +232,12 @@ export default function HomeScreen() {
               ))}
             </ScrollView>
           </View>
-
-          {/* Offers Skeleton */}
           <View style={styles.sliderSection}>
             <View style={[styles.sectionHeader, isRTL && styles.sectionHeaderRTL]}>
               <Skeleton width={140} height={20} />
             </View>
             <Skeleton height={160} borderRadius={12} style={{ marginHorizontal: 16 }} />
           </View>
-
-          {/* Products Skeleton */}
           <View style={styles.section}>
             <View style={[styles.sectionHeader, isRTL && styles.sectionHeaderRTL]}>
               <Skeleton width={80} height={20} />
@@ -285,7 +261,6 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.container}>
-      {/* Glassblur Background Effect */}
       <LinearGradient
         colors={isDark 
           ? ['#0a1628', '#152238', '#1a2744', '#0d1b2a']
@@ -327,27 +302,24 @@ export default function HomeScreen() {
               </Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.horizontalListWrapper}>
-            <FlashList
-              data={carBrands}
-              renderItem={({ item: brand }) => {
-                const brandModels = carModels.filter((m: any) => m.brand_id === brand.id);
-                return (
-                  <MemoizedBrandCard
-                    brand={brand}
-                    type="car"
-                    modelsCount={brandModels.length}
-                    onPress={() => router.push(`/brand/${brand.id}`)}
-                  />
-                );
-              }}
-              keyExtractor={(item) => item.id}
-              horizontal
-              estimatedItemSize={112}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalScroll}
-            />
-          </View>
+          <FlatList
+            data={carBrands}
+            renderItem={({ item: brand }) => {
+              const brandModels = carModels.filter((m: any) => m.brand_id === brand.id);
+              return (
+                <MemoizedBrandCard
+                  brand={brand}
+                  type="car"
+                  modelsCount={brandModels.length}
+                  onPress={() => router.push(`/brand/${brand.id}`)}
+                />
+              );
+            }}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScroll}
+          />
         </View>
 
         {/* 2. Dynamic Marketing Slider */}
@@ -379,24 +351,21 @@ export default function HomeScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.horizontalListWrapper}>
-              <FlashList
-                data={carModels}
-                renderItem={({ item: model }) => (
-                  <CarModelCard
-                    model={model}
-                    colors={colors}
-                    getName={getName}
-                    onPress={() => router.push(`/car/${model.id}`)}
-                  />
-                )}
-                keyExtractor={(item) => item.id}
-                horizontal
-                estimatedItemSize={146}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalScroll}
-              />
-            </View>
+            <FlatList
+              data={carModels.slice(0, 10)}
+              renderItem={({ item: model }) => (
+                <CarModelCard
+                  model={model}
+                  colors={colors}
+                  getName={getName}
+                  onPress={() => router.push(`/car/${model.id}`)}
+                />
+              )}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalScroll}
+            />
           </View>
         )}
 
@@ -407,29 +376,26 @@ export default function HomeScreen() {
               {t('productBrands')}
             </Text>
           </View>
-          <View style={styles.horizontalListWrapper}>
-            <FlashList
-              data={productBrands}
-              renderItem={({ item: brand }) => (
-                <MemoizedBrandCard
-                  brand={{
-                    ...brand,
-                    country_of_origin: brand.country_of_origin || 'Japan',
-                  }}
-                  type="product"
-                  onPress={() => router.push(`/search?product_brand_id=${brand.id}`)}
-                />
-              )}
-              keyExtractor={(item) => item.id}
-              horizontal
-              estimatedItemSize={112}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.horizontalScroll}
-            />
-          </View>
+          <FlatList
+            data={productBrands}
+            renderItem={({ item: brand }) => (
+              <MemoizedBrandCard
+                brand={{
+                  ...brand,
+                  country_of_origin: brand.country_of_origin || 'Japan',
+                }}
+                type="product"
+                onPress={() => router.push(`/search?product_brand_id=${brand.id}`)}
+              />
+            )}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalScroll}
+          />
         </View>
 
-        {/* 5. Products Section with FlashList */}
+        {/* 5. Products Section */}
         {filteredProducts.length > 0 && (
           <View style={styles.section}>
             <View style={[styles.sectionHeader, isRTL && styles.sectionHeaderRTL]}>
@@ -447,21 +413,21 @@ export default function HomeScreen() {
                 </Text>
               </TouchableOpacity>
             </View>
-            <View style={styles.horizontalListWrapper}>
-              <FlashList
-                data={filteredProducts}
-                renderItem={renderProductItem}
-                keyExtractor={(item) => item.id}
-                horizontal
-                estimatedItemSize={HOME_PRODUCT_CARD_WIDTH + 12}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalScroll}
-              />
-            </View>
+            <FlatList
+              data={filteredProducts.slice(0, 20)}
+              renderItem={renderProductItem}
+              keyExtractor={(item) => item.id}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.horizontalScroll}
+              initialNumToRender={5}
+              maxToRenderPerBatch={10}
+              windowSize={5}
+            />
           </View>
         )}
 
-        {/* 6. Product Search Bar */}
+        {/* 6. Search Bar */}
         <View style={styles.searchSection}>
           <Text style={[styles.searchLabel, { color: colors.text }]}>
             {language === 'ar' ? 'ابحث عن منتج' : 'Search Products'}
@@ -659,9 +625,6 @@ const styles = StyleSheet.create({
   },
   horizontalScroll: {
     paddingHorizontal: 16,
-  },
-  horizontalListWrapper: {
-    height: 160,
   },
   brandCard: {
     width: 100,
