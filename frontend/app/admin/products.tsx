@@ -247,8 +247,6 @@ export default function ProductsAdmin() {
   }, [carModels]);
 
   // Initialize quantity inputs when products load
-  const [quantityInputs, setQuantityInputs] = useState<{ [key: string]: string }>({});
-
   useMemo(() => {
     const quantities: { [key: string]: string } = {};
     products.forEach((p: any) => {
