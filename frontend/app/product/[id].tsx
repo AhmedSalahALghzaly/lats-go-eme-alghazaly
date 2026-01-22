@@ -431,7 +431,13 @@ export default function ProductDetailScreen() {
         {product.supplier && (
           <TouchableOpacity
             style={[styles.supplierButton, { backgroundColor: colors.card, borderColor: colors.border }]}
-            onPress={() => router.push(`/owner/suppliers?viewMode=profile&id=${product.supplier.id}`)}
+            onPress={() => {
+              if (canViewProfile) {
+                router.push(`/owner/suppliers?viewMode=profile&id=${product.supplier.id}`);
+              } else {
+                triggerGoldenGlow();
+              }
+            }}
             activeOpacity={0.85}
           >
             <View style={styles.supplierContent}>
@@ -457,7 +463,7 @@ export default function ProductDetailScreen() {
                 </Text>
               </View>
               <View style={[styles.supplierArrowContainer, { backgroundColor: colors.secondary + '20' }]}>
-                <Ionicons name="chevron-forward" size={18} color={colors.secondary} />
+                <Ionicons name={canViewProfile ? "chevron-forward" : "lock-closed"} size={18} color={colors.secondary} />
               </View>
             </View>
             {/* Subscribe CTA Banner - Only for non-subscribers */}
@@ -471,11 +477,11 @@ export default function ProductDetailScreen() {
                 >
                   <View style={styles.subscribeBannerGoldBorder} />
                   <Ionicons name="star" size={16} color="#FFD700" />
-                  <Text style={styles.subscribeBannerText}>
+                  <Animated.Text style={[styles.subscribeBannerText, glowTextStyle]}>
                     {language === 'ar' 
                       ? 'اشترك للتواصل وظهور البيانات والكتالوج' 
                       : 'Subscribe to contact & view data & catalog'}
-                  </Text>
+                  </Animated.Text>
                   <Ionicons name="star" size={16} color="#FFD700" />
                   <View style={styles.subscribeBannerGoldBorderRight} />
                 </LinearGradient>
