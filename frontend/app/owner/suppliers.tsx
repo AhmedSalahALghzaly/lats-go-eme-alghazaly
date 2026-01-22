@@ -175,6 +175,7 @@ export default function SuppliersScreen() {
   const [selectedSupplier, setSelectedSupplier] = useState<Supplier | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGalleryImage, setSelectedGalleryImage] = useState(0);
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
 
   // Golden Glow Animation State
   const [isGlowing, setIsGlowing] = useState(false);
