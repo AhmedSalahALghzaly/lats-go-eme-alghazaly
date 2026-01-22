@@ -949,23 +949,95 @@ export default function ProductsAdmin() {
   // Footer component
   const ListFooterComponent = useCallback(() => <View style={{ height: insets.bottom + 40 }} />, [insets.bottom]);
 
+  // List header - only contains search and title, NOT the form
+  const ListHeader = useCallback(() => (
+    <View style={[styles.listCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
+      <Text style={[styles.listTitle, { color: colors.text }]}>
+        {language === 'ar' ? 'المنتجات الحالية' : 'Existing Products'} ({products.length})
+      </Text>
+      <View style={[styles.searchContainer, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <Ionicons name="search" size={20} color={colors.textSecondary} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.text }]}
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          placeholder={language === 'ar' ? 'ابحث بالاسم أو رمز SKU...' : 'Search by name or SKU...'}
+          placeholderTextColor={colors.textSecondary}
+        />
+        {searchQuery.length > 0 && (
+          <TouchableOpacity onPress={() => setSearchQuery('')}>
+            <Ionicons name="close-circle" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        )}
+      </View>
+    </View>
+  ), [colors, language, products.length, searchQuery]);
+
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
       <Header title={language === 'ar' ? 'المنتجات' : 'Products'} showBack showSearch={false} showCart={false} />
 
-      <FlashList
-        data={productsWithDisplayData}
-        renderItem={renderProductItem}
-        keyExtractor={(item) => item.id}
-        estimatedItemSize={240}
-        ListHeaderComponent={ListHeaderComponent}
-        ListEmptyComponent={ListEmptyComponent}
-        ListFooterComponent={ListFooterComponent}
-        contentContainerStyle={styles.flashListContent}
-        extraData={{ quantityInputs, updatingQuantityId }}
-        drawDistance={500}
+      <ScrollView 
+        style={styles.mainScrollView}
+        contentContainerStyle={styles.mainScrollContent}
+        showsVerticalScrollIndicator={true}
+        keyboardShouldPersistTaps="handled"
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refetch} tintColor={colors.primary} />}
-      />
+      >
+        {/* Form Section - OUTSIDE FlashList to prevent focus loss */}
+        <View style={styles.formSection}>
+          <ProductFormHeader
+            formState={formState}
+            handlers={formHandlers}
+            lookups={lookups}
+            colors={colors}
+            language={language}
+            isRTL={isRTL}
+            productsCount={products.length}
+            router={router}
+          />
+        </View>
+
+        {/* Products List Section */}
+        <View style={styles.productsListSection}>
+          {ListHeader()}
+          
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={colors.primary} />
+            </View>
+          ) : productsWithDisplayData.length === 0 ? (
+            <View style={styles.emptyContainer}>
+              <Ionicons name="cube-outline" size={48} color={colors.textSecondary} />
+              <Text style={[styles.emptyText, { color: colors.textSecondary }]}>
+                {language === 'ar' ? 'لا توجد منتجات' : 'No products found'}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.productsList}>
+              {productsWithDisplayData.map((product) => (
+                <ProductItem
+                  key={product.id}
+                  product={product}
+                  colors={colors}
+                  language={language}
+                  brandName={product._brandName}
+                  categoryName={product._categoryName}
+                  carModelNames={product._carModelNames}
+                  quantityValue={quantityInputs[product.id] || '0'}
+                  isUpdatingQuantity={updatingQuantityId === product.id}
+                  onQuantityChange={(value) => handleQuantityInputChange(product.id, value)}
+                  onUpdateQuantity={() => handleUpdateQuantity(product.id)}
+                  onEdit={() => handleEditProduct(product)}
+                  onDelete={() => openDeleteConfirm(product)}
+                />
+              ))}
+            </View>
+          )}
+          
+          <View style={{ height: insets.bottom + 40 }} />
+        </View>
+      </ScrollView>
 
       {/* Delete Confirmation Modal */}
       <Modal visible={showDeleteModal} transparent animationType="fade" onRequestClose={() => setShowDeleteModal(false)}>
