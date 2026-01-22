@@ -279,10 +279,24 @@ export default function SuppliersScreen() {
   // Handle URL params for direct navigation to profile
   useEffect(() => {
     const handleProfileNavigation = async () => {
-      if (params.viewMode === 'profile' && params.id && canViewProfile) {
+      // Check for viewMode=profile in URL params
+      if (params.viewMode === 'profile' && params.id) {
+        // Handle restricted users - trigger golden glow
+        if (!canViewProfile) {
+          triggerGoldenGlow();
+          // Clear URL params and stay on list
+          router.setParams({ viewMode: undefined, id: undefined });
+          return;
+        }
+        
+        // Set loading state immediately
+        setIsProfileLoading(true);
+        
+        // First check if supplier exists in current data
         let supplier = suppliers.find((s) => s.id === params.id);
         
-        if (!supplier && !isLoading) {
+        // If not found in cache, fetch directly from API
+        if (!supplier) {
           try {
             const res = await supplierApi.getById(params.id);
             if (res.data) {
@@ -290,18 +304,29 @@ export default function SuppliersScreen() {
             }
           } catch (err) {
             console.error('Error fetching supplier:', err);
+            setError(isRTL ? 'فشل في تحميل بيانات المورد' : 'Failed to load supplier data');
+            setIsProfileLoading(false);
+            router.setParams({ viewMode: undefined, id: undefined });
+            return;
           }
         }
         
         if (supplier) {
           setSelectedSupplier(supplier);
+          setSelectedGalleryImage(0);
           setViewMode('profile');
+        } else {
+          // Supplier not found
+          setError(isRTL ? 'المورد غير موجود' : 'Supplier not found');
+          router.setParams({ viewMode: undefined, id: undefined });
         }
+        
+        setIsProfileLoading(false);
       }
     };
     
     handleProfileNavigation();
-  }, [params.viewMode, params.id, suppliers, isLoading, canViewProfile]);
+  }, [params.viewMode, params.id, canViewProfile, isRTL]);
 
   const handleDeleteSupplier = useCallback((supplierId: string) => {
     deleteMutation.mutate(supplierId);
@@ -311,7 +336,9 @@ export default function SuppliersScreen() {
     setSelectedSupplier(supplier);
     setSelectedGalleryImage(0);
     setViewMode('profile');
-  }, []);
+    // Sync URL with UI state
+    router.setParams({ viewMode: 'profile', id: supplier.id });
+  }, [router]);
 
   const onRefresh = useCallback(() => {
     refetch();
