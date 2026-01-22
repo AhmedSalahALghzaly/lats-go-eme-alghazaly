@@ -67,9 +67,44 @@ export default function ProductDetailScreen() {
   const insets = useSafeAreaInsets();
   const { user, addToLocalCart } = useAppStore();
   const subscriptionStatus = useAppStore((state) => state.subscriptionStatus);
+  const userRole = useAppStore((state) => state.userRole);
 
   // Check if user should see subscribe button (not a subscriber and no pending request)
   const showSubscribeButton = subscriptionStatus === 'none';
+  
+  // RBAC: Check if user can view entity profiles
+  const canViewProfile = canViewEntityProfile(userRole, subscriptionStatus);
+  
+  // Golden Glow Animation for restricted access
+  const glowProgress = useSharedValue(0);
+  const [isGlowing, setIsGlowing] = useState(false);
+  
+  const triggerGoldenGlow = useCallback(() => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    setIsGlowing(true);
+    
+    const flashDuration = 250;
+    glowProgress.value = withSequence(
+      withTiming(1, { duration: flashDuration, easing: Easing.inOut(Easing.ease) }),
+      withTiming(0, { duration: flashDuration, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1, { duration: flashDuration, easing: Easing.inOut(Easing.ease) }),
+      withTiming(0, { duration: flashDuration, easing: Easing.inOut(Easing.ease) }),
+      withTiming(1, { duration: flashDuration, easing: Easing.inOut(Easing.ease) }),
+      withTiming(0, { duration: flashDuration, easing: Easing.inOut(Easing.ease) }, () => {
+        runOnJS(setIsGlowing)(false);
+      })
+    );
+  }, []);
+
+  const glowTextStyle = useAnimatedStyle(() => {
+    return {
+      color: interpolateColor(
+        glowProgress.value,
+        [0, 1],
+        ['#FFFFFF', GOLD_COLOR]
+      ),
+    };
+  });
 
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
