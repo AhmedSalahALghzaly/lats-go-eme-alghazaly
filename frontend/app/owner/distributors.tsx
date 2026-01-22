@@ -277,14 +277,32 @@ export default function DistributorsScreen() {
 
   // Handle URL params for direct navigation to profile
   useEffect(() => {
-    if (params.viewMode === 'profile' && params.id && distributors.length > 0) {
-      const distributor = distributors.find((d) => d.id === params.id);
-      if (distributor) {
-        setSelectedDistributor(distributor);
-        setViewMode('profile');
+    const handleProfileNavigation = async () => {
+      if (params.viewMode === 'profile' && params.id) {
+        // First check if distributor exists in current data
+        let distributor = distributors.find((d) => d.id === params.id);
+        
+        // If not found and we have data, try fetching directly
+        if (!distributor && !isLoading) {
+          try {
+            const res = await distributorApi.getById(params.id);
+            if (res.data) {
+              distributor = res.data;
+            }
+          } catch (err) {
+            console.error('Error fetching distributor:', err);
+          }
+        }
+        
+        if (distributor) {
+          setSelectedDistributor(distributor);
+          setViewMode('profile');
+        }
       }
-    }
-  }, [params.viewMode, params.id, distributors]);
+    };
+    
+    handleProfileNavigation();
+  }, [params.viewMode, params.id, distributors, isLoading]);
 
   const resetForm = useCallback(() => {
     setFormData({
