@@ -31,11 +31,21 @@ import Animated, {
   withSequence, 
   withTiming,
   interpolate,
+  interpolateColor,
   Extrapolation,
+  Easing,
   runOnJS,
 } from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
+
+const GOLD_COLOR = '#FFD700';
+
+// Check if user can view entity profiles
+const canViewEntityProfile = (userRole?: string, subscriptionStatus?: string): boolean => {
+  const allowedRoles = ['owner', 'admin', 'partner', 'subscriber'];
+  return allowedRoles.includes(userRole || '') || subscriptionStatus === 'subscriber';
+};
 
 interface Comment {
   id: string;
