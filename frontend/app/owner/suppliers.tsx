@@ -463,6 +463,22 @@ export default function SuppliersScreen() {
   const keyExtractor = useCallback((item: Supplier) => item.id, []);
 
   // ============================================================================
+  // Profile Loading State
+  // ============================================================================
+  if (isProfileLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background }]}>
+        <View style={[styles.loadingContainer, { paddingTop: insets.top + 60 }]}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            {isRTL ? 'جاري تحميل بيانات المورد...' : 'Loading supplier profile...'}
+          </Text>
+        </View>
+      </View>
+    );
+  }
+
+  // ============================================================================
   // Profile View with Modern UI
   // ============================================================================
   if (viewMode === 'profile' && selectedSupplier) {
