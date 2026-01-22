@@ -87,26 +87,40 @@ export default function AddEntityFormScreen() {
   const loadEntityData = async () => {
     setLoading(true);
     try {
-      const existingEntity = entityType === 'supplier'
+      // First try to find in local store
+      let existingEntity = entityType === 'supplier'
         ? suppliers.find((s: any) => s.id === entityId)
         : distributors.find((d: any) => d.id === entityId);
+
+      // If not found in store, fetch from API directly
+      if (!existingEntity) {
+        try {
+          const api = entityType === 'supplier' ? supplierApi : distributorApi;
+          const response = await api.getById(entityId!);
+          if (response.data) {
+            existingEntity = response.data;
+          }
+        } catch (apiErr) {
+          console.error('Error fetching entity from API:', apiErr);
+        }
+      }
 
       if (existingEntity) {
         setFormData({
           name: existingEntity.name || '',
           name_ar: existingEntity.name_ar || '',
-          phone_numbers: existingEntity.phone_numbers || [],
+          phone_numbers: existingEntity.phone_numbers || (existingEntity.phone ? [existingEntity.phone] : []),
           contact_email: existingEntity.contact_email || '',
           address: existingEntity.address || '',
           address_ar: existingEntity.address_ar || '',
-          website_url: existingEntity.website_url || '',
+          website_url: existingEntity.website_url || existingEntity.website || '',
           description: existingEntity.description || '',
           description_ar: existingEntity.description_ar || '',
           profile_image: existingEntity.profile_image || '',
-          slider_images: existingEntity.slider_images || [],
+          slider_images: existingEntity.slider_images || existingEntity.images || [],
           linked_brands: entityType === 'supplier'
-            ? existingEntity.linked_product_brand_ids || []
-            : existingEntity.linked_car_brand_ids || [],
+            ? existingEntity.linked_product_brand_ids || existingEntity.linked_brands || []
+            : existingEntity.linked_car_brand_ids || existingEntity.linked_brands || [],
         });
       }
     } catch (err) {
