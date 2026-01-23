@@ -604,34 +604,17 @@ export const InteractiveCarSelector: React.FC = () => {
     );
   };
 
-  // Chassis Model Card Component - Simplified for mobile stability
+  // Chassis Model Card Component - Static for mobile stability (NO ANIMATIONS)
   const ChassisModelGridCard = ({ model, index }: { model: CarModel; index: number }) => {
-    const itemScale = useSharedValue(1);
-    
-    const itemAnimatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: itemScale.value }],
-    }));
-
     const brand = carBrands.find(b => b.id === model.brand_id);
 
     const handlePress = useCallback(() => {
       triggerHaptic('selection');
-      itemScale.value = withSequence(
-        withSpring(0.95, { damping: 15, stiffness: 300 }),
-        withSpring(1, { damping: 12, stiffness: 200 })
-      );
-      
-      // Use requestAnimationFrame for smoother navigation
-      requestAnimationFrame(() => {
-        handleModelSelect(model);
-      });
-    }, [model, itemScale, triggerHaptic]);
+      handleModelSelect(model);
+    }, [model]);
 
     return (
-      <Animated.View
-        entering={FadeIn.delay(Math.min(index * 40, 200)).duration(200)}
-        style={[styles.chassisGridCardWrapper, itemAnimatedStyle]}
-      >
+      <View style={styles.chassisGridCardWrapper}>
         <TouchableOpacity
           style={[
             styles.chassisGridCard,
@@ -641,8 +624,7 @@ export const InteractiveCarSelector: React.FC = () => {
             },
           ]}
           onPress={handlePress}
-          activeOpacity={0.7}
-          delayPressIn={0}
+          activeOpacity={0.6}
         >
           {/* Model Image */}
           {model.image_url ? (
@@ -690,7 +672,7 @@ export const InteractiveCarSelector: React.FC = () => {
             )}
           </View>
         </TouchableOpacity>
-      </Animated.View>
+      </View>
     );
   };
 
