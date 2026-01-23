@@ -434,7 +434,7 @@ export const InteractiveCarSelector: React.FC = () => {
       pulseAnim.value = 1;
       glassOpacity.value = withTiming(0, { duration: 300 });
     }
-  }, [selectorState, carIconRotate, carIconScale, pulseAnim, glassOpacity]);
+  }, [selectorState]);
 
   // Expand/collapse animation
   useEffect(() => {
@@ -445,7 +445,7 @@ export const InteractiveCarSelector: React.FC = () => {
       expandAnim.value = withSpring(1, { damping: 15, stiffness: 90 });
       gridOpacity.value = withDelay(100, withTiming(1, { duration: DURATIONS.normal }));
     }
-  }, [selectorState, expandAnim, gridOpacity]);
+  }, [selectorState]);
 
   // Products slide animation
   useEffect(() => {
@@ -454,7 +454,7 @@ export const InteractiveCarSelector: React.FC = () => {
     } else {
       productsSlideAnim.value = withTiming(SCREEN_HEIGHT, { duration: DURATIONS.transition });
     }
-  }, [selectorState, productsSlideAnim]);
+  }, [selectorState]);
 
   // Fetch products when model is selected
   const fetchProductsForModel = useCallback(async (modelId: string) => {
