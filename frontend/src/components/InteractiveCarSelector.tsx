@@ -341,17 +341,12 @@ export const InteractiveCarSelector: React.FC = () => {
     let vinInterval: ReturnType<typeof setInterval> | null = null;
     
     if (selectorState === 'collapsed') {
+      // VIN character cycling
       vinInterval = setInterval(() => {
-        if (isMountedRef.current) {
-          setCurrentVinIndex((prev) => (prev + 1) % VIN_CHARS.length);
-          vinShiftAnim.value = withSequence(
-            withTiming(1, { duration: 100 }),
-            withTiming(0, { duration: 100 })
-          );
-        }
-      }, 800);
+        setCurrentVinIndex((prev) => (prev + 1) % VIN_CHARS.length);
+      }, 1000);
       
-      // Enhanced chassis glow animation - Electric blue pulsing
+      // Chassis glow animation
       chassisIconGlow.value = withRepeat(
         withSequence(
           withTiming(1, { duration: 800 }),
@@ -361,7 +356,7 @@ export const InteractiveCarSelector: React.FC = () => {
         true
       );
       
-      // Barcode scan line animation - continuous sweep
+      // Barcode scan animation
       barcodeScanAnim.value = withRepeat(
         withSequence(
           withTiming(1, { duration: 1500 }),
@@ -371,21 +366,11 @@ export const InteractiveCarSelector: React.FC = () => {
         false
       );
       
-      // Chassis button pulse animation
+      // Chassis pulse animation
       chassisPulseAnim.value = withRepeat(
         withSequence(
-          withTiming(1.15, { duration: 1000 }),
+          withTiming(1.1, { duration: 1000 }),
           withTiming(1, { duration: 1000 })
-        ),
-        -1,
-        true
-      );
-      
-      // Glow intensity variation
-      chassisGlowIntensity.value = withRepeat(
-        withSequence(
-          withTiming(0.9, { duration: 1200 }),
-          withTiming(0.4, { duration: 1200 })
         ),
         -1,
         true
@@ -395,12 +380,14 @@ export const InteractiveCarSelector: React.FC = () => {
       cancelAnimation(barcodeScanAnim);
       cancelAnimation(chassisPulseAnim);
       cancelAnimation(chassisGlowIntensity);
-      chassisIconGlow.value = withTiming(0.8, { duration: 300 });
-      chassisPulseAnim.value = withTiming(1, { duration: 200 });
+      chassisIconGlow.value = 0.8;
+      chassisPulseAnim.value = 1;
     }
     
     return () => {
-      if (vinInterval) clearInterval(vinInterval);
+      if (vinInterval) {
+        clearInterval(vinInterval);
+      }
     };
   }, [selectorState]);
 
