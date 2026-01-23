@@ -1,10 +1,12 @@
 /**
  * useCartOperations - Cart manipulation operations hook
  * FIXED: Uses React Query mutations for real-time UI updates
- * Handles add, update, remove operations with optimistic updates
+ * ENHANCED: Optimistic updates with haptic feedback for instant UI response
+ * Handles add, update, remove operations with immediate feedback
  */
 import { useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import * as Haptics from 'expo-haptics';
 import { useAppStore } from '../../store/appStore';
 import { cartApi } from '../../services/api';
 import { shoppingHubKeys, useCartMutations } from '../queries/useShoppingHubQuery';
@@ -33,22 +35,26 @@ export const useCartOperations = ({
 
   /**
    * Remove item from cart - uses React Query mutation for instant UI update
+   * Includes haptic feedback for better UX
    */
   const removeFromCart = useCallback(
     async (productId: string) => {
       if (isAdminView) {
-        // Admin view - just update local state
+        // Admin view - just update local state with haptic feedback
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
         setLocalCartItems(
           safeCartItems.filter((item) => item.product_id !== productId)
         );
         return;
       }
 
-      // Use mutation for optimistic update
+      // Use mutation for optimistic update - haptic already triggered in CartTab
       try {
         await removeFromCartMutation.mutateAsync(productId);
       } catch (error) {
         console.error('[useCartOperations] Error removing from cart:', error);
+        // Haptic feedback for error
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     },
     [safeCartItems, setLocalCartItems, isAdminView, removeFromCartMutation]
@@ -66,6 +72,7 @@ export const useCartOperations = ({
 
       if (isAdminView) {
         // Admin view - just update local state
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         setLocalCartItems(
           safeCartItems.map((item) =>
             item.product_id === productId
@@ -81,6 +88,7 @@ export const useCartOperations = ({
         await updateQuantityMutation.mutateAsync({ productId, quantity: newQuantity });
       } catch (error) {
         console.error('[useCartOperations] Error updating cart:', error);
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
       }
     },
     [safeCartItems, setLocalCartItems, isAdminView, updateQuantityMutation, removeFromCart]
@@ -106,15 +114,18 @@ export const useCartOperations = ({
             original_unit_price: product.price,
             final_unit_price: product.price,
           };
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           setLocalCartItems([...safeCartItems, newItem]);
           return;
         }
 
         // Use mutation for optimistic update
         try {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           await addToCartMutation.mutateAsync(product.id);
         } catch (error) {
           console.error('[useCartOperations] Error adding to cart:', error);
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
         }
       }
     },
