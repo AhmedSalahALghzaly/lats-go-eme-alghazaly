@@ -296,7 +296,8 @@ export default function OfferDetailsScreen() {
    * Bug Fix #1: استخدام addBundleToCart لإضافة كل منتجات العرض المجمع
    * هذا يضمن ربط جميع المنتجات بنفس bundleGroupId وحساب الخصومات الصحيحة
    * 
-   * ENHANCED: Check if any product from the bundle is already in cart
+   * ENHANCED: BIDIRECTIONAL duplicate prevention
+   * Check if any product from the bundle is already in cart (as normal item OR bundle item)
    * If so, show "تم إضافة العرض" (Offer Added) alert
    */
   const handleAddAllToCart = async () => {
@@ -307,8 +308,8 @@ export default function OfferDetailsScreen() {
 
     if (!offer || products.length === 0) return;
 
-    // Check if ANY product from this bundle is already in cart
-    const anyProductInCart = products.some((product: any) => checkBundleDuplicate(product.id));
+    // BIDIRECTIONAL: Check if ANY product from this bundle is already in cart (normal OR bundle)
+    const anyProductInCart = products.some((product: any) => checkDuplicate(product.id));
     
     if (anyProductInCart) {
       // Haptic feedback for warning
