@@ -1,13 +1,14 @@
 /**
  * CartTab - Shopping cart display and management tab
  * REDESIGNED: Larger product cards with SKU and compatible car models
- * FIXED: Proper list spacing, no gaps, car models display from car_model_ids
+ * ENHANCED: Real-time deletion with confirmation modal and haptic feedback
  */
-import React, { useCallback, useMemo } from 'react';
-import { View, Text, StyleSheet, Pressable, Image, RefreshControl } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, Text, StyleSheet, Pressable, Image, RefreshControl, Modal } from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { EmptyState } from '../ui/EmptyState';
 import { useTheme } from '../../hooks/useTheme';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -29,6 +30,70 @@ interface CartTabProps {
   refreshing?: boolean;
 }
 
+// Delete Confirmation Modal Component
+const DeleteConfirmationModal: React.FC<{
+  visible: boolean;
+  productName: string;
+  isRTL: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}> = ({ visible, productName, isRTL, onCancel, onConfirm }) => {
+  const { colors } = useTheme();
+  const { language } = useTranslation();
+
+  return (
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={visible}
+      onRequestClose={onCancel}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={[styles.modalContent, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {/* Warning Icon */}
+          <View style={[styles.modalIconContainer, { backgroundColor: '#EF4444' + '15' }]}>
+            <Ionicons name="trash-outline" size={32} color="#EF4444" />
+          </View>
+
+          {/* Title */}
+          <Text style={[styles.modalTitle, { color: colors.text }]}>
+            {language === 'ar' ? 'تأكيد الحذف' : 'Confirm Removal'}
+          </Text>
+
+          {/* Message */}
+          <Text style={[styles.modalMessage, { color: colors.textSecondary }]}>
+            {language === 'ar' 
+              ? `هل أنت متأكد من حذف "${productName}" من السلة؟`
+              : `Are you sure you want to remove "${productName}" from your cart?`}
+          </Text>
+
+          {/* Buttons */}
+          <View style={[styles.modalButtons, isRTL && styles.rowReverse]}>
+            <Pressable
+              style={[styles.modalButton, styles.cancelButton, { backgroundColor: colors.surface, borderColor: colors.border }]}
+              onPress={onCancel}
+            >
+              <Text style={[styles.cancelButtonText, { color: colors.text }]}>
+                {language === 'ar' ? 'إلغاء' : 'Cancel'}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              style={[styles.modalButton, styles.deleteButton]}
+              onPress={onConfirm}
+            >
+              <Ionicons name="trash" size={18} color="#FFF" />
+              <Text style={styles.deleteButtonText}>
+                {language === 'ar' ? 'حذف' : 'Remove'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
 export const CartTab: React.FC<CartTabProps> = ({
   cartItems,
   isRTL,
@@ -45,6 +110,10 @@ export const CartTab: React.FC<CartTabProps> = ({
   const { colors } = useTheme();
   const { language } = useTranslation();
   const router = useRouter();
+
+  // State for delete confirmation modal
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState<{ productId: string; productName: string } | null>(null);
 
   const safeCartItems = useMemo(() => 
     Array.isArray(cartItems) ? cartItems : [], 
@@ -78,6 +147,37 @@ export const CartTab: React.FC<CartTabProps> = ({
     return null;
   }, [language]);
 
+  // Handle delete button press - show modal with haptic feedback
+  const handleDeletePress = useCallback((productId: string, productName: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    setItemToDelete({ productId, productName });
+    setDeleteModalVisible(true);
+  }, []);
+
+  // Handle delete confirmation
+  const handleConfirmDelete = useCallback(async () => {
+    if (itemToDelete) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      setDeleteModalVisible(false);
+      // Call the removal function
+      await onRemove(itemToDelete.productId);
+      setItemToDelete(null);
+    }
+  }, [itemToDelete, onRemove]);
+
+  // Handle cancel delete
+  const handleCancelDelete = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    setDeleteModalVisible(false);
+    setItemToDelete(null);
+  }, []);
+
+  // Handle quantity update with haptic feedback
+  const handleQuantityUpdate = useCallback((productId: string, newQuantity: number) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    onUpdateQuantity(productId, newQuantity);
+  }, [onUpdateQuantity]);
+
   // Render professional cart item card - INCREASED HEIGHT
   const renderCartItem = useCallback(({ item }: { item: any }) => {
     const product = item.product || {};
@@ -87,6 +187,7 @@ export const CartTab: React.FC<CartTabProps> = ({
     const lineTotal = finalPrice * item.quantity;
     const carModelsDisplay = formatCarModels(product, item);
     const sku = product.sku || item.sku || 'N/A';
+    const productName = language === 'ar' ? product.name_ar || product.name : product.name || product.name_ar;
 
     return (
       <View style={[styles.cartItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
@@ -115,7 +216,7 @@ export const CartTab: React.FC<CartTabProps> = ({
         <View style={styles.cartItemInfo}>
           {/* Product Name */}
           <Text style={[styles.productName, { color: colors.text }]} numberOfLines={2}>
-            {language === 'ar' ? product.name_ar || product.name : product.name || product.name_ar}
+            {productName}
           </Text>
 
           {/* SKU Badge */}
@@ -172,30 +273,30 @@ export const CartTab: React.FC<CartTabProps> = ({
           <View style={[styles.quantityControls, { backgroundColor: colors.surface, borderColor: colors.border }]}>
             <Pressable
               style={[styles.qtyBtn, { backgroundColor: colors.card }]}
-              onPress={() => onUpdateQuantity(item.product_id, item.quantity - 1)}
+              onPress={() => handleQuantityUpdate(item.product_id, item.quantity - 1)}
             >
               <Ionicons name="remove" size={16} color={colors.text} />
             </Pressable>
             <Text style={[styles.qtyText, { color: colors.text }]}>{item.quantity}</Text>
             <Pressable
               style={[styles.qtyBtn, { backgroundColor: colors.card }]}
-              onPress={() => onUpdateQuantity(item.product_id, item.quantity + 1)}
+              onPress={() => handleQuantityUpdate(item.product_id, item.quantity + 1)}
             >
               <Ionicons name="add" size={16} color={colors.text} />
             </Pressable>
           </View>
 
-          {/* Remove Button */}
+          {/* Remove Button - Now triggers modal */}
           <Pressable
             style={[styles.removeBtn, { backgroundColor: '#EF4444' + '15' }]}
-            onPress={() => onRemove(item.product_id)}
+            onPress={() => handleDeletePress(item.product_id, productName)}
           >
             <Ionicons name="trash-outline" size={18} color="#EF4444" />
           </Pressable>
         </View>
       </View>
     );
-  }, [colors, language, isRTL, router, onUpdateQuantity, onRemove, formatCarModels]);
+  }, [colors, language, isRTL, router, handleQuantityUpdate, handleDeletePress, formatCarModels]);
 
   // Order Summary Component
   const OrderSummary = useMemo(() => {
@@ -295,27 +396,38 @@ export const CartTab: React.FC<CartTabProps> = ({
   ), [language, router, colors]);
 
   return (
-    <FlashList
-      data={safeCartItems}
-      renderItem={renderCartItem}
-      keyExtractor={(item, index) => item.product_id || `cart-item-${index}`}
-      estimatedItemSize={200}
-      ListHeaderComponent={ListHeaderComponent}
-      ListFooterComponent={ListFooterComponent}
-      ListEmptyComponent={ListEmptyComponent}
-      contentContainerStyle={styles.listContainer}
-      showsVerticalScrollIndicator={false}
-      extraData={safeCartItems.length}
-      refreshControl={
-        onRefresh ? (
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={NEON_NIGHT_THEME.primary}
-          />
-        ) : undefined
-      }
-    />
+    <>
+      <FlashList
+        data={safeCartItems}
+        renderItem={renderCartItem}
+        keyExtractor={(item, index) => item.product_id || `cart-item-${index}`}
+        estimatedItemSize={200}
+        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={ListFooterComponent}
+        ListEmptyComponent={ListEmptyComponent}
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        extraData={safeCartItems.length}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={NEON_NIGHT_THEME.primary}
+            />
+          ) : undefined
+        }
+      />
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        visible={deleteModalVisible}
+        productName={itemToDelete?.productName || ''}
+        isRTL={isRTL}
+        onCancel={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+      />
+    </>
   );
 };
 
@@ -550,6 +662,71 @@ const styles = StyleSheet.create({
     color: '#FFF',
     fontSize: 16,
     fontWeight: '700',
+  },
+  // Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  modalContent: {
+    width: '100%',
+    maxWidth: 340,
+    borderRadius: 20,
+    padding: 24,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  modalIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: 15,
+    textAlign: 'center',
+    lineHeight: 22,
+    marginBottom: 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  cancelButton: {
+    borderWidth: 1,
+  },
+  cancelButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  deleteButton: {
+    backgroundColor: '#EF4444',
+  },
+  deleteButtonText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
 });
 
