@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -25,6 +25,7 @@ import { cartApi, bundleOfferApi, carModelApi } from '../../src/services/api';
 import { Header } from '../../src/components/Header';
 import { useCartMutations, shoppingHubKeys } from '../../src/hooks/queries/useShoppingHubQuery';
 import { useQueryClient } from '@tanstack/react-query';
+import { AnimatedCartButton, AnimatedCartButtonRef } from '../../src/components/AnimatedIconButton';
 
 const { width } = Dimensions.get('window');
 
