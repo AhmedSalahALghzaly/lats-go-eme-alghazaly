@@ -141,7 +141,7 @@ export const productApi = {
 // Cart APIs (Unified Server-Side Cart)
 export const cartApi = {
   get: () => api.get('/cart'),
-  add: (productId: string, quantity: number, options?: {
+  add: (productId: string, quantity: number = 1, options?: {
     bundle_group_id?: string;
     bundle_offer_id?: string;
     bundle_discount_percentage?: number;
@@ -162,6 +162,8 @@ export const cartApi = {
   }) => api.post('/cart/add-enhanced', item),
   update: (productId: string, quantity: number) => api.put('/cart/update', { product_id: productId, quantity }),
   updateItem: (productId: string, quantity: number) => api.put('/cart/update', { product_id: productId, quantity }),
+  // Remove item from cart - uses update with quantity 0 or dedicated endpoint
+  remove: (productId: string) => api.delete(`/cart/remove/${productId}`),
   voidBundle: (bundleGroupId: string) => api.delete(`/cart/void-bundle/${bundleGroupId}`),
   clear: () => api.delete('/cart/clear'),
   // Stock validation before checkout
