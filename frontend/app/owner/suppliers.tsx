@@ -135,11 +135,11 @@ const SupplierListItem = React.memo(({
             <Text style={[styles.supplierName, { color: colors.text }]} numberOfLines={1}>
               {displayName}
             </Text>
-            {supplier.phone && (
+            {displayPhone && (
               <View style={[styles.supplierMeta, isRTL && styles.metaRTL]}>
                 <Ionicons name="call" size={14} color={colors.textSecondary} />
                 <Text style={[styles.supplierMetaText, { color: colors.textSecondary }]}>
-                  {supplier.phone}
+                  {displayPhone}
                 </Text>
               </View>
             )}
