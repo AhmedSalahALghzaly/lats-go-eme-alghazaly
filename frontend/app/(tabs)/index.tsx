@@ -36,6 +36,7 @@ import { syncService } from '../../src/services/syncService';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
 import { useHomeScreenQuery } from '../../src/hooks/queries';
+import { createTextShadow } from '../../src/utils/shadowUtils';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
