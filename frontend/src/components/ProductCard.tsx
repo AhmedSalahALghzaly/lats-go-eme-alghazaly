@@ -8,6 +8,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import { useAppStore } from '../store/appStore';
 import { favoritesApi } from '../services/api';
 import { AnimatedFavoriteButton, AnimatedCartButton } from './AnimatedIconButton';
+import { useBundleProducts } from '../hooks/queries/useBundleProducts';
 import * as Haptics from 'expo-haptics';
 
 interface ProductCardProps {
