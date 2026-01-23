@@ -230,9 +230,26 @@ export default function ProductDetailScreen() {
       return;
     }
 
+    // Check if product already exists in cart as bundle item
+    if (checkBundleDuplicate(product.id)) {
+      // Haptic feedback for warning
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+      Alert.alert(
+        language === 'ar' ? 'تنبيه' : 'Notice',
+        'عرض المنتج تم اضافته بالفعل',
+        [{ text: language === 'ar' ? 'حسناً' : 'OK', style: 'default' }],
+        { cancelable: true }
+      );
+      return;
+    }
+
     setAddingToCart(true);
     try {
       await cartApi.addItem(product.id, quantity);
+      // Invalidate cart query for real-time sync
+      queryClient.invalidateQueries({ queryKey: shoppingHubKeys.cart });
       addToLocalCart({ product_id: product.id, quantity: quantity, product });
       Alert.alert('', t('addToCart') + ' ✔', [{ text: 'OK' }]);
       setQuantity(1); // Reset quantity after adding
