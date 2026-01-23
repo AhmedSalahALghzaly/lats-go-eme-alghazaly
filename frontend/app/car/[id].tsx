@@ -221,9 +221,32 @@ export default function CarModelDetailScreen() {
       router.push('/login');
       return;
     }
+
+    // Check if product already exists in cart as bundle item
+    if (checkBundleDuplicate(product.id)) {
+      // Haptic feedback for warning
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+      }
+      Alert.alert(
+        language === 'ar' ? 'تنبيه' : 'Notice',
+        'عرض المنتج تم اضافته بالفعل',
+        [{ text: language === 'ar' ? 'حسناً' : 'OK', style: 'default' }],
+        { cancelable: true }
+      );
+      return;
+    }
+
     try {
       await cartApi.addItem(product.id, 1);
+      // Invalidate cart query for real-time sync
+      queryClient.invalidateQueries({ queryKey: shoppingHubKeys.cart });
       addToLocalCart({ product_id: product.id, quantity: 1, product });
+      
+      // Success feedback
+      if (Platform.OS !== 'web') {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      }
     } catch (error) {
       console.error('Error adding to cart:', error);
     }
