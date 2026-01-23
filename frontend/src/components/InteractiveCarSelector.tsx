@@ -336,7 +336,7 @@ export const InteractiveCarSelector: React.FC = () => {
 
   // Chassis number animation - shifting VIN characters with electric blue glow
   useEffect(() => {
-    let vinInterval: NodeJS.Timeout;
+    let vinInterval: ReturnType<typeof setInterval> | null = null;
     
     if (selectorState === 'collapsed') {
       vinInterval = setInterval(() => {
