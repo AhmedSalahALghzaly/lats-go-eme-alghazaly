@@ -519,8 +519,9 @@ export default function DistributorsScreen() {
   // Profile View with Modern UI
   // ============================================================================
   if (viewMode === 'profile' && selectedDistributor) {
-    const linkedBrandObjects = productBrands.filter((b: any) => 
-      (selectedDistributor.linked_product_brand_ids || selectedDistributor.linked_brands || []).includes(b.id)
+    // Distributors link to car brands, not product brands
+    const linkedBrandObjects = carBrands.filter((b: any) => 
+      (selectedDistributor.linked_car_brand_ids || selectedDistributor.linked_brands || []).includes(b.id)
     );
     const displayName = isRTL && selectedDistributor.name_ar ? selectedDistributor.name_ar : selectedDistributor.name;
     const displayAddress = isRTL && selectedDistributor.address_ar ? selectedDistributor.address_ar : selectedDistributor.address;
