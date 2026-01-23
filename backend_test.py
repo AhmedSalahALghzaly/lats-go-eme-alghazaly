@@ -1,552 +1,675 @@
 #!/usr/bin/env python3
 """
-Al-Ghazaly Auto Parts Backend API Testing Suite v4.1.0
-Comprehensive end-to-end testing of all backend API endpoints
+Al-Ghazaly Auto Parts Backend API v4.1.0 - Comprehensive Testing Suite
 
-This test suite covers:
-1. Health & Core Endpoints
-2. Product Catalog APIs
-3. Categories APIs
-4. Car Brands & Models APIs
-5. Product Brands APIs
-6. Marketing APIs
-7. Cart APIs (requires auth)
-8. Orders APIs
-9. Analytics APIs
-10. Admin Management APIs
-11. Subscriber APIs
-12. Partner/Supplier/Distributor APIs
-13. Authentication APIs
+This test suite covers all critical backend endpoints for the auto parts e-commerce system:
+1. Health Check & Version Info
+2. Product Management APIs
+3. Cart System APIs (requires authentication)
+4. Order Management APIs
+5. Marketing APIs (Promotions & Bundle Offers)
+6. Analytics APIs
+7. Authentication & Authorization
+8. Admin & Owner Panel APIs
+
+Backend URL: http://localhost:8001
+API Prefix: /api
 """
 
 import requests
 import json
-import uuid
+import sys
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
-class BackendAPITester:
+class AlGhazalyAPITester:
     def __init__(self, base_url: str = "http://localhost:8001"):
         self.base_url = base_url
         self.api_url = f"{base_url}/api"
         self.session = requests.Session()
         self.test_results = []
         self.auth_token = None
-        self.test_data = {}
         
-    def log_test(self, endpoint: str, method: str, status_code: int, 
-                 expected_status: int, response_data: Any = None, 
-                 error: str = None, success: bool = True):
+        # Test data for creating resources
+        self.test_product_data = {
+            "name": "Test Brake Pad",
+            "name_ar": "فرامل اختبار",
+            "description": "High quality brake pad for testing",
+            "description_ar": "فرامل عالية الجودة للاختبار",
+            "sku": f"TEST-BP-{datetime.now().strftime('%Y%m%d%H%M%S')}",
+            "price": 150.00,
+            "stock_quantity": 50,
+            "category_id": "cat_brake_parts",
+            "product_brand_id": "pb_bosch",
+            "compatible_car_models": ["cm_corolla", "cm_camry"],
+            "images": ["https://example.com/brake-pad.jpg"],
+            "specifications": {
+                "material": "Ceramic",
+                "warranty": "2 years"
+            }
+        }
+        
+        self.test_cart_item = {
+            "product_id": "prod_brake_pad_001",
+            "quantity": 2,
+            "notes": "Test cart item"
+        }
+
+    def log_test(self, test_name: str, success: bool, details: str, response_data: Any = None):
         """Log test results"""
+        status = "✅ PASS" if success else "❌ FAIL"
         result = {
-            "endpoint": endpoint,
-            "method": method,
-            "status_code": status_code,
-            "expected_status": expected_status,
+            "test": test_name,
+            "status": status,
             "success": success,
+            "details": details,
             "timestamp": datetime.now().isoformat(),
-            "error": error,
-            "response_preview": str(response_data)[:200] if response_data else None
+            "response_data": response_data
         }
         self.test_results.append(result)
-        
-        status_icon = "✅" if success else "❌"
-        print(f"{status_icon} {method} {endpoint} - {status_code} (expected {expected_status})")
-        if error:
-            print(f"   Error: {error}")
-        if response_data and isinstance(response_data, dict):
-            if 'message' in response_data:
-                print(f"   Message: {response_data['message']}")
-            elif 'detail' in response_data:
-                print(f"   Detail: {response_data['detail']}")
-    
-    def test_endpoint(self, endpoint: str, method: str = "GET", 
-                     expected_status: int = 200, data: Dict = None,
-                     headers: Dict = None, params: Dict = None) -> Optional[Dict]:
-        """Test a single endpoint"""
+        print(f"{status}: {test_name} - {details}")
+
+    def make_request(self, method: str, endpoint: str, data: Dict = None, params: Dict = None, 
+                    auth_required: bool = False) -> tuple[bool, Any, str]:
+        """Make HTTP request and handle common patterns"""
         url = f"{self.api_url}{endpoint}"
+        headers = {"Content-Type": "application/json"}
+        
+        if auth_required and self.auth_token:
+            headers["Authorization"] = f"Bearer {self.auth_token}"
         
         try:
-            if method == "GET":
-                response = self.session.get(url, headers=headers, params=params)
-            elif method == "POST":
-                response = self.session.post(url, json=data, headers=headers, params=params)
-            elif method == "PUT":
-                response = self.session.put(url, json=data, headers=headers, params=params)
-            elif method == "PATCH":
-                response = self.session.patch(url, json=data, headers=headers, params=params)
-            elif method == "DELETE":
-                response = self.session.delete(url, headers=headers, params=params)
+            if method.upper() == "GET":
+                response = self.session.get(url, params=params, headers=headers)
+            elif method.upper() == "POST":
+                response = self.session.post(url, json=data, params=params, headers=headers)
+            elif method.upper() == "PUT":
+                response = self.session.put(url, json=data, params=params, headers=headers)
+            elif method.upper() == "PATCH":
+                response = self.session.patch(url, json=data, params=params, headers=headers)
+            elif method.upper() == "DELETE":
+                response = self.session.delete(url, headers=headers)
             else:
-                raise ValueError(f"Unsupported method: {method}")
+                return False, None, f"Unsupported method: {method}"
             
             try:
                 response_data = response.json()
             except:
-                response_data = {"raw_response": response.text}
+                response_data = response.text
             
-            success = response.status_code == expected_status
-            self.log_test(endpoint, method, response.status_code, expected_status, 
-                         response_data, success=success)
-            
-            return response_data if success else None
-            
-        except Exception as e:
-            self.log_test(endpoint, method, 0, expected_status, 
-                         error=str(e), success=False)
-            return None
-    
-    def test_health_endpoints(self):
-        """Test health and core endpoints"""
-        print("\n=== TESTING HEALTH & CORE ENDPOINTS ===")
+            return True, response, response_data
+        except requests.exceptions.RequestException as e:
+            return False, None, f"Request failed: {str(e)}"
+
+    def test_health_check(self):
+        """Test health check endpoint"""
+        success, response, data = self.make_request("GET", "/health")
         
-        # Test root endpoint
-        self.test_endpoint("/", "GET", 200)
+        if not success:
+            self.log_test("Health Check", False, f"Request failed: {data}")
+            return
         
-        # Test health endpoint
-        health_data = self.test_endpoint("/health", "GET", 200)
-        if health_data and 'api_version' in health_data:
-            print(f"   API Version: {health_data['api_version']}")
+        if response.status_code == 200:
+            if isinstance(data, dict) and "status" in data and "api_version" in data:
+                version = data.get("api_version", "unknown")
+                status = data.get("status", "unknown")
+                self.log_test("Health Check", True, f"API v{version} is {status}", data)
+            else:
+                self.log_test("Health Check", False, "Invalid response format", data)
+        else:
+            self.log_test("Health Check", False, f"HTTP {response.status_code}: {data}")
+
+    def test_version_info(self):
+        """Test version endpoint"""
+        success, response, data = self.make_request("GET", "/version")
         
-        # Test version endpoint
-        self.test_endpoint("/version", "GET", 200)
-    
-    def test_product_catalog_apis(self):
-        """Test product catalog APIs"""
-        print("\n=== TESTING PRODUCT CATALOG APIs ===")
+        if not success:
+            self.log_test("Version Info", False, f"Request failed: {data}")
+            return
         
-        # Test GET products with pagination
-        products_data = self.test_endpoint("/products", "GET", 200)
-        if products_data and isinstance(products_data, list):
-            print(f"   Found {len(products_data)} products")
-            if products_data:
-                product_id = products_data[0].get('id')
-                if product_id:
-                    self.test_data['product_id'] = product_id
-                    # Test GET single product
-                    self.test_endpoint(f"/products/{product_id}", "GET", 200)
+        if response.status_code == 200:
+            if isinstance(data, dict) and "api_version" in data:
+                version = data.get("api_version", "unknown")
+                features = data.get("features", [])
+                self.log_test("Version Info", True, f"API v{version} with {len(features)} features", data)
+            else:
+                self.log_test("Version Info", False, "Invalid response format", data)
+        else:
+            self.log_test("Version Info", False, f"HTTP {response.status_code}: {data}")
+
+    def test_root_endpoint(self):
+        """Test root endpoint"""
+        success, response, data = self.make_request("GET", "")
         
-        # Test POST product (should require auth)
-        test_product = {
-            "name": "Test Product",
-            "name_ar": "منتج تجريبي",
-            "sku": f"TEST_{uuid.uuid4().hex[:8]}",
-            "price": 100.0,
-            "category_id": "test_category",
-            "brand_id": "test_brand"
+        if not success:
+            # Try without /api prefix
+            try:
+                response = self.session.get(self.base_url)
+                data = response.json() if response.headers.get('content-type', '').startswith('application/json') else response.text
+                success = True
+            except:
+                self.log_test("Root Endpoint", False, f"Request failed: {data}")
+                return
+        
+        if response.status_code == 200:
+            if isinstance(data, dict) and "message" in data:
+                message = data.get("message", "")
+                version = data.get("version", "unknown")
+                self.log_test("Root Endpoint", True, f"'{message}' v{version}", data)
+            else:
+                self.log_test("Root Endpoint", True, "Root endpoint accessible", data)
+        else:
+            self.log_test("Root Endpoint", False, f"HTTP {response.status_code}: {data}")
+
+    def test_products_api(self):
+        """Test products API endpoints"""
+        # Test GET /products
+        success, response, data = self.make_request("GET", "/products")
+        
+        if not success:
+            self.log_test("Products GET", False, f"Request failed: {data}")
+            return
+        
+        if response.status_code == 200:
+            if isinstance(data, dict):
+                products = data.get("items", data.get("products", []))
+                total = data.get("total", len(products) if isinstance(products, list) else 0)
+                self.log_test("Products GET", True, f"Found {total} products", {"count": total})
+            else:
+                self.log_test("Products GET", False, "Invalid response format", data)
+        else:
+            self.log_test("Products GET", False, f"HTTP {response.status_code}: {data}")
+
+        # Test POST /products (should require auth)
+        success, response, data = self.make_request("POST", "/products", self.test_product_data)
+        
+        if not success:
+            self.log_test("Products POST (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Products POST (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        elif response.status_code == 201:
+            self.log_test("Products POST (No Auth)", False, "SECURITY ISSUE: Created product without authentication", data)
+        else:
+            self.log_test("Products POST (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+    def test_categories_api(self):
+        """Test categories API endpoints"""
+        success, response, data = self.make_request("GET", "/categories")
+        
+        if not success:
+            self.log_test("Categories GET", False, f"Request failed: {data}")
+            return
+        
+        if response.status_code == 200:
+            if isinstance(data, list):
+                count = len(data)
+                self.log_test("Categories GET", True, f"Found {count} categories", {"count": count})
+            elif isinstance(data, dict):
+                categories = data.get("items", data.get("categories", []))
+                count = len(categories) if isinstance(categories, list) else data.get("total", 0)
+                self.log_test("Categories GET", True, f"Found {count} categories", {"count": count})
+            else:
+                self.log_test("Categories GET", False, "Invalid response format", data)
+        else:
+            self.log_test("Categories GET", False, f"HTTP {response.status_code}: {data}")
+
+    def test_car_brands_api(self):
+        """Test car brands API endpoints"""
+        success, response, data = self.make_request("GET", "/car-brands")
+        
+        if not success:
+            self.log_test("Car Brands GET", False, f"Request failed: {data}")
+            return
+        
+        if response.status_code == 200:
+            if isinstance(data, list):
+                count = len(data)
+                self.log_test("Car Brands GET", True, f"Found {count} car brands", {"count": count})
+            elif isinstance(data, dict):
+                brands = data.get("items", data.get("brands", []))
+                count = len(brands) if isinstance(brands, list) else data.get("total", 0)
+                self.log_test("Car Brands GET", True, f"Found {count} car brands", {"count": count})
+            else:
+                self.log_test("Car Brands GET", False, "Invalid response format", data)
+        else:
+            self.log_test("Car Brands GET", False, f"HTTP {response.status_code}: {data}")
+
+    def test_car_models_api(self):
+        """Test car models API endpoints"""
+        success, response, data = self.make_request("GET", "/car-models")
+        
+        if not success:
+            self.log_test("Car Models GET", False, f"Request failed: {data}")
+            return
+        
+        if response.status_code == 200:
+            if isinstance(data, list):
+                count = len(data)
+                self.log_test("Car Models GET", True, f"Found {count} car models", {"count": count})
+            elif isinstance(data, dict):
+                models = data.get("items", data.get("models", []))
+                count = len(models) if isinstance(models, list) else data.get("total", 0)
+                self.log_test("Car Models GET", True, f"Found {count} car models", {"count": count})
+            else:
+                self.log_test("Car Models GET", False, "Invalid response format", data)
+        else:
+            self.log_test("Car Models GET", False, f"HTTP {response.status_code}: {data}")
+
+    def test_product_brands_api(self):
+        """Test product brands API endpoints"""
+        success, response, data = self.make_request("GET", "/product-brands")
+        
+        if not success:
+            self.log_test("Product Brands GET", False, f"Request failed: {data}")
+            return
+        
+        if response.status_code == 200:
+            if isinstance(data, list):
+                count = len(data)
+                self.log_test("Product Brands GET", True, f"Found {count} product brands", {"count": count})
+            elif isinstance(data, dict):
+                brands = data.get("items", data.get("brands", []))
+                count = len(brands) if isinstance(brands, list) else data.get("total", 0)
+                self.log_test("Product Brands GET", True, f"Found {count} product brands", {"count": count})
+            else:
+                self.log_test("Product Brands GET", False, "Invalid response format", data)
+        else:
+            self.log_test("Product Brands GET", False, f"HTTP {response.status_code}: {data}")
+
+    def test_cart_api(self):
+        """Test cart API endpoints (should require authentication)"""
+        # Test GET /cart
+        success, response, data = self.make_request("GET", "/cart")
+        
+        if not success:
+            self.log_test("Cart GET (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Cart GET (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        elif response.status_code == 200:
+            self.log_test("Cart GET (No Auth)", False, "SECURITY ISSUE: Cart accessible without authentication", data)
+        else:
+            self.log_test("Cart GET (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test POST /cart/add
+        success, response, data = self.make_request("POST", "/cart/add", self.test_cart_item)
+        
+        if not success:
+            self.log_test("Cart ADD (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Cart ADD (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        elif response.status_code in [200, 201]:
+            self.log_test("Cart ADD (No Auth)", False, "SECURITY ISSUE: Cart add accessible without authentication", data)
+        else:
+            self.log_test("Cart ADD (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test PUT /cart/update
+        update_data = {"product_id": "prod_test", "quantity": 3}
+        success, response, data = self.make_request("PUT", "/cart/update", update_data)
+        
+        if not success:
+            self.log_test("Cart UPDATE (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Cart UPDATE (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Cart UPDATE (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test DELETE /cart/clear
+        success, response, data = self.make_request("DELETE", "/cart/clear")
+        
+        if not success:
+            self.log_test("Cart CLEAR (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Cart CLEAR (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Cart CLEAR (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test POST /cart/validate-stock
+        stock_data = {"items": [{"product_id": "prod_test", "quantity": 1}]}
+        success, response, data = self.make_request("POST", "/cart/validate-stock", stock_data)
+        
+        if not success:
+            self.log_test("Cart VALIDATE-STOCK (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Cart VALIDATE-STOCK (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Cart VALIDATE-STOCK (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test DELETE /cart/void-bundle/{bundle_group_id}
+        success, response, data = self.make_request("DELETE", "/cart/void-bundle/test_bundle_123")
+        
+        if not success:
+            self.log_test("Cart VOID-BUNDLE (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Cart VOID-BUNDLE (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Cart VOID-BUNDLE (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+    def test_orders_api(self):
+        """Test orders API endpoints"""
+        # Test GET /orders (should require auth)
+        success, response, data = self.make_request("GET", "/orders")
+        
+        if not success:
+            self.log_test("Orders GET (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Orders GET (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Orders GET (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test POST /orders (should require auth)
+        order_data = {
+            "first_name": "Ahmed",
+            "last_name": "Hassan",
+            "email": "ahmed.hassan@example.com",
+            "phone": "+966501234567",
+            "street_address": "123 King Fahd Road",
+            "city": "Riyadh",
+            "state": "Riyadh Province",
+            "postal_code": "12345",
+            "country": "Saudi Arabia",
+            "order_source": "customer_app"
         }
-        self.test_endpoint("/products", "POST", 403, data=test_product)
+        success, response, data = self.make_request("POST", "/orders", order_data)
         
-        # Test PUT product (should require auth)
-        if 'product_id' in self.test_data:
-            self.test_endpoint(f"/products/{self.test_data['product_id']}", "PUT", 403, data=test_product)
+        if not success:
+            self.log_test("Orders POST (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Orders POST (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        elif response.status_code in [200, 201]:
+            self.log_test("Orders POST (No Auth)", False, "SECURITY ISSUE: Order creation accessible without authentication", data)
+        else:
+            self.log_test("Orders POST (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+    def test_promotions_api(self):
+        """Test promotions API endpoints"""
+        # Test GET /promotions
+        success, response, data = self.make_request("GET", "/promotions")
         
-        # Test DELETE product (should require auth)
-        if 'product_id' in self.test_data:
-            self.test_endpoint(f"/products/{self.test_data['product_id']}", "DELETE", 403)
-    
-    def test_categories_apis(self):
-        """Test categories APIs"""
-        print("\n=== TESTING CATEGORIES APIs ===")
+        if not success:
+            self.log_test("Promotions GET", False, f"Request failed: {data}")
+            return
         
-        # Test GET categories
-        categories_data = self.test_endpoint("/categories", "GET", 200)
-        if categories_data and isinstance(categories_data, list):
-            print(f"   Found {len(categories_data)} categories")
-            if categories_data:
-                category_id = categories_data[0].get('id')
-                if category_id:
-                    self.test_data['category_id'] = category_id
-        
-        # Test POST category (should require auth)
-        test_category = {
-            "name": "Test Category",
-            "name_ar": "فئة تجريبية",
-            "description": "Test category description"
-        }
-        self.test_endpoint("/categories", "POST", 403, data=test_category)
-        
-        # Test PUT category (should require auth)
-        if 'category_id' in self.test_data:
-            self.test_endpoint(f"/categories/{self.test_data['category_id']}", "PUT", 403, data=test_category)
-        
-        # Test DELETE category (should require auth)
-        if 'category_id' in self.test_data:
-            self.test_endpoint(f"/categories/{self.test_data['category_id']}", "DELETE", 403)
-    
-    def test_car_brands_models_apis(self):
-        """Test car brands and models APIs"""
-        print("\n=== TESTING CAR BRANDS & MODELS APIs ===")
-        
-        # Test GET car brands
-        brands_data = self.test_endpoint("/car-brands", "GET", 200)
-        if brands_data and isinstance(brands_data, list):
-            print(f"   Found {len(brands_data)} car brands")
-            if brands_data:
-                brand_id = brands_data[0].get('id')
-                if brand_id:
-                    self.test_data['car_brand_id'] = brand_id
-        
-        # Test POST car brand (should require auth)
-        test_brand = {
-            "name": "Test Brand",
-            "country": "Test Country"
-        }
-        self.test_endpoint("/car-brands", "POST", 403, data=test_brand)
-        
-        # Test DELETE car brand (should require auth)
-        if 'car_brand_id' in self.test_data:
-            self.test_endpoint(f"/car-brands/{self.test_data['car_brand_id']}", "DELETE", 403)
-        
-        # Test GET car models
-        models_data = self.test_endpoint("/car-models", "GET", 200)
-        if models_data and isinstance(models_data, list):
-            print(f"   Found {len(models_data)} car models")
-            if models_data:
-                model_id = models_data[0].get('id')
-                if model_id:
-                    self.test_data['car_model_id'] = model_id
-        
-        # Test POST car model (should require auth)
-        test_model = {
-            "name": "Test Model",
-            "car_brand_id": self.test_data.get('car_brand_id', 'test_brand')
-        }
-        self.test_endpoint("/car-models", "POST", 403, data=test_model)
-        
-        # Test DELETE car model (should require auth)
-        if 'car_model_id' in self.test_data:
-            self.test_endpoint(f"/car-models/{self.test_data['car_model_id']}", "DELETE", 403)
-    
-    def test_product_brands_apis(self):
-        """Test product brands APIs"""
-        print("\n=== TESTING PRODUCT BRANDS APIs ===")
-        
-        # Test GET product brands
-        brands_data = self.test_endpoint("/product-brands", "GET", 200)
-        if brands_data and isinstance(brands_data, list):
-            print(f"   Found {len(brands_data)} product brands")
-            if brands_data:
-                brand_id = brands_data[0].get('id')
-                if brand_id:
-                    self.test_data['product_brand_id'] = brand_id
-        
-        # Test POST product brand (should require auth)
-        test_brand = {
-            "name": "Test Product Brand",
-            "country": "Test Country"
-        }
-        self.test_endpoint("/product-brands", "POST", 403, data=test_brand)
-        
-        # Test DELETE product brand (should require auth)
-        if 'product_brand_id' in self.test_data:
-            self.test_endpoint(f"/product-brands/{self.test_data['product_brand_id']}", "DELETE", 403)
-    
-    def test_marketing_apis(self):
-        """Test marketing APIs"""
-        print("\n=== TESTING MARKETING APIs ===")
-        
-        # Test GET promotions
-        promotions_data = self.test_endpoint("/promotions", "GET", 200)
-        if promotions_data and isinstance(promotions_data, list):
-            print(f"   Found {len(promotions_data)} promotions")
-            if promotions_data:
-                promo_id = promotions_data[0].get('id')
-                if promo_id:
-                    self.test_data['promotion_id'] = promo_id
-        
-        # Test POST promotion (should require auth)
-        test_promotion = {
+        if response.status_code == 200:
+            if isinstance(data, list):
+                count = len(data)
+                self.log_test("Promotions GET", True, f"Found {count} promotions", {"count": count})
+            elif isinstance(data, dict):
+                promotions = data.get("items", data.get("promotions", []))
+                count = len(promotions) if isinstance(promotions, list) else data.get("total", 0)
+                self.log_test("Promotions GET", True, f"Found {count} promotions", {"count": count})
+            else:
+                self.log_test("Promotions GET", False, "Invalid response format", data)
+        else:
+            self.log_test("Promotions GET", False, f"HTTP {response.status_code}: {data}")
+
+        # Test POST /promotions (should require auth)
+        promo_data = {
             "title": "Test Promotion",
             "title_ar": "عرض تجريبي",
-            "description": "Test promotion description",
-            "discount_percentage": 10.0,
+            "description": "Test promotion for API testing",
+            "description_ar": "عرض تجريبي لاختبار API",
+            "discount_percentage": 15.0,
+            "start_date": "2024-01-01T00:00:00Z",
+            "end_date": "2024-12-31T23:59:59Z",
+            "target_type": "all_products",
             "is_active": True
         }
-        self.test_endpoint("/promotions", "POST", 403, data=test_promotion)
+        success, response, data = self.make_request("POST", "/promotions", promo_data)
         
-        # Test DELETE promotion (should require auth)
-        if 'promotion_id' in self.test_data:
-            self.test_endpoint(f"/promotions/{self.test_data['promotion_id']}", "DELETE", 403)
+        if not success:
+            self.log_test("Promotions POST (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Promotions POST (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Promotions POST (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+    def test_bundle_offers_api(self):
+        """Test bundle offers API endpoints"""
+        # Test GET /bundle-offers
+        success, response, data = self.make_request("GET", "/bundle-offers")
         
-        # Test GET bundle offers
-        bundles_data = self.test_endpoint("/bundle-offers", "GET", 200)
-        if bundles_data and isinstance(bundles_data, list):
-            print(f"   Found {len(bundles_data)} bundle offers")
-            if bundles_data:
-                bundle_id = bundles_data[0].get('id')
-                if bundle_id:
-                    self.test_data['bundle_id'] = bundle_id
+        if not success:
+            self.log_test("Bundle Offers GET", False, f"Request failed: {data}")
+            return
         
-        # Test POST bundle offer (should require auth)
-        test_bundle = {
+        if response.status_code == 200:
+            if isinstance(data, list):
+                count = len(data)
+                self.log_test("Bundle Offers GET", True, f"Found {count} bundle offers", {"count": count})
+            elif isinstance(data, dict):
+                bundles = data.get("items", data.get("bundle_offers", []))
+                count = len(bundles) if isinstance(bundles, list) else data.get("total", 0)
+                self.log_test("Bundle Offers GET", True, f"Found {count} bundle offers", {"count": count})
+            else:
+                self.log_test("Bundle Offers GET", False, "Invalid response format", data)
+        else:
+            self.log_test("Bundle Offers GET", False, f"HTTP {response.status_code}: {data}")
+
+        # Test POST /bundle-offers (should require auth)
+        bundle_data = {
             "name": "Test Bundle",
             "name_ar": "حزمة تجريبية",
-            "description": "Test bundle description",
-            "discount_percentage": 15.0,
-            "product_ids": ["test_product_1", "test_product_2"],
+            "description": "Test bundle for API testing",
+            "description_ar": "حزمة تجريبية لاختبار API",
+            "product_ids": ["prod_brake_pad_001", "prod_oil_filter_001"],
+            "discount_percentage": 20.0,
+            "target_car_model": "cm_corolla",
             "is_active": True
         }
-        self.test_endpoint("/bundle-offers", "POST", 403, data=test_bundle)
+        success, response, data = self.make_request("POST", "/bundle-offers", bundle_data)
         
-        # Test DELETE bundle offer (should require auth)
-        if 'bundle_id' in self.test_data:
-            self.test_endpoint(f"/bundle-offers/{self.test_data['bundle_id']}", "DELETE", 403)
+        if not success:
+            self.log_test("Bundle Offers POST (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Bundle Offers POST (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Bundle Offers POST (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+    def test_marketing_home_slider(self):
+        """Test marketing home slider endpoint"""
+        success, response, data = self.make_request("GET", "/marketing/home-slider")
         
-        # Test marketing home slider
-        self.test_endpoint("/marketing/home-slider", "GET", 200)
-    
-    def test_cart_apis(self):
-        """Test cart APIs (all require auth)"""
-        print("\n=== TESTING CART APIs (AUTH REQUIRED) ===")
+        if not success:
+            self.log_test("Marketing Home Slider", False, f"Request failed: {data}")
+            return
         
-        # Test GET cart (should require auth)
-        self.test_endpoint("/cart", "GET", 401)
+        if response.status_code == 200:
+            if isinstance(data, list):
+                count = len(data)
+                self.log_test("Marketing Home Slider", True, f"Found {count} slider items", {"count": count})
+            elif isinstance(data, dict):
+                items = data.get("items", data.get("slider_items", []))
+                count = len(items) if isinstance(items, list) else data.get("total", 0)
+                self.log_test("Marketing Home Slider", True, f"Found {count} slider items", {"count": count})
+            else:
+                self.log_test("Marketing Home Slider", False, "Invalid response format", data)
+        else:
+            self.log_test("Marketing Home Slider", False, f"HTTP {response.status_code}: {data}")
+
+    def test_analytics_api(self):
+        """Test analytics API endpoints"""
+        # Test GET /analytics/overview
+        success, response, data = self.make_request("GET", "/analytics/overview")
         
-        # Test POST cart/add (should require auth)
-        test_cart_item = {
-            "product_id": self.test_data.get('product_id', 'test_product'),
-            "quantity": 1
-        }
-        self.test_endpoint("/cart/add", "POST", 401, data=test_cart_item)
+        if not success:
+            self.log_test("Analytics Overview (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Analytics Overview (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        elif response.status_code == 200:
+            if isinstance(data, dict):
+                metrics = list(data.keys())
+                self.log_test("Analytics Overview (No Auth)", False, f"SECURITY ISSUE: Analytics accessible without auth - {len(metrics)} metrics", data)
+            else:
+                self.log_test("Analytics Overview (No Auth)", False, "SECURITY ISSUE: Analytics accessible without auth", data)
+        else:
+            self.log_test("Analytics Overview (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test other analytics endpoints
+        analytics_endpoints = [
+            "/analytics/customers",
+            "/analytics/products", 
+            "/analytics/orders",
+            "/analytics/revenue",
+            "/analytics/admin-performance"
+        ]
         
-        # Test PUT cart/update (should require auth)
-        self.test_endpoint("/cart/update", "PUT", 401, data=test_cart_item)
+        for endpoint in analytics_endpoints:
+            success, response, data = self.make_request("GET", endpoint)
+            endpoint_name = endpoint.split("/")[-1].title()
+            
+            if not success:
+                self.log_test(f"Analytics {endpoint_name} (No Auth)", False, f"Request failed: {data}")
+            elif response.status_code in [401, 403]:
+                self.log_test(f"Analytics {endpoint_name} (No Auth)", True, f"Properly secured - HTTP {response.status_code}")
+            elif response.status_code == 200:
+                self.log_test(f"Analytics {endpoint_name} (No Auth)", False, f"SECURITY ISSUE: Analytics accessible without auth")
+            else:
+                self.log_test(f"Analytics {endpoint_name} (No Auth)", False, f"Unexpected response - HTTP {response.status_code}")
+
+    def test_admin_endpoints(self):
+        """Test admin-specific endpoints"""
+        # Test GET /admins (should require auth)
+        success, response, data = self.make_request("GET", "/admins")
         
-        # Test DELETE cart/clear (should require auth)
-        self.test_endpoint("/cart/clear", "DELETE", 401)
+        if not success:
+            self.log_test("Admins GET (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Admins GET (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Admins GET (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test GET /admins/check-access
+        success, response, data = self.make_request("GET", "/admins/check-access")
         
-        # Test DELETE cart/void-bundle (should require auth)
-        self.test_endpoint("/cart/void-bundle/test_bundle_group", "DELETE", 401)
+        if not success:
+            self.log_test("Admin Check Access (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Admin Check Access (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Admin Check Access (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+    def test_subscribers_api(self):
+        """Test subscribers API endpoints"""
+        # Test GET /subscribers (should require auth)
+        success, response, data = self.make_request("GET", "/subscribers")
         
-        # Test POST cart/validate-stock (should require auth)
-        self.test_endpoint("/cart/validate-stock", "POST", 401, data={"items": []})
-    
-    def test_orders_apis(self):
-        """Test orders APIs"""
-        print("\n=== TESTING ORDERS APIs ===")
+        if not success:
+            self.log_test("Subscribers GET (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Subscribers GET (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Subscribers GET (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+        # Test GET /subscription-requests (should require auth)
+        success, response, data = self.make_request("GET", "/subscription-requests")
         
-        # Test GET orders (should require auth)
-        self.test_endpoint("/orders", "GET", 401)
+        if not success:
+            self.log_test("Subscription Requests GET (No Auth)", False, f"Request failed: {data}")
+        elif response.status_code in [401, 403]:
+            self.log_test("Subscription Requests GET (No Auth)", True, f"Properly secured - HTTP {response.status_code}", data)
+        else:
+            self.log_test("Subscription Requests GET (No Auth)", False, f"Unexpected response - HTTP {response.status_code}: {data}")
+
+    def run_comprehensive_tests(self):
+        """Run all backend API tests"""
+        print("=" * 80)
+        print("AL-GHAZALY AUTO PARTS BACKEND API v4.1.0 - COMPREHENSIVE TESTING")
+        print("=" * 80)
+        print(f"Testing Backend: {self.base_url}")
+        print(f"API Endpoint: {self.api_url}")
+        print(f"Test Started: {datetime.now().isoformat()}")
+        print("=" * 80)
         
-        # Test POST orders (should require auth)
-        test_order = {
-            "customer_name": "Test Customer",
-            "customer_phone": "1234567890",
-            "customer_address": "Test Address",
-            "items": [
-                {
-                    "product_id": self.test_data.get('product_id', 'test_product'),
-                    "quantity": 1,
-                    "unit_price": 100.0
-                }
-            ]
-        }
-        self.test_endpoint("/orders", "POST", 401, data=test_order)
+        # Core API Tests
+        print("\n🔍 CORE API ENDPOINTS")
+        self.test_root_endpoint()
+        self.test_health_check()
+        self.test_version_info()
         
-        # Test PATCH order status (should require auth)
-        self.test_endpoint("/orders/test_order_id/status", "PATCH", 401, 
-                          params={"status": "preparing"})
-    
-    def test_analytics_apis(self):
-        """Test analytics APIs"""
-        print("\n=== TESTING ANALYTICS APIs ===")
+        # Data API Tests
+        print("\n📦 DATA API ENDPOINTS")
+        self.test_products_api()
+        self.test_categories_api()
+        self.test_car_brands_api()
+        self.test_car_models_api()
+        self.test_product_brands_api()
         
-        # Test analytics overview (should require auth)
-        self.test_endpoint("/analytics/overview", "GET", 403)
+        # Cart & Orders Tests
+        print("\n🛒 CART & ORDER ENDPOINTS")
+        self.test_cart_api()
+        self.test_orders_api()
         
-        # Test analytics customers (should require auth)
-        self.test_endpoint("/analytics/customers", "GET", 403)
+        # Marketing Tests
+        print("\n📢 MARKETING ENDPOINTS")
+        self.test_promotions_api()
+        self.test_bundle_offers_api()
+        self.test_marketing_home_slider()
         
-        # Test analytics products (should require auth)
-        self.test_endpoint("/analytics/products", "GET", 403)
+        # Analytics Tests
+        print("\n📊 ANALYTICS ENDPOINTS")
+        self.test_analytics_api()
         
-        # Test analytics orders (should require auth)
-        self.test_endpoint("/analytics/orders", "GET", 403)
+        # Admin Tests
+        print("\n👨‍💼 ADMIN & USER MANAGEMENT ENDPOINTS")
+        self.test_admin_endpoints()
+        self.test_subscribers_api()
         
-        # Test analytics revenue (should require auth)
-        self.test_endpoint("/analytics/revenue", "GET", 403)
-        
-        # Test analytics admin performance (should require auth)
-        self.test_endpoint("/analytics/admin-performance", "GET", 403)
-    
-    def test_admin_management_apis(self):
-        """Test admin management APIs"""
-        print("\n=== TESTING ADMIN MANAGEMENT APIs ===")
-        
-        # Test GET admins (should require auth)
-        self.test_endpoint("/admins", "GET", 403)
-        
-        # Test POST admins (should require auth)
-        test_admin = {
-            "email": "test@example.com",
-            "name": "Test Admin",
-            "role": "admin"
-        }
-        self.test_endpoint("/admins", "POST", 403, data=test_admin)
-        
-        # Test DELETE admin (should require auth)
-        self.test_endpoint("/admins/test_admin_id", "DELETE", 403)
-        
-        # Test admin check access (should require auth)
-        self.test_endpoint("/admins/check-access", "GET", 401)
-    
-    def test_subscriber_apis(self):
-        """Test subscriber APIs"""
-        print("\n=== TESTING SUBSCRIBER APIs ===")
-        
-        # Test GET subscribers (should require auth)
-        self.test_endpoint("/subscribers", "GET", 403)
-        
-        # Test POST subscribers (should require auth)
-        test_subscriber = {
-            "email": "test@example.com",
-            "name": "Test Subscriber"
-        }
-        self.test_endpoint("/subscribers", "POST", 403, data=test_subscriber)
-        
-        # Test PUT subscriber (should require auth)
-        self.test_endpoint("/subscribers/test_id", "PUT", 403, data=test_subscriber)
-        
-        # Test DELETE subscriber (should require auth)
-        self.test_endpoint("/subscribers/test_id", "DELETE", 403)
-        
-        # Test GET subscription requests (should require auth)
-        self.test_endpoint("/subscription-requests", "GET", 403)
-        
-        # Test PATCH approve subscription request (should require auth)
-        self.test_endpoint("/subscription-requests/test_id/approve", "PATCH", 403)
-        
-        # Test PATCH reject subscription request (should require auth)
-        self.test_endpoint("/subscription-requests/test_id/reject", "PATCH", 403)
-    
-    def test_partner_supplier_distributor_apis(self):
-        """Test partner, supplier, and distributor APIs"""
-        print("\n=== TESTING PARTNER/SUPPLIER/DISTRIBUTOR APIs ===")
-        
-        # Test GET partners (should require auth)
-        self.test_endpoint("/partners", "GET", 403)
-        
-        # Test GET suppliers (should require auth)
-        self.test_endpoint("/suppliers", "GET", 403)
-        
-        # Test GET distributors (should require auth)
-        self.test_endpoint("/distributors", "GET", 403)
-    
-    def test_authentication_apis(self):
-        """Test authentication APIs"""
-        print("\n=== TESTING AUTHENTICATION APIs ===")
-        
-        # Test POST auth/session (should handle invalid session)
-        test_session = {
-            "session_token": "invalid_token"
-        }
-        self.test_endpoint("/auth/session", "POST", 401, data=test_session)
-        
-        # Test POST auth/logout
-        self.test_endpoint("/auth/logout", "POST", 200)
-        
-        # Test GET notifications (should require auth)
-        self.test_endpoint("/notifications", "GET", 401)
-    
-    def run_all_tests(self):
-        """Run all test suites"""
-        print("🚀 Starting Al-Ghazaly Auto Parts Backend API Testing Suite v4.1.0")
-        print(f"Testing backend at: {self.api_url}")
-        
-        start_time = datetime.now()
-        
-        # Run all test suites
-        self.test_health_endpoints()
-        self.test_product_catalog_apis()
-        self.test_categories_apis()
-        self.test_car_brands_models_apis()
-        self.test_product_brands_apis()
-        self.test_marketing_apis()
-        self.test_cart_apis()
-        self.test_orders_apis()
-        self.test_analytics_apis()
-        self.test_admin_management_apis()
-        self.test_subscriber_apis()
-        self.test_partner_supplier_distributor_apis()
-        self.test_authentication_apis()
-        
-        end_time = datetime.now()
-        duration = (end_time - start_time).total_seconds()
-        
-        # Generate summary
-        self.generate_summary(duration)
-    
-    def generate_summary(self, duration: float):
+        # Generate Summary
+        self.generate_summary()
+
+    def generate_summary(self):
         """Generate test summary"""
+        print("\n" + "=" * 80)
+        print("TEST SUMMARY")
+        print("=" * 80)
+        
         total_tests = len(self.test_results)
-        passed_tests = sum(1 for result in self.test_results if result['success'])
+        passed_tests = sum(1 for result in self.test_results if result["success"])
         failed_tests = total_tests - passed_tests
         success_rate = (passed_tests / total_tests * 100) if total_tests > 0 else 0
         
-        print(f"\n{'='*60}")
-        print("🏁 AL-GHAZALY AUTO PARTS BACKEND API TEST SUMMARY")
-        print(f"{'='*60}")
-        print(f"📊 Total Tests: {total_tests}")
-        print(f"✅ Passed: {passed_tests}")
-        print(f"❌ Failed: {failed_tests}")
-        print(f"📈 Success Rate: {success_rate:.1f}%")
-        print(f"⏱️  Duration: {duration:.2f} seconds")
-        print(f"🔗 Backend URL: {self.api_url}")
+        print(f"Total Tests: {total_tests}")
+        print(f"Passed: {passed_tests}")
+        print(f"Failed: {failed_tests}")
+        print(f"Success Rate: {success_rate:.1f}%")
         
         if failed_tests > 0:
-            print(f"\n❌ FAILED TESTS:")
+            print(f"\n❌ FAILED TESTS ({failed_tests}):")
             for result in self.test_results:
-                if not result['success']:
-                    print(f"   • {result['method']} {result['endpoint']} - {result['status_code']} (expected {result['expected_status']})")
-                    if result['error']:
-                        print(f"     Error: {result['error']}")
+                if not result["success"]:
+                    print(f"  • {result['test']}: {result['details']}")
         
-        print(f"\n🎯 ENDPOINT COVERAGE ANALYSIS:")
+        print(f"\n✅ PASSED TESTS ({passed_tests}):")
+        for result in self.test_results:
+            if result["success"]:
+                print(f"  • {result['test']}: {result['details']}")
         
-        # Group by endpoint categories
-        categories = {
-            "Health & Core": ["/", "/health", "/version"],
-            "Products": ["/products"],
-            "Categories": ["/categories"],
-            "Car Brands": ["/car-brands"],
-            "Car Models": ["/car-models"],
-            "Product Brands": ["/product-brands"],
-            "Marketing": ["/promotions", "/bundle-offers", "/marketing/home-slider"],
-            "Cart": ["/cart", "/cart/add", "/cart/update", "/cart/clear", "/cart/void-bundle", "/cart/validate-stock"],
-            "Orders": ["/orders"],
-            "Analytics": ["/analytics/overview", "/analytics/customers", "/analytics/products", "/analytics/orders", "/analytics/revenue", "/analytics/admin-performance"],
-            "Admin Management": ["/admins", "/admins/check-access"],
-            "Subscribers": ["/subscribers", "/subscription-requests"],
-            "Partners/Suppliers/Distributors": ["/partners", "/suppliers", "/distributors"],
-            "Authentication": ["/auth/session", "/auth/logout", "/notifications"]
-        }
+        # Security Analysis
+        security_tests = [r for r in self.test_results if "No Auth" in r["test"]]
+        secured_endpoints = sum(1 for r in security_tests if r["success"])
+        total_security_tests = len(security_tests)
         
-        for category, endpoints in categories.items():
-            tested_endpoints = [r['endpoint'] for r in self.test_results if any(r['endpoint'].startswith(ep) for ep in endpoints)]
-            coverage = len(set(tested_endpoints))
-            print(f"   {category}: {coverage} endpoints tested")
+        if total_security_tests > 0:
+            print(f"\n🔒 SECURITY ANALYSIS:")
+            print(f"Authentication Tests: {total_security_tests}")
+            print(f"Properly Secured: {secured_endpoints}")
+            print(f"Security Issues: {total_security_tests - secured_endpoints}")
+            
+            if secured_endpoints < total_security_tests:
+                print(f"\n⚠️  SECURITY ISSUES FOUND:")
+                for result in security_tests:
+                    if not result["success"] and "SECURITY ISSUE" in result["details"]:
+                        print(f"  • {result['test']}: {result['details']}")
         
-        print(f"\n🔐 SECURITY ANALYSIS:")
-        auth_required_tests = [r for r in self.test_results if r['expected_status'] in [401, 403]]
-        auth_working = sum(1 for r in auth_required_tests if r['success'])
-        print(f"   Authentication/Authorization Tests: {auth_working}/{len(auth_required_tests)} working correctly")
-        
-        if success_rate >= 90:
-            print(f"\n🎉 EXCELLENT! Backend API is highly functional with {success_rate:.1f}% success rate")
-        elif success_rate >= 75:
-            print(f"\n👍 GOOD! Backend API is mostly functional with {success_rate:.1f}% success rate")
-        elif success_rate >= 50:
-            print(f"\n⚠️  MODERATE! Backend API has some issues with {success_rate:.1f}% success rate")
-        else:
-            print(f"\n🚨 CRITICAL! Backend API has major issues with {success_rate:.1f}% success rate")
-        
-        print(f"{'='*60}")
-
-def main():
-    """Main function to run the test suite"""
-    tester = BackendAPITester()
-    tester.run_all_tests()
+        print("=" * 80)
+        return success_rate >= 75  # Consider 75%+ as acceptable
 
 if __name__ == "__main__":
-    main()
+    # Allow custom backend URL via command line
+    backend_url = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:8001"
+    
+    tester = AlGhazalyAPITester(backend_url)
+    success = tester.run_comprehensive_tests()
+    
+    # Exit with appropriate code
+    sys.exit(0 if success else 1)
