@@ -17,7 +17,9 @@
         "NSPhotoLibraryUsageDescription": "Select images for product listings",
         "NSPhotoLibraryAddUsageDescription": "Save product images to your device",
         "NSLocationWhenInUseUsageDescription": "Find nearby auto parts stores",
-        "UIBackgroundModes": ["remote-notification"],
+        "UIBackgroundModes": [
+          "remote-notification"
+        ],
         "ITSAppUsesNonExemptEncryption": false
       }
     },
@@ -71,7 +73,9 @@
           "icon": "./assets/images/notification-icon.png",
           "color": "#009688"
         }
-      ]
+      ],
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
