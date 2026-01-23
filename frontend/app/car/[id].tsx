@@ -68,6 +68,22 @@ export default function CarModelDetailScreen() {
   // RBAC: Check if user can view entity profiles
   const canViewProfile = canViewEntityProfile(userRole, subscriptionStatus);
   
+  // State for tracking added products and loading
+  const [addedProducts, setAddedProducts] = useState<Set<string>>(new Set());
+  const [addingProductId, setAddingProductId] = useState<string | null>(null);
+  
+  // Refs for cart buttons to trigger shake animation
+  const cartButtonRefs = useRef<Map<string, AnimatedCartButtonRef>>(new Map());
+  
+  // Callback to set ref for each product
+  const setCartButtonRef = useCallback((productId: string, ref: AnimatedCartButtonRef | null) => {
+    if (ref) {
+      cartButtonRefs.current.set(productId, ref);
+    } else {
+      cartButtonRefs.current.delete(productId);
+    }
+  }, []);
+  
   // Golden Glow Animation for restricted access
   const glowProgress = useSharedValue(0);
   const [isGlowing, setIsGlowing] = useState(false);
