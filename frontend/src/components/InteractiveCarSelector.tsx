@@ -462,6 +462,10 @@ export const InteractiveCarSelector: React.FC = () => {
   // EXPAND/COLLAPSE ANIMATIONS (Single consolidated effect)
   // ============================================================================
   useEffect(() => {
+    // Calculate 35% screen height for expanded states
+    const expandedHeight = Math.round(SCREEN_HEIGHT * 0.35);
+    const chassisExpandedHeight = Math.round(SCREEN_HEIGHT * 0.40); // Slightly taller for chassis search
+    
     switch (selectorState) {
       case 'collapsed':
         containerHeight.value = withTiming(70, { duration: 250 });
@@ -473,14 +477,16 @@ export const InteractiveCarSelector: React.FC = () => {
         break;
       case 'brands':
       case 'models':
-        containerHeight.value = withSpring(200, { damping: 15 });
+        // Use 35% screen height for expanded brands/models view
+        containerHeight.value = withSpring(expandedHeight, { damping: 15 });
         gridOpacity.value = withTiming(1, { duration: 300 });
         carIconScale.value = withSpring(1.1, { damping: 12 });
         carIconGlow.value = withTiming(0.8, { duration: 300 });
         productsSlideAnim.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
         break;
       case 'chassis_search':
-        containerHeight.value = withSpring(280, { damping: 15 });
+        // Use slightly more height for chassis search with grid results
+        containerHeight.value = withSpring(chassisExpandedHeight, { damping: 15 });
         gridOpacity.value = withTiming(1, { duration: 300 });
         chassisIconGlow.value = withTiming(0.8, { duration: 300 });
         productsSlideAnim.value = withTiming(SCREEN_HEIGHT, { duration: 300 });
