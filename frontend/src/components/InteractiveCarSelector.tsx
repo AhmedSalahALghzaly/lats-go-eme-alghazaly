@@ -266,7 +266,7 @@ const ChassisModelCard = memo<ChassisCardProps>(({
           />
         ) : (
           <View style={[styles.chassisGridCardPlaceholder, { backgroundColor: moodPrimary + '15' }]}>
-            <MaterialCommunityIcons name="car-side" size={36} color={moodPrimary || colorsPrimary} />
+            <MaterialCommunityIcons name="car-side" size={63} color={moodPrimary || colorsPrimary} />
           </View>
         )}
         
