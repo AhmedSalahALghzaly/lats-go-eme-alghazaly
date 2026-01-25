@@ -1178,7 +1178,7 @@ export const InteractiveCarSelector: React.FC = () => {
               <Text style={[styles.headerTitle, { color: colors.text }]}>
                 {selectedModel ? getName(selectedModel) : ''}
               </Text>
-              <View style={[styles.productCountBadge, { backgroundColor: moodPrimary + '25' }]}>
+              <View style={[styles.productCountBadge, { backgroundColor: moodPrimary + '4D' }]}>
                 <Text style={[styles.headerSubtitle, { color: moodPrimary }]}>
                   {filteredProducts.length} {language === 'ar' ? 'منتج' : 'products'}
                 </Text>
