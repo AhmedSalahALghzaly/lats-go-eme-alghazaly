@@ -567,8 +567,8 @@ export const InteractiveCarSelector: React.FC = () => {
   // EXPAND/COLLAPSE ANIMATIONS
   // ============================================================================
   useEffect(() => {
-    const expandedHeight = Math.round(SCREEN_HEIGHT * 0.30);
-    const chassisExpandedHeight = Math.round(SCREEN_HEIGHT * 0.35);
+    const expandedHeight = Math.round(SCREEN_HEIGHT * 0.33);
+    const chassisExpandedHeight = Math.round(SCREEN_HEIGHT * 0.39);
     
     switch (selectorState) {
       case 'collapsed':
@@ -944,7 +944,7 @@ export const InteractiveCarSelector: React.FC = () => {
         {/* Glassmorphism Background */}
         <View style={StyleSheet.absoluteFill}>
           <BlurView
-            intensity={isDark ? 50 : 70}
+            intensity={95}
             tint={isDark ? 'dark' : 'light'}
             style={StyleSheet.absoluteFill}
           />
@@ -960,7 +960,7 @@ export const InteractiveCarSelector: React.FC = () => {
           />
           <View style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(255,255,255,0.15)' }
+            { backgroundColor: isDark ? 'rgba(20,20,20,0.88)' : 'rgba(255,255,255,0.88)' }
           ]} />
         </View>
 
@@ -1112,7 +1112,7 @@ export const InteractiveCarSelector: React.FC = () => {
               horizontal
               keyExtractor={keyExtractor}
               renderItem={renderGridItem}
-              estimatedItemSize={140}
+              estimatedItemSize={135}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalListContent}
               ListFooterComponent={ViewAllFooter}
@@ -1137,7 +1137,7 @@ export const InteractiveCarSelector: React.FC = () => {
                 numColumns={2}
                 keyExtractor={keyExtractor}
                 renderItem={renderChassisItem}
-                estimatedItemSize={220}
+                estimatedItemSize={210}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.chassisGridContent}
               />
@@ -1149,11 +1149,11 @@ export const InteractiveCarSelector: React.FC = () => {
       {/* Products Floating Panel */}
       <Animated.View style={[styles.productsPanel, productsPanelStyle]}>
         <BlurView
-          intensity={isDark ? 50 : 70}
+          intensity={95}
           tint={isDark ? 'dark' : 'light'}
           style={StyleSheet.absoluteFill}
         />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(0,0,0,0.7)' : 'rgba(255,255,255,0.85)' }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(20,20,20,0.88)' : 'rgba(255,255,255,0.88)' }]} />
 
         {/* Header */}
         <LinearGradient
