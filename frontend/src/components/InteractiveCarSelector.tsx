@@ -1324,7 +1324,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
   },
   hintText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.2,
   },
