@@ -1459,31 +1459,31 @@ const styles = StyleSheet.create({
   },
   chassisGridCardImage: {
     width: '100%',
-    height: 122,
+    height: 135,
   },
   chassisGridCardPlaceholder: {
     width: '100%',
-    height: 122,
+    height: 135,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chassisGridCardInfo: {
-    padding: 14,
+    padding: 3,
     alignItems: 'center',
   },
   chassisGridCardName: {
-    fontSize: 19,
-    fontWeight: '700',
+    fontSize: 17,
+    fontWeight: '500',
     textAlign: 'center',
   },
   chassisGridCardYear: {
-    fontSize: 16,
+    fontSize: 13,
     marginTop: 4,
   },
   chassisGridCardBrand: {
-    fontSize: 17,
-    fontWeight: '600',
-    marginTop: 4,
+    fontSize: 15,
+    fontWeight: '500',
+    marginTop: 5,
   },
   chassisGridCardChassisContainer: {
     flexDirection: 'row',
