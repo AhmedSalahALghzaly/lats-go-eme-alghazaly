@@ -1112,7 +1112,7 @@ export const InteractiveCarSelector: React.FC = () => {
               horizontal
               keyExtractor={keyExtractor}
               renderItem={renderGridItem}
-              estimatedItemSize={148}
+              estimatedItemSize={140}
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.horizontalListContent}
               ListFooterComponent={ViewAllFooter}
