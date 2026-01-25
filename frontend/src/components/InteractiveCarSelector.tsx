@@ -1553,7 +1553,7 @@ const styles = StyleSheet.create({
   },
   filtersRow: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 13,
     borderBottomWidth: 1,
     gap: 10,
   },
