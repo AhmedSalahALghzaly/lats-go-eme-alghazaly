@@ -431,8 +431,7 @@ export default function ModelsAdmin() {
   const [yearFrom, setYearFrom] = useState('');
   const [yearTo, setYearTo] = useState('');
   const [chassisNumber, setChassisNumber] = useState('');
-  const [modelImage, setModelImage] = useState<string | null>(null);
-  const [imageUrl, setImageUrl] = useState('');
+  const [images, setImages] = useState<string[]>([]);
   const [catalogPdf, setCatalogPdf] = useState<string | null>(null);
   const [catalogPdfName, setCatalogPdfName] = useState('');
   const [editingModel, setEditingModel] = useState<CarModel | null>(null);
