@@ -17,7 +17,6 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
 import * as FileSystem from 'expo-file-system';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -27,6 +26,7 @@ import { carBrandsApi, carModelsApi } from '../../src/services/api';
 import { useAdminSync } from '../../src/services/adminSyncService';
 import { Header } from '../../src/components/Header';
 import { Toast } from '../../src/components/ui/FormFeedback';
+import { ImageUploader } from '../../src/components/ui/ImageUploader';
 import { queryKeys } from '../../src/lib/queryClient';
 
 // Types
