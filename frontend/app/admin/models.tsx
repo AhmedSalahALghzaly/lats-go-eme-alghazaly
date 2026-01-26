@@ -597,9 +597,13 @@ export default function ModelsAdmin() {
     setName(model.name || ''); setNameAr(model.name_ar || '');
     setSelectedBrandId(model.brand_id || ''); setYearFrom(model.year_start?.toString() || '');
     setYearTo(model.year_end?.toString() || ''); setChassisNumber(model.chassis_number || '');
-    // Handle images array - support both single image_url and images array
-    const modelImages: string[] = [];
-    if (model.image_url) modelImages.push(model.image_url);
+    // Handle images array - prefer images array, fallback to image_url
+    let modelImages: string[] = [];
+    if ((model as any).images && (model as any).images.length > 0) {
+      modelImages = (model as any).images;
+    } else if (model.image_url) {
+      modelImages = [model.image_url];
+    }
     setImages(modelImages);
     setCatalogPdf(model.catalog_pdf || null); setCatalogPdfName(model.catalog_pdf ? 'catalog.pdf' : '');
     setEditingModel(model); setIsEditMode(true);
