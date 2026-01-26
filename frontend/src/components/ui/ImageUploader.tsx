@@ -46,7 +46,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
   value,
   onChange,
   placeholder,
-  maxImages = 5,
+  maxImages = 15,
   aspectRatio = [1, 1],
   size = 'medium',
   shape = 'rounded',
