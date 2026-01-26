@@ -858,6 +858,21 @@ export const InteractiveCarSelector: React.FC = () => {
     router.push(`/product/${productId}`);
   }, [router]);
 
+  // Cart mutations for adding products
+  const { addToCart } = useCartMutations();
+
+  // Handle adding product to cart from ProductCard
+  const handleProductAddToCart = useCallback(async (productId: string) => {
+    try {
+      await addToCart.mutateAsync(productId);
+    } catch (error: any) {
+      // Duplicate errors are handled in ProductCard with shake animation
+      if (error?.message !== 'DUPLICATE_PRODUCT') {
+        console.error('Error adding to cart:', error);
+      }
+    }
+  }, [addToCart]);
+
   const handleBackToBrands = useCallback(() => {
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
