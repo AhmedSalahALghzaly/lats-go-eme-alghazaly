@@ -862,8 +862,31 @@ export const InteractiveCarSelector: React.FC = () => {
     router.push(`/product/${productId}`);
   }, [router]);
 
+  // Fetch cart data to ensure real-time duplicate checking
+  const { data: cartItems = [] } = useCartQuery(true);
+  
   // Cart mutations for adding products - single source of truth
-  const { addToCart, checkDuplicate } = useCartMutations();
+  const { addToCart, checkDuplicate: checkDuplicateFromHook } = useCartMutations();
+
+  // Enhanced duplicate check that uses fresh cart data
+  // This ensures products with "special offers" are properly detected
+  const checkDuplicate = useCallback((productId: string): boolean => {
+    // First check using the hook's checkDuplicate (reads from queryClient)
+    if (checkDuplicateFromHook(productId)) {
+      return true;
+    }
+    
+    // Fallback: Also check directly from cartItems (fresh data from useCartQuery)
+    if (cartItems && cartItems.length > 0) {
+      return cartItems.some((item: any) => 
+        item.product_id === productId || 
+        item.productId === productId ||
+        item.id === productId
+      );
+    }
+    
+    return false;
+  }, [checkDuplicateFromHook, cartItems]);
 
   // Handle adding product to cart from ProductCard
   const handleProductAddToCart = useCallback(async (productId: string) => {
