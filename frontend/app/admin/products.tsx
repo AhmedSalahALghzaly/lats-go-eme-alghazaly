@@ -481,10 +481,10 @@ const ProductFormHeader = memo(({
             mode="multiple"
             value={images}
             onChange={(newImages) => setImages(newImages as string[])}
-            maxImages={5}
+            maxImages={15}
             size="medium"
             label={language === 'ar' ? 'صور المنتج' : 'Product Images'}
-            hint={language === 'ar' ? 'يمكنك إضافة حتى 5 صور' : 'You can add up to 5 images'}
+            hint={language === 'ar' ? 'يمكنك إضافة حتى 15 صورة' : 'You can add up to 15 images'}
           />
         </View>
 
