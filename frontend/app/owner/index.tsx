@@ -598,12 +598,67 @@ export default function OwnerDashboard() {
           </View>
         </View>
 
-        {/* Footer */}
+        {/* Footer with Navigation */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>
-            {language === 'ar' ? 'الغزالي لقطع غيار السيارات' : 'Al-Ghazaly Auto Parts'}
-          </Text>
-          <Text style={styles.footerVersion}>v2.0 - Owner Edition</Text>
+          <View style={styles.footerNav}>
+            {/* Home */}
+            <TouchableOpacity
+              style={styles.footerNavItem}
+              onPress={() => {
+                haptic.tap();
+                router.push('/');
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.footerNavIcon, { backgroundColor: 'rgba(59, 130, 246, 0.2)' }]}>
+                <Ionicons name="home" size={22} color="#60A5FA" />
+              </View>
+              <Text style={styles.footerNavText}>
+                {language === 'ar' ? 'الرئيسية' : 'Home'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Global Search */}
+            <TouchableOpacity
+              style={styles.footerNavItem}
+              onPress={() => {
+                haptic.tap();
+                setShowGlobalSearch(true);
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.footerNavIcon, { backgroundColor: 'rgba(236, 72, 153, 0.2)' }]}>
+                <Ionicons name="search" size={22} color="#F472B6" />
+              </View>
+              <Text style={styles.footerNavText}>
+                {language === 'ar' ? 'بحث شامل' : 'Search'}
+              </Text>
+            </TouchableOpacity>
+
+            {/* Admin Panel */}
+            <TouchableOpacity
+              style={styles.footerNavItem}
+              onPress={() => {
+                haptic.tap();
+                router.push('/admin');
+              }}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.footerNavIcon, { backgroundColor: 'rgba(139, 92, 246, 0.2)' }]}>
+                <Ionicons name="settings" size={22} color="#A78BFA" />
+              </View>
+              <Text style={styles.footerNavText}>
+                {language === 'ar' ? 'لوحة التحكم' : 'Admin'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.footerBrand}>
+            <Text style={styles.footerText}>
+              {language === 'ar' ? 'الغزالي لقطع غيار السيارات' : 'Al-Ghazaly Auto Parts'}
+            </Text>
+            <Text style={styles.footerVersion}>v2.0 - Owner Edition</Text>
+          </View>
         </View>
 
         {/* Bottom padding */}
