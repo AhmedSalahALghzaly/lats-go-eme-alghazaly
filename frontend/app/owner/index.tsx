@@ -888,6 +888,12 @@ export default function OwnerDashboard() {
         visible={showGlobalSearch} 
         onClose={() => setShowGlobalSearch(false)} 
       />
+
+      {/* Advanced Search Bottom Sheet */}
+      <AdvancedSearchBottomSheet 
+        visible={showAdvancedSearch} 
+        onClose={() => setShowAdvancedSearch(false)} 
+      />
     </View>
   );
 }
