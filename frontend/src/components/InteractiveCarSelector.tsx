@@ -392,6 +392,7 @@ interface ProductCardProps {
   colorsTextSecondary: string;
   language: string;
   onPress: (id: string) => void;
+  onAddToCart: (productId: string) => Promise<void>;
 }
 
 const ProductCard = memo<ProductCardProps>(({
