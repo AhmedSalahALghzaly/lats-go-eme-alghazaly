@@ -611,7 +611,7 @@ export default function ModelsAdmin() {
 
   const resetForm = useCallback(() => {
     setName(''); setNameAr(''); setSelectedBrandId(''); setYearFrom(''); setYearTo('');
-    setChassisNumber(''); setModelImage(null); setImageUrl(''); setCatalogPdf(null);
+    setChassisNumber(''); setImages([]); setCatalogPdf(null);
     setCatalogPdfName(''); setIsEditMode(false); setEditingModel(null);
   }, []);
 
@@ -619,7 +619,10 @@ export default function ModelsAdmin() {
     setName(model.name || ''); setNameAr(model.name_ar || '');
     setSelectedBrandId(model.brand_id || ''); setYearFrom(model.year_start?.toString() || '');
     setYearTo(model.year_end?.toString() || ''); setChassisNumber(model.chassis_number || '');
-    setModelImage(model.image_url || null); setImageUrl('');
+    // Handle images array - support both single image_url and images array
+    const modelImages: string[] = [];
+    if (model.image_url) modelImages.push(model.image_url);
+    setImages(modelImages);
     setCatalogPdf(model.catalog_pdf || null); setCatalogPdfName(model.catalog_pdf ? 'catalog.pdf' : '');
     setEditingModel(model); setIsEditMode(true);
   }, []);
@@ -632,12 +635,14 @@ export default function ModelsAdmin() {
     const modelData = {
       name: name.trim(), name_ar: nameAr.trim(), brand_id: selectedBrandId,
       year_start: yearFrom ? parseInt(yearFrom) : null, year_end: yearTo ? parseInt(yearTo) : null,
-      chassis_number: chassisNumber.trim() || null, image_url: modelImage || imageUrl.trim() || null,
+      chassis_number: chassisNumber.trim() || null, 
+      image_url: images.length > 0 ? images[0] : null, // First image as main for backward compat
+      images: images, // Full images array
       catalog_pdf: catalogPdf || null,
     };
     if (isEditMode && editingModel) updateMutation.mutate({ id: editingModel.id, data: modelData });
     else createMutation.mutate(modelData);
-  }, [selectedBrandId, name, nameAr, yearFrom, yearTo, chassisNumber, modelImage, imageUrl, catalogPdf, isEditMode, editingModel, language, showToast, createMutation, updateMutation]);
+  }, [selectedBrandId, name, nameAr, yearFrom, yearTo, chassisNumber, images, catalogPdf, isEditMode, editingModel, language, showToast, createMutation, updateMutation]);
 
   const handleDelete = useCallback((id: string) => deleteMutation.mutate(id), [deleteMutation]);
 
@@ -646,15 +651,15 @@ export default function ModelsAdmin() {
   // Form state object
   const formState: FormState = useMemo(() => ({
     name, nameAr, selectedBrandId, yearFrom, yearTo, chassisNumber,
-    modelImage, imageUrl, catalogPdf, catalogPdfName, isEditMode, editingModel, searchQuery,
-  }), [name, nameAr, selectedBrandId, yearFrom, yearTo, chassisNumber, modelImage, imageUrl, catalogPdf, catalogPdfName, isEditMode, editingModel, searchQuery]);
+    images, catalogPdf, catalogPdfName, isEditMode, editingModel, searchQuery,
+  }), [name, nameAr, selectedBrandId, yearFrom, yearTo, chassisNumber, images, catalogPdf, catalogPdfName, isEditMode, editingModel, searchQuery]);
 
   // Form handlers object
   const formHandlers: FormHandlers = useMemo(() => ({
     setName, setNameAr, setSelectedBrandId, setYearFrom, setYearTo, setChassisNumber,
-    setModelImage, setImageUrl, setCatalogPdf, setCatalogPdfName, handleSave, resetForm,
-    setSearchQuery, pickImage, pickCatalogPdf,
-  }), [handleSave, resetForm, pickImage, pickCatalogPdf]);
+    setImages, setCatalogPdf, setCatalogPdfName, handleSave, resetForm,
+    setSearchQuery, pickCatalogPdf,
+  }), [handleSave, resetForm, pickCatalogPdf]);
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: colors.background }]} edges={['bottom']}>
