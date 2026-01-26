@@ -1107,12 +1107,6 @@ export const InteractiveCarSelector: React.FC = () => {
         {/* Brands/Models FlashList - Horizontal */}
         {(selectorState === 'brands' || selectorState === 'models') && (
           <Animated.View style={[styles.gridContainer, gridStyle]}>
-            <BlurView
-              intensity={isDark ? 50 : 55}
-              tint={isDark ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.05)' }]} />
             <FlashList
               data={gridData}
               horizontal
@@ -1130,12 +1124,6 @@ export const InteractiveCarSelector: React.FC = () => {
         {/* Chassis Search Results */}
         {selectorState === 'chassis_search' && (
           <Animated.View style={[styles.chassisResultsContainer, gridStyle]}>
-            <BlurView
-              intensity={isDark ? 50 : 55}
-              tint={isDark ? 'dark' : 'light'}
-              style={StyleSheet.absoluteFill}
-            />
-            <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.05)' }]} />
             {chassisFilteredModels.length === 0 ? (
               <View style={styles.chassisEmptyState}>
                 <MaterialCommunityIcons name="car-off" size={40} color={colors.textSecondary} />
@@ -1149,7 +1137,7 @@ export const InteractiveCarSelector: React.FC = () => {
                 numColumns={2}
                 keyExtractor={keyExtractor}
                 renderItem={renderChassisItem}
-                estimatedItemSize={195}
+                estimatedItemSize={190}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.chassisGridContent}
               />
