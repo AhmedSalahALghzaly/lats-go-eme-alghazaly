@@ -567,7 +567,7 @@ export const InteractiveCarSelector: React.FC = () => {
   // EXPAND/COLLAPSE ANIMATIONS
   // ============================================================================
   useEffect(() => {
-    const expandedHeight = Math.round(SCREEN_HEIGHT * 0.33);
+    const expandedHeight = Math.round(SCREEN_HEIGHT * 0.35);
     const chassisExpandedHeight = Math.round(SCREEN_HEIGHT * 0.39);
     
     switch (selectorState) {
@@ -944,7 +944,7 @@ export const InteractiveCarSelector: React.FC = () => {
         {/* Glassmorphism Background */}
         <View style={StyleSheet.absoluteFill}>
           <BlurView
-            intensity={95}
+            intensity={isDark ? 50 : 55}
             tint={isDark ? 'dark' : 'light'}
             style={StyleSheet.absoluteFill}
           />
@@ -960,7 +960,7 @@ export const InteractiveCarSelector: React.FC = () => {
           />
           <View style={[
             StyleSheet.absoluteFill,
-            { backgroundColor: isDark ? 'rgba(20,20,20,0.88)' : 'rgba(255,255,255,0.88)' }
+            { backgroundColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.05)' }
           ]} />
         </View>
 
@@ -1137,7 +1137,7 @@ export const InteractiveCarSelector: React.FC = () => {
                 numColumns={2}
                 keyExtractor={keyExtractor}
                 renderItem={renderChassisItem}
-                estimatedItemSize={210}
+                estimatedItemSize={199}
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.chassisGridContent}
               />
@@ -1149,11 +1149,11 @@ export const InteractiveCarSelector: React.FC = () => {
       {/* Products Floating Panel */}
       <Animated.View style={[styles.productsPanel, productsPanelStyle]}>
         <BlurView
-          intensity={95}
+          intensity={isDark ? 50 : 55}
           tint={isDark ? 'dark' : 'light'}
           style={StyleSheet.absoluteFill}
         />
-        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(20,20,20,0.88)' : 'rgba(255,255,255,0.88)' }]} />
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: isDark ? 'rgba(255,255,255,0.09)' : 'rgba(0,0,0,0.05)' }]} />
 
         {/* Header */}
         <LinearGradient
