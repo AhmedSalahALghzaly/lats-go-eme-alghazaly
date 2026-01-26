@@ -719,7 +719,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   galleryImageWrapper: {
-    width: 400,
+    width: SCREEN_WIDTH,
     height: 220,
     alignItems: 'center',
     justifyContent: 'center',
