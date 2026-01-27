@@ -222,36 +222,40 @@ export default function SearchScreen() {
               {t('filterByBrand')}
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {carBrands.map((brand) => (
-                <TouchableOpacity
-                  key={brand.id}
-                  style={[
-                    styles.imageFilterCard,
-                    { borderColor: colors.border, backgroundColor: colors.surface },
-                    selectedCarBrand === brand.id && { borderColor: colors.primary, borderWidth: 2 },
-                  ]}
-                  onPress={() => setSelectedCarBrand(selectedCarBrand === brand.id ? null : brand.id)}
-                >
-                  <Text style={[
-                    styles.imageFilterLabel,
-                    { color: selectedCarBrand === brand.id ? colors.primary : colors.text },
-                  ]} numberOfLines={1}>
-                    {getName(brand)}
-                  </Text>
-                  <View style={[styles.imageFilterImageContainer, { backgroundColor: colors.background }]}>
-                    {brand.image ? (
-                      <Image
-                        source={{ uri: brand.image }}
-                        style={styles.carBrandImage}
-                        contentFit="contain"
-                        transition={200}
-                      />
-                    ) : (
-                      <Ionicons name="car-sport" size={40} color={colors.textSecondary} />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
+              {carBrands.map((brand) => {
+                // Car brands use 'logo' field for images (base64 format from admin panel)
+                const brandImage = brand.logo;
+                return (
+                  <TouchableOpacity
+                    key={brand.id}
+                    style={[
+                      styles.imageFilterCard,
+                      { borderColor: colors.border, backgroundColor: colors.surface },
+                      selectedCarBrand === brand.id && { borderColor: colors.primary, borderWidth: 2 },
+                    ]}
+                    onPress={() => setSelectedCarBrand(selectedCarBrand === brand.id ? null : brand.id)}
+                  >
+                    <View style={[styles.imageFilterImageContainer, { backgroundColor: colors.background }]}>
+                      {brandImage ? (
+                        <Image
+                          source={{ uri: brandImage }}
+                          style={styles.carBrandImage}
+                          contentFit="contain"
+                          transition={200}
+                        />
+                      ) : (
+                        <Ionicons name="car-sport" size={40} color={colors.textSecondary} />
+                      )}
+                    </View>
+                    <Text style={[
+                      styles.imageFilterLabel,
+                      { color: selectedCarBrand === brand.id ? colors.primary : colors.text },
+                    ]} numberOfLines={1}>
+                      {getName(brand)}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
 
