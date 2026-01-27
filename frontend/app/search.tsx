@@ -313,36 +313,40 @@ export default function SearchScreen() {
               {t('filterByProductBrand')}
             </Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {productBrands.map((brand) => (
-                <TouchableOpacity
-                  key={brand.id}
-                  style={[
-                    styles.imageFilterCard,
-                    { borderColor: colors.border, backgroundColor: colors.surface },
-                    selectedProductBrand === brand.id && { borderColor: colors.primary, borderWidth: 2 },
-                  ]}
-                  onPress={() => setSelectedProductBrand(selectedProductBrand === brand.id ? null : brand.id)}
-                >
-                  <Text style={[
-                    styles.imageFilterLabel,
-                    { color: selectedProductBrand === brand.id ? colors.primary : colors.text },
-                  ]} numberOfLines={1}>
-                    {brand.name}
-                  </Text>
-                  <View style={[styles.imageFilterImageContainer, { backgroundColor: colors.background }]}>
-                    {brand.logo ? (
-                      <Image
-                        source={{ uri: brand.logo }}
-                        style={styles.productBrandImage}
-                        contentFit="contain"
-                        transition={200}
-                      />
-                    ) : (
-                      <Ionicons name="pricetag" size={40} color={colors.textSecondary} />
-                    )}
-                  </View>
-                </TouchableOpacity>
-              ))}
+              {productBrands.map((brand) => {
+                // Product brands use 'logo' field for images (base64 format from admin panel)
+                const brandLogo = brand.logo;
+                return (
+                  <TouchableOpacity
+                    key={brand.id}
+                    style={[
+                      styles.imageFilterCard,
+                      { borderColor: colors.border, backgroundColor: colors.surface },
+                      selectedProductBrand === brand.id && { borderColor: colors.primary, borderWidth: 2 },
+                    ]}
+                    onPress={() => setSelectedProductBrand(selectedProductBrand === brand.id ? null : brand.id)}
+                  >
+                    <View style={[styles.imageFilterImageContainer, { backgroundColor: colors.background }]}>
+                      {brandLogo ? (
+                        <Image
+                          source={{ uri: brandLogo }}
+                          style={styles.productBrandImage}
+                          contentFit="contain"
+                          transition={200}
+                        />
+                      ) : (
+                        <Ionicons name="pricetag" size={40} color={colors.textSecondary} />
+                      )}
+                    </View>
+                    <Text style={[
+                      styles.imageFilterLabel,
+                      { color: selectedProductBrand === brand.id ? colors.primary : colors.text },
+                    ]} numberOfLines={1}>
+                      {brand.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
           </View>
 
