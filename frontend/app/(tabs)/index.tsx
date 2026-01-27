@@ -393,6 +393,11 @@ export default function HomeScreen() {
             <Text style={[styles.sectionTitle, { color: colors.text }]}>
               {t('productBrands')}
             </Text>
+            <TouchableOpacity onPress={() => router.push('/brands')}>
+              <Text style={[styles.viewAll, { color: colors.primary }]}>
+                {t('viewAll')}
+              </Text>
+            </TouchableOpacity>
           </View>
           <FlatList
             data={productBrands}
