@@ -181,7 +181,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   if (!appReady) {
     return (
       <View style={[styles.loadingContainer, { backgroundColor: currentMood?.background || '#0F172A' }]}>
-        <ActivityIndicator size="large" color={currentMood?.primary || '#3B82F6'} />
+        <DriftLoader size="large" color={currentMood?.primary || '#3B82F6'} />
       </View>
     );
   }
