@@ -694,19 +694,22 @@ const styles = StyleSheet.create({
   quickActionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    gap: GRID_GAP,
+    paddingHorizontal: SIDE_PADDING - 16, // Adjust for contentContainer padding
   },
   quickAction: {
-    width: (SCREEN_WIDTH - 56) / 2,
-    paddingVertical: 20,
-    borderRadius: 16,
+    width: ITEM_WIDTH,
+    height: ITEM_WIDTH,
+    minWidth: 70,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
+    gap: 5,
   },
   quickActionText: {
-    fontSize: 14,
+    fontSize: 11,
     fontWeight: '600',
+    textAlign: 'center',
   },
   loadingContainer: {
     marginTop: 16,
