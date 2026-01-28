@@ -44,7 +44,7 @@ const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
 // Golden Grid Formula: 4 columns x 2 rows layout
 // ITEM_WIDTH = (SCREEN_WIDTH - (sidePadding * 2) - (gap * (columns - 1))) / columns
-const SIDE_PADDING = 7;
+const SIDE_PADDING = 5.5;
 const GRID_GAP = 5;
 const ITEM_WIDTH = Math.max(70, (SCREEN_WIDTH - (SIDE_PADDING * 2) - (5 * 3)) / 4);
 
