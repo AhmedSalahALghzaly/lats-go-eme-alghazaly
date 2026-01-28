@@ -31,7 +31,6 @@ import { useTranslation } from '../../src/hooks/useTranslation';
 import { useAppStore } from '../../src/store/appStore';
 import { cartApi, favoritesApi } from '../../src/services/api';
 import { Skeleton, ProductCardSkeleton } from '../../src/components/ui/Skeleton';
-import { DriftLoader } from '../../src/components/ui/DriftLoader';
 import { syncService } from '../../src/services/syncService';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Haptics from 'expo-haptics';
