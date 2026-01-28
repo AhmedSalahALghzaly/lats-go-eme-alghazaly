@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -12,6 +12,7 @@ import { networkService } from '../src/services/networkService';
 import { screenshotProtectionService } from '../src/services/screenshotProtectionService';
 import { autoLogoutService } from '../src/services/autoLogoutService';
 import { offlineDatabaseService } from '../src/services/offlineDatabaseService';
+import { DriftLoader } from '../src/components/ui/DriftLoader';
 
 /**
  * Auth Guard Component - Fully Stabilized for Mobile
