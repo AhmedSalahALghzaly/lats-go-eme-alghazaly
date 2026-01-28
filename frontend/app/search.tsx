@@ -124,8 +124,15 @@ export default function SearchScreen() {
     }
   };
 
-  // Filter car models when brand changes
+  // Filter car models when brand changes - with loop prevention
+  const prevBrandRef = useRef<string | null>(null);
   useEffect(() => {
+    // Skip if brand hasn't actually changed
+    if (prevBrandRef.current === selectedCarBrand) {
+      return;
+    }
+    prevBrandRef.current = selectedCarBrand;
+    
     if (selectedCarBrand) {
       setFilteredCarModels(carModels.filter((m) => m.brand_id === selectedCarBrand));
       // Clear selected model if it doesn't belong to the selected brand
@@ -138,7 +145,7 @@ export default function SearchScreen() {
     } else {
       setFilteredCarModels(carModels);
     }
-  }, [selectedCarBrand, carModels]);
+  }, [selectedCarBrand, carModels, selectedCarModel]);
 
   useEffect(() => {
     fetchFilters();
