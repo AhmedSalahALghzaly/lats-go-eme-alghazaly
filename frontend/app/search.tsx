@@ -443,7 +443,7 @@ export default function SearchScreen() {
       {/* Results */}
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
+          <DriftLoader size="large" color={colors.primary} />
         </View>
       ) : (
         <View style={styles.flashListContainer}>
