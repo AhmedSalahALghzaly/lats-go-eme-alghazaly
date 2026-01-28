@@ -70,14 +70,26 @@ export default function SearchScreen() {
   const [showFilters, setShowFilters] = useState(false);
 
   // Build filters object for infinite products hook
-  const filters = useMemo(() => ({
-    car_brand_id: selectedCarBrand && !selectedCarModel ? selectedCarBrand : undefined,
-    car_model_id: selectedCarModel || undefined,
-    product_brand_id: selectedProductBrand || undefined,
-    category_id: selectedCategory || undefined,
-    min_price: minPrice ? parseFloat(minPrice) : undefined,
-    max_price: maxPrice ? parseFloat(maxPrice) : undefined,
-  }), [selectedCarBrand, selectedCarModel, selectedProductBrand, selectedCategory, minPrice, maxPrice]);
+  // Memoized with stable reference to prevent re-render loops
+  const prevFiltersRef = useRef<string>('');
+  const filters = useMemo(() => {
+    const newFilters = {
+      car_brand_id: selectedCarBrand && !selectedCarModel ? selectedCarBrand : undefined,
+      car_model_id: selectedCarModel || undefined,
+      product_brand_id: selectedProductBrand || undefined,
+      category_id: selectedCategory || undefined,
+      min_price: minPrice ? parseFloat(minPrice) : undefined,
+      max_price: maxPrice ? parseFloat(maxPrice) : undefined,
+    };
+    
+    // Only return new object if values actually changed
+    const newFiltersStr = JSON.stringify(newFilters);
+    if (newFiltersStr === prevFiltersRef.current) {
+      return JSON.parse(prevFiltersRef.current);
+    }
+    prevFiltersRef.current = newFiltersStr;
+    return newFilters;
+  }, [selectedCarBrand, selectedCarModel, selectedProductBrand, selectedCategory, minPrice, maxPrice]);
 
   // Use infinite products hook with cursor-based pagination
   const {
