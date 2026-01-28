@@ -100,9 +100,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
    * Hydration handler - sets app ready state
    * NO pathname dependency - prevents mobile infinite loop
    * Extended timeout to 30 seconds for slow networks
+   * Respects minimum splash display time
    */
   useEffect(() => {
-    if (hasHydrated) {
+    if (hasHydrated && minSplashTimeElapsed.current) {
       setAppReady(true);
       return;
     }
