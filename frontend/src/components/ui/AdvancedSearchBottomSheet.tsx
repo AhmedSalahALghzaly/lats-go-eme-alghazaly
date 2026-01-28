@@ -389,6 +389,7 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                   {language === 'ar' ? 'استكشف' : 'Explore'}
                 </Text>
                 <View style={styles.quickActionsGrid}>
+                  {/* Row 1 */}
                   <TouchableOpacity
                     style={[styles.quickAction, { backgroundColor: mood.primary + '15' }]}
                     onPress={() => {
@@ -396,8 +397,8 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       router.push('/car-brands');
                     }}
                   >
-                    <MaterialCommunityIcons name="car" size={24} color={mood.primary} />
-                    <Text style={[styles.quickActionText, { color: mood.primary }]}>
+                    <MaterialCommunityIcons name="car" size={22} color={mood.primary} />
+                    <Text style={[styles.quickActionText, { color: mood.primary }]} numberOfLines={1}>
                       {language === 'ar' ? 'السيارات' : 'Cars'}
                     </Text>
                   </TouchableOpacity>
@@ -408,8 +409,8 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       router.push('/(tabs)/categories');
                     }}
                   >
-                    <Ionicons name="grid" size={24} color={colors.success} />
-                    <Text style={[styles.quickActionText, { color: colors.success }]}>
+                    <Ionicons name="grid" size={22} color={colors.success} />
+                    <Text style={[styles.quickActionText, { color: colors.success }]} numberOfLines={1}>
                       {language === 'ar' ? 'الفئات' : 'Categories'}
                     </Text>
                   </TouchableOpacity>
@@ -420,8 +421,8 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       router.push('/brands');
                     }}
                   >
-                    <Ionicons name="pricetag" size={24} color={colors.warning} />
-                    <Text style={[styles.quickActionText, { color: colors.warning }]}>
+                    <Ionicons name="pricetag" size={22} color={colors.warning} />
+                    <Text style={[styles.quickActionText, { color: colors.warning }]} numberOfLines={1}>
                       {language === 'ar' ? 'الماركات' : 'Brands'}
                     </Text>
                   </TouchableOpacity>
@@ -432,11 +433,12 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       router.push('/cart?tab=favorites');
                     }}
                   >
-                    <Ionicons name="heart" size={24} color={colors.error} />
-                    <Text style={[styles.quickActionText, { color: colors.error }]}>
+                    <Ionicons name="heart" size={22} color={colors.error} />
+                    <Text style={[styles.quickActionText, { color: colors.error }]} numberOfLines={1}>
                       {language === 'ar' ? 'المفضلة' : 'Favorites'}
                     </Text>
                   </TouchableOpacity>
+                  {/* Row 2 */}
                   <TouchableOpacity
                     style={[styles.quickAction, { backgroundColor: '#06B6D4' + '15' }]}
                     onPress={() => {
@@ -444,8 +446,8 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       router.push('/search');
                     }}
                   >
-                    <Ionicons name="cube" size={24} color="#06B6D4" />
-                    <Text style={[styles.quickActionText, { color: '#06B6D4' }]}>
+                    <Ionicons name="cube" size={22} color="#06B6D4" />
+                    <Text style={[styles.quickActionText, { color: '#06B6D4' }]} numberOfLines={1}>
                       {language === 'ar' ? 'المنتجات' : 'Products'}
                     </Text>
                   </TouchableOpacity>
@@ -456,9 +458,35 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       router.push('/models');
                     }}
                   >
-                    <MaterialCommunityIcons name="car-multiple" size={24} color="#8B5CF6" />
-                    <Text style={[styles.quickActionText, { color: '#8B5CF6' }]}>
+                    <MaterialCommunityIcons name="car-multiple" size={22} color="#8B5CF6" />
+                    <Text style={[styles.quickActionText, { color: '#8B5CF6' }]} numberOfLines={1}>
                       {language === 'ar' ? 'موديلات' : 'Models'}
+                    </Text>
+                  </TouchableOpacity>
+                  {/* New B2B Entities - Suppliers (Shiny Gold) */}
+                  <TouchableOpacity
+                    style={[styles.quickAction, { backgroundColor: 'rgba(255, 215, 0, 0.15)' }]}
+                    onPress={() => {
+                      onClose();
+                      router.push('/owner/suppliers');
+                    }}
+                  >
+                    <MaterialCommunityIcons name="warehouse" size={22} color="#D4AF37" />
+                    <Text style={[styles.quickActionText, { color: '#D4AF37' }]} numberOfLines={1}>
+                      {language === 'ar' ? 'الموردون' : 'Suppliers'}
+                    </Text>
+                  </TouchableOpacity>
+                  {/* New B2B Entities - Distributors (Shiny Silver) */}
+                  <TouchableOpacity
+                    style={[styles.quickAction, { backgroundColor: 'rgba(192, 192, 192, 0.15)' }]}
+                    onPress={() => {
+                      onClose();
+                      router.push('/owner/distributors');
+                    }}
+                  >
+                    <MaterialCommunityIcons name="truck-delivery" size={22} color="#808080" />
+                    <Text style={[styles.quickActionText, { color: '#808080' }]} numberOfLines={1}>
+                      {language === 'ar' ? 'الموزعون' : 'Distributors'}
                     </Text>
                   </TouchableOpacity>
                 </View>
