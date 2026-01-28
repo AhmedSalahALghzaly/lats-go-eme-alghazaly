@@ -33,7 +33,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const currentMood = useAppStore((state) => state.currentMood);
   
   // Refs for preventing duplicate operations
-36|  const servicesInitialized = useRef(false);
+  const servicesInitialized = useRef(false);
   const adminsLoaded = useRef(false);
   const lastActivityRecorded = useRef(0);
   const minSplashTimeElapsed = useRef(false);
