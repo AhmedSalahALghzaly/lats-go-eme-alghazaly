@@ -120,10 +120,24 @@ export default function HomeScreen() {
   const [cartLoadingStates, setCartLoadingStates] = useState<Record<string, boolean>>({});
   const [addedToCartStates, setAddedToCartStates] = useState<Record<string, boolean>>({});
 
-  // Sync favorites from query
+  // Sync favorites from query - with strict value comparison guard
+  const prevFavoritesRef = useRef<Set<string> | null>(null);
   useEffect(() => {
     if (favoritesSet instanceof Set) {
-      setFavorites(favoritesSet);
+      // Only update if the favorites set has actually changed
+      const prevFavs = prevFavoritesRef.current;
+      const currentFavsArray = Array.from(favoritesSet).sort();
+      const prevFavsArray = prevFavs ? Array.from(prevFavs).sort() : [];
+      
+      // Deep comparison of sets
+      const hasChanged = 
+        currentFavsArray.length !== prevFavsArray.length ||
+        currentFavsArray.some((id, idx) => id !== prevFavsArray[idx]);
+      
+      if (hasChanged) {
+        prevFavoritesRef.current = new Set(favoritesSet);
+        setFavorites(new Set(favoritesSet));
+      }
     }
   }, [favoritesSet]);
 
