@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
   filtersPanel: {
     padding: 16,
     borderBottomWidth: 1,
-    maxHeight: 260,
+    maxHeight: 337,
   },
   filterSection: {
     marginBottom: 16,
