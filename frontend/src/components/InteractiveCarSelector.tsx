@@ -393,6 +393,7 @@ interface ProductCardProps {
   colorsPrimary: string;
   colorsTextSecondary: string;
   language: string;
+  cardWidth?: number;
   onPress: (id: string) => void;
   onAddToCart: (productId: string) => Promise<void>;
   checkDuplicate: (productId: string) => boolean;
@@ -406,6 +407,7 @@ const ProductCard = memo<ProductCardProps>(({
   colorsPrimary,
   colorsTextSecondary,
   language,
+  cardWidth,
   onPress,
   onAddToCart,
   checkDuplicate,
@@ -486,7 +488,7 @@ const ProductCard = memo<ProductCardProps>(({
   }, [onAddToCart, checkDuplicate, item.id, language]);
 
   return (
-    <Animated.View style={[styles.productCardWrapper, animatedStyle]}>
+    <Animated.View style={[styles.productCardWrapper, animatedStyle, cardWidth ? { width: cardWidth } : null]}>
       <TouchableOpacity
         style={[
           styles.productCard,
@@ -561,7 +563,8 @@ const ProductCard = memo<ProductCardProps>(({
     prevProps.item.price === nextProps.item.price &&
     prevProps.isDark === nextProps.isDark &&
     prevProps.moodPrimary === nextProps.moodPrimary &&
-    prevProps.language === nextProps.language
+    prevProps.language === nextProps.language &&
+    prevProps.cardWidth === nextProps.cardWidth
   );
 });
 
@@ -1040,11 +1043,12 @@ export const InteractiveCarSelector: React.FC = () => {
       colorsPrimary={colors.primary}
       colorsTextSecondary={colors.textSecondary}
       language={language}
+      cardWidth={productCardWidth}
       onPress={handleProductPress}
       onAddToCart={handleProductAddToCart}
       checkDuplicate={checkDuplicate}
     />
-  ), [isDark, moodPrimary, colors.text, colors.primary, colors.textSecondary, language, handleProductPress, handleProductAddToCart, checkDuplicate]);
+  ), [isDark, moodPrimary, colors.text, colors.primary, colors.textSecondary, language, productCardWidth, handleProductPress, handleProductAddToCart, checkDuplicate]);
 
   const renderFilterItem = useCallback(({ item }: { item: PriceFilter }) => (
     <FilterChip
