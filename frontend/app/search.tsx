@@ -55,10 +55,10 @@ export default function SearchScreen() {
       console.log('[Search Grid Debug] screenWidth:', screenWidth, 'availableWidth:', availableWidth);
     }
     
-    // Desktop web (>768px): Fixed card width of 193px, 5px horizontal gap
+    // Desktop web (>768px): Fixed card width of 190px, 10px horizontal gap
     if (Platform.OS === 'web' && screenWidth > 768) {
-      const FIXED_CARD_WIDTH = 193;
-      const WEB_GAP = 5;
+      const FIXED_CARD_WIDTH = 190;
+      const WEB_GAP = 10;
       
       // Calculate how many columns can fit
       const calculatedCols = Math.floor(availableWidth / (FIXED_CARD_WIDTH + WEB_GAP));
@@ -71,8 +71,8 @@ export default function SearchScreen() {
       return { cardWidth: FIXED_CARD_WIDTH, numColumns: cols };
     }
     
-    // Mobile: Fixed 2-column layout with 5px horizontal gap, 200px card width
-    const MOBILE_GAP = 5;
+    // Mobile: Fixed 2-column layout with 10px horizontal gap
+    const MOBILE_GAP = 10;
     const mobileCardWidth = Math.floor((availableWidth - MOBILE_GAP) / 2);
     
     return { cardWidth: mobileCardWidth, numColumns: 2 };
@@ -506,7 +506,7 @@ export default function SearchScreen() {
             }
             ListFooterComponent={renderFooter}
             renderItem={({ item }) => (
-              <View style={[styles.cardWrapper, { width: cardWidth + 5 }]}>
+              <View style={[styles.cardWrapper, { width: cardWidth + 10 }]}>
                 <ProductCard
                   product={item}
                   cardWidth={cardWidth}
@@ -622,8 +622,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   cardWrapper: {
-    // Uniform 5px gap for both platforms (2.5px margin each side)
-    marginHorizontal: 2.5,
+    // Uniform 10px gap for both platforms (5px margin each side)
+    marginHorizontal: 5,
     alignItems: 'center',
     marginBottom: 12,
   },
