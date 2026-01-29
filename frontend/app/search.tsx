@@ -49,9 +49,6 @@ export default function SearchScreen() {
   const { cardWidth, numColumns } = useMemo(() => {
     // For web, use inner width minus padding
     const availableWidth = screenWidth - HORIZONTAL_PADDING;
-    
-    // Uniform card width for both platforms
-    const FIXED_CARD_WIDTH = 171.5;
     const GAP = 6; // 3px on each side
     
     // Debug logging for development
@@ -59,21 +56,24 @@ export default function SearchScreen() {
       console.log('[Search Grid Debug] screenWidth:', screenWidth, 'availableWidth:', availableWidth);
     }
     
-    // Desktop web (>768px): Dynamic 171.5px card width, 6px horizontal gap (3px/side)
+    // Desktop web (>768px): Dynamic 175.5px card width, 6px horizontal gap (3px/side)
     if (Platform.OS === 'web' && screenWidth > 768) {
+      const WEB_CARD_WIDTH = 175.5;
+      
       // Calculate how many columns can fit
-      const calculatedCols = Math.floor(availableWidth / (FIXED_CARD_WIDTH + GAP));
+      const calculatedCols = Math.floor(availableWidth / (WEB_CARD_WIDTH + GAP));
       const cols = Math.max(2, calculatedCols); // Minimum 2 columns, unlimited maximum
       
       if (__DEV__) {
-        console.log('[Search Grid Debug] Desktop: cols:', cols, 'cardWidth:', FIXED_CARD_WIDTH, 'gap:', GAP);
+        console.log('[Search Grid Debug] Desktop: cols:', cols, 'cardWidth:', WEB_CARD_WIDTH, 'gap:', GAP);
       }
       
-      return { cardWidth: FIXED_CARD_WIDTH, numColumns: cols };
+      return { cardWidth: WEB_CARD_WIDTH, numColumns: cols };
     }
     
-    // Mobile: Fixed 2-column layout with dynamic 171.5px card width, 6px horizontal gap (3px/side)
-    return { cardWidth: FIXED_CARD_WIDTH, numColumns: 2 };
+    // Mobile: Fixed 2-column layout with dynamic 173px card width, 6px horizontal gap (3px/side)
+    const MOBILE_CARD_WIDTH = 173;
+    return { cardWidth: MOBILE_CARD_WIDTH, numColumns: 2 };
   }, [screenWidth]);
 
   // Filters
