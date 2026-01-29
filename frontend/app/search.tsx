@@ -55,10 +55,10 @@ export default function SearchScreen() {
       console.log('[Search Grid Debug] screenWidth:', screenWidth, 'availableWidth:', availableWidth);
     }
     
-    // Desktop web (>768px): Fixed card width of 170px, 7px horizontal gap (3.5px/side)
+    // Desktop web (>768px): Fixed card width of 170px, 6px horizontal gap (3px/side)
     if (Platform.OS === 'web' && screenWidth > 768) {
       const FIXED_CARD_WIDTH = 170;
-      const WEB_GAP = 7; // 3.5px on each side
+      const WEB_GAP = 6; // 3px on each side
       
       // Calculate how many columns can fit
       const calculatedCols = Math.floor(availableWidth / (FIXED_CARD_WIDTH + WEB_GAP));
@@ -71,8 +71,8 @@ export default function SearchScreen() {
       return { cardWidth: FIXED_CARD_WIDTH, numColumns: cols };
     }
     
-    // Mobile: Fixed 2-column layout with 7px horizontal gap (3.5px/side)
-    const MOBILE_GAP = 7; // 3.5px on each side
+    // Mobile: Fixed 2-column layout with 6px horizontal gap (3px/side)
+    const MOBILE_GAP = 6; // 3px on each side
     const mobileCardWidth = Math.floor((availableWidth - MOBILE_GAP) / 2);
     
     return { cardWidth: mobileCardWidth, numColumns: 2 };
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? { width: '100%' } : {}),
   },
   listContent: {
-    paddingHorizontal: 3.5, // 3.5px each side = 7px total padding
+    paddingHorizontal: 3, // 3px each side = 6px total padding
     paddingVertical: 12,
   },
   cardWrapper: {
