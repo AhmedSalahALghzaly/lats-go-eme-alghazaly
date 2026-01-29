@@ -737,20 +737,19 @@ export const InteractiveCarSelector: React.FC = () => {
   
   // Calculate responsive columns for web desktop using dynamic window width
   const { productNumColumns, productCardWidth } = useMemo(() => {
-    // Optimized spacing: 3-5px total horizontal gap between cards
-    const GRID_PADDING = 16; // Reduced grid padding (8px each side)
-    const CARD_MARGIN = 4; // Total gap between cards (2px margin on each side = 4px gap)
-    const CARD_MARGIN_HALF = CARD_MARGIN / 2; // 2px per side
+    // Optimized spacing: 3px total horizontal gap between cards
+    const GRID_PADDING = 10; // Reduced grid padding (5px each side)
+    const CARD_MARGIN = 3; // Total gap between cards (1.5px margin on each side = 3px gap)
     
     // Debug logging for development
     if (__DEV__ && Platform.OS === 'web') {
       console.log('[InteractiveCarSelector Grid Debug] windowWidth:', windowWidth);
     }
     
-    // Desktop web (>768px): Fixed card width of exactly 200px, dynamic unlimited columns
+    // Desktop web (>768px): Fixed card width of exactly 170px, dynamic unlimited columns
     if (Platform.OS === 'web' && windowWidth > 768) {
-      const FIXED_CARD_WIDTH = 200;
-      const TOTAL_CARD_SPACE = FIXED_CARD_WIDTH + CARD_MARGIN; // 200 + 4 = 204px per card slot
+      const FIXED_CARD_WIDTH = 170;
+      const TOTAL_CARD_SPACE = FIXED_CARD_WIDTH + CARD_MARGIN; // 170 + 3 = 173px per card slot
       const availableWidth = windowWidth - GRID_PADDING;
       
       // Calculate how many columns can fit
@@ -765,8 +764,8 @@ export const InteractiveCarSelector: React.FC = () => {
     }
     
     // Mobile layout - 3 columns with optimized spacing
-    // Available width = windowWidth - GRID_PADDING - (3 columns * CARD_MARGIN)
-    const mobileAvailableWidth = windowWidth - GRID_PADDING - (3 * CARD_MARGIN);
+    // Available width = windowWidth - 7 - 5
+    const mobileAvailableWidth = windowWidth - 7 - 5;
     const mobileCardWidth = Math.floor(mobileAvailableWidth / 3);
     
     return { 
@@ -1802,13 +1801,13 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? { width: '100%' } : {}),
   },
   productsGrid: {
-    paddingHorizontal: 8, // 8px total padding (matches GRID_PADDING / 2)
+    paddingHorizontal: 5, // 5px padding each side (matches GRID_PADDING / 2)
     paddingVertical: 12,
   },
   productCardWrapper: {
     // Width is now calculated dynamically via productCardWidth in useMemo
-    // Optimized spacing: 2px margin on each side = 4px total gap between cards
-    marginHorizontal: 2,
+    // Optimized spacing: 1.5px margin on each side = 3px total gap between cards
+    marginHorizontal: 1.5,
     marginBottom: 12,
     alignItems: 'center',
   },
