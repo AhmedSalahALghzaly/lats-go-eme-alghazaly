@@ -24,8 +24,8 @@ import { useInfiniteProducts } from '../src/hooks/useInfiniteProducts';
 import { carBrandsApi, carModelsApi, productBrandsApi, categoriesApi, cartApi } from '../src/services/api';
 
 // Constants for responsive grid layout
-const HORIZONTAL_PADDING = 24; // Total horizontal padding (12 left + 12 right)
-const CARD_MARGIN = 6; // Margin on each side of the card
+const HORIZONTAL_PADDING = 10; // Total horizontal padding (5px left + 5px right)
+const CARD_MARGIN = 6; // Legacy - kept for compatibility
 const MAX_CARD_WIDTH = 203; // Maximum card width
 const MIN_CARD_WIDTH = 173; // Minimum card width for readability
 
