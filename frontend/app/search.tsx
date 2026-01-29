@@ -506,7 +506,7 @@ export default function SearchScreen() {
             }
             ListFooterComponent={renderFooter}
             renderItem={({ item }) => (
-              <View style={[styles.cardWrapper, { width: cardWidth + (Platform.OS === 'web' ? 5 : 3) }]}>
+              <View style={[styles.cardWrapper, { width: cardWidth + (Platform.OS === 'web' ? 7 : 5) }]}>
                 <ProductCard
                   product={item}
                   cardWidth={cardWidth}
