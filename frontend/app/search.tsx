@@ -618,10 +618,14 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? { width: '100%' } : {}),
   },
   listContent: {
-    paddingHorizontal: 12,
+    paddingHorizontal: 5, // Half of HORIZONTAL_PADDING (10/2 = 5px each side)
     paddingVertical: 12,
   },
   cardWrapper: {
+    // Platform-specific margins for precision grid alignment:
+    // Mobile: 1.5px each side = 3px total gap between adjacent cards
+    // Web: 2.5px each side = 5px total gap between adjacent cards
+    marginHorizontal: Platform.OS === 'web' ? 2.5 : 1.5,
     alignItems: 'center',
     marginBottom: 12,
   },
