@@ -1800,17 +1800,20 @@ const styles = StyleSheet.create({
     ...(Platform.OS === 'web' ? { width: '100%' } : {}),
   },
   productsGrid: {
-    paddingHorizontal: 5, // 5px padding each side (matches GRID_PADDING / 2)
+    paddingHorizontal: 5, // Half of GRID_PADDING (10/2 = 5px each side)
     paddingVertical: 12,
   },
   productCardWrapper: {
-    // Width is now calculated dynamically via productCardWidth in useMemo
-    // Optimized spacing: 1.5px margin on each side = 3px total gap between cards
-    marginHorizontal: 1.5,
+    // Width is calculated dynamically via productCardWidth in useMemo
+    // Platform-specific margins for precision grid alignment:
+    // Mobile: 1.5px each side = 3px total gap between adjacent cards
+    // Web: 2.5px each side = 5px total gap between adjacent cards
+    marginHorizontal: Platform.OS === 'web' ? 2.5 : 1.5,
     marginBottom: 12,
     alignItems: 'center',
   },
   productCard: {
+    width: '100%', // Fill the wrapper's calculated width
     borderRadius: 16,
     overflow: 'hidden',
     borderWidth: 1,
