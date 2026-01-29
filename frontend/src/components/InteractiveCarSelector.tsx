@@ -44,8 +44,8 @@ import { ProductCardSkeleton } from './ui/Skeleton';
 import { AnimatedCartButton, AnimatedCartButtonRef } from './AnimatedIconButton';
 import { useCartMutations, useCartQuery } from '../hooks/queries/useShoppingHubQuery';
 
-const { height: SCREEN_HEIGHT } = Dimensions.get('window');
-// Note: SCREEN_WIDTH is now obtained via useWindowDimensions() for responsiveness
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+// Note: For responsive layouts, components use useWindowDimensions() hook internally
 
 // Vehicle icon sequence for morphing animation
 const VEHICLE_ICONS: Array<keyof typeof MaterialCommunityIcons.glyphMap> = [
