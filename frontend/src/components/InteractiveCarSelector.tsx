@@ -737,23 +737,22 @@ export const InteractiveCarSelector: React.FC = () => {
   
   // Calculate responsive columns for web desktop using dynamic window width
   const { productNumColumns, productCardWidth } = useMemo(() => {
-    // Optimized spacing: 3px total horizontal gap between cards
-    const GRID_PADDING = 10; // Reduced grid padding (5px each side)
-    const CARD_MARGIN = 3; // Total gap between cards (1.5px margin on each side = 3px gap)
+    // Precision grid alignment with fixed horizontal gaps
+    const GRID_PADDING = 10; // Total grid padding (5px each side)
     
     // Debug logging for development
     if (__DEV__ && Platform.OS === 'web') {
       console.log('[InteractiveCarSelector Grid Debug] windowWidth:', windowWidth);
     }
     
-    // Desktop web (>768px): Fixed card width of exactly 170px, dynamic unlimited columns
+    // Desktop web (>768px): Fixed card width of 199px, 5px horizontal gap
     if (Platform.OS === 'web' && windowWidth > 768) {
-      const FIXED_CARD_WIDTH = 170;
-      const TOTAL_CARD_SPACE = FIXED_CARD_WIDTH + CARD_MARGIN; // 170 + 3 = 173px per card slot
+      const FIXED_CARD_WIDTH = 199;
+      const CARD_MARGIN = 5; // Total horizontal gap between cards
       const availableWidth = windowWidth - GRID_PADDING;
       
       // Calculate how many columns can fit
-      const calculatedCols = Math.floor(availableWidth / TOTAL_CARD_SPACE);
+      const calculatedCols = Math.floor(availableWidth / (FIXED_CARD_WIDTH + CARD_MARGIN));
       const numCols = Math.max(3, calculatedCols); // Minimum 3 columns, unlimited maximum
       
       if (__DEV__) {
@@ -763,10 +762,10 @@ export const InteractiveCarSelector: React.FC = () => {
       return { productNumColumns: numCols, productCardWidth: FIXED_CARD_WIDTH };
     }
     
-    // Mobile layout - 3 columns with optimized spacing
-    // Available width = windowWidth - 3 - 5
-    const mobileAvailableWidth = windowWidth - 3 - 5;
-    const mobileCardWidth = Math.floor(mobileAvailableWidth / 3);
+    // Mobile layout - 3 columns with 3px horizontal gap
+    // (2 * 3) accounts for the two 3px gaps between the three cards
+    const MOBILE_CARD_MARGIN = 3;
+    const mobileCardWidth = Math.floor((windowWidth - (GRID_PADDING + (2 * MOBILE_CARD_MARGIN))) / 3);
     
     return { 
       productNumColumns: 3, 
