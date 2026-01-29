@@ -389,19 +389,8 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                   {language === 'ar' ? 'استكشف' : 'Explore'}
                 </Text>
                 <View style={styles.quickActionsGrid}>
-                  {/* Row 1 */}
-                  <TouchableOpacity
-                    style={[styles.quickAction, { backgroundColor: mood.primary + '15' }]}
-                    onPress={() => {
-                      onClose();
-                      router.push('/car-brands');
-                    }}
-                  >
-                    <MaterialCommunityIcons name="car" size={22} color={mood.primary} />
-                    <Text style={[styles.quickActionText, { color: mood.primary }]} numberOfLines={1}>
-                      {language === 'ar' ? 'السيارات' : 'Cars'}
-                    </Text>
-                  </TouchableOpacity>
+                  {/* Row 1: Categories | Models | Brands | Favorites */}
+                  {/* 1. Categories (الفئات) */}
                   <TouchableOpacity
                     style={[styles.quickAction, { backgroundColor: colors.success + '15' }]}
                     onPress={() => {
@@ -414,43 +403,7 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       {language === 'ar' ? 'الفئات' : 'Categories'}
                     </Text>
                   </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.quickAction, { backgroundColor: colors.warning + '15' }]}
-                    onPress={() => {
-                      onClose();
-                      router.push('/brands');
-                    }}
-                  >
-                    <Ionicons name="pricetag" size={22} color={colors.warning} />
-                    <Text style={[styles.quickActionText, { color: colors.warning }]} numberOfLines={1}>
-                      {language === 'ar' ? 'الماركات' : 'Brands'}
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[styles.quickAction, { backgroundColor: colors.error + '15' }]}
-                    onPress={() => {
-                      onClose();
-                      router.push('/cart?tab=favorites');
-                    }}
-                  >
-                    <Ionicons name="heart" size={22} color={colors.error} />
-                    <Text style={[styles.quickActionText, { color: colors.error }]} numberOfLines={1}>
-                      {language === 'ar' ? 'المفضلة' : 'Favorites'}
-                    </Text>
-                  </TouchableOpacity>
-                  {/* Row 2 */}
-                  <TouchableOpacity
-                    style={[styles.quickAction, { backgroundColor: '#06B6D4' + '15' }]}
-                    onPress={() => {
-                      onClose();
-                      router.push('/search');
-                    }}
-                  >
-                    <Ionicons name="cube" size={22} color="#06B6D4" />
-                    <Text style={[styles.quickActionText, { color: '#06B6D4' }]} numberOfLines={1}>
-                      {language === 'ar' ? 'المنتجات' : 'Products'}
-                    </Text>
-                  </TouchableOpacity>
+                  {/* 2. Models (موديلات) */}
                   <TouchableOpacity
                     style={[styles.quickAction, { backgroundColor: '#8B5CF6' + '15' }]}
                     onPress={() => {
@@ -463,7 +416,60 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       {language === 'ar' ? 'موديلات' : 'Models'}
                     </Text>
                   </TouchableOpacity>
-                  {/* New B2B Entities - Suppliers (Shiny Gold) */}
+                  {/* 3. Brands (الماركات) */}
+                  <TouchableOpacity
+                    style={[styles.quickAction, { backgroundColor: colors.warning + '15' }]}
+                    onPress={() => {
+                      onClose();
+                      router.push('/brands');
+                    }}
+                  >
+                    <Ionicons name="pricetag" size={22} color={colors.warning} />
+                    <Text style={[styles.quickActionText, { color: colors.warning }]} numberOfLines={1}>
+                      {language === 'ar' ? 'الماركات' : 'Brands'}
+                    </Text>
+                  </TouchableOpacity>
+                  {/* 4. Favorites (المفضلة) */}
+                  <TouchableOpacity
+                    style={[styles.quickAction, { backgroundColor: colors.error + '15' }]}
+                    onPress={() => {
+                      onClose();
+                      router.push('/cart?tab=favorites');
+                    }}
+                  >
+                    <Ionicons name="heart" size={22} color={colors.error} />
+                    <Text style={[styles.quickActionText, { color: colors.error }]} numberOfLines={1}>
+                      {language === 'ar' ? 'المفضلة' : 'Favorites'}
+                    </Text>
+                  </TouchableOpacity>
+                  {/* Row 2: Cars | Distributors | Suppliers | Products */}
+                  {/* 5. Cars (السيارات) */}
+                  <TouchableOpacity
+                    style={[styles.quickAction, { backgroundColor: mood.primary + '15' }]}
+                    onPress={() => {
+                      onClose();
+                      router.push('/car-brands');
+                    }}
+                  >
+                    <MaterialCommunityIcons name="car" size={22} color={mood.primary} />
+                    <Text style={[styles.quickActionText, { color: mood.primary }]} numberOfLines={1}>
+                      {language === 'ar' ? 'السيارات' : 'Cars'}
+                    </Text>
+                  </TouchableOpacity>
+                  {/* 6. Distributors (الموزعون) */}
+                  <TouchableOpacity
+                    style={[styles.quickAction, { backgroundColor: 'rgba(55, 103, 135, 0.15)' }]}
+                    onPress={() => {
+                      onClose();
+                      router.push('/owner/distributors');
+                    }}
+                  >
+                    <MaterialCommunityIcons name="truck-delivery" size={22} color="#a1cced" />
+                    <Text style={[styles.quickActionText, { color: '#a1cced' }]} numberOfLines={1}>
+                      {language === 'ar' ? 'الموزعون' : 'Distributors'}
+                    </Text>
+                  </TouchableOpacity>
+                  {/* 7. Suppliers (الموردون) */}
                   <TouchableOpacity
                     style={[styles.quickAction, { backgroundColor: 'rgba(255, 215, 0, 0.15)' }]}
                     onPress={() => {
@@ -476,17 +482,17 @@ export const AdvancedSearchBottomSheet: React.FC<AdvancedSearchBottomSheetProps>
                       {language === 'ar' ? 'الموردون' : 'Suppliers'}
                     </Text>
                   </TouchableOpacity>
-                  {/* New B2B Entities - Distributors */}
+                  {/* 8. Products (المنتجات) */}
                   <TouchableOpacity
-                    style={[styles.quickAction, { backgroundColor: 'rgba(55, 103, 135, 0.15)' }]}
+                    style={[styles.quickAction, { backgroundColor: '#06B6D4' + '15' }]}
                     onPress={() => {
                       onClose();
-                      router.push('/owner/distributors');
+                      router.push('/search');
                     }}
                   >
-                    <MaterialCommunityIcons name="truck-delivery" size={22} color="#a1cced" />
-                    <Text style={[styles.quickActionText, { color: '#a1cced' }]} numberOfLines={1}>
-                      {language === 'ar' ? 'الموزعون' : 'Distributors'}
+                    <Ionicons name="cube" size={22} color="#06B6D4" />
+                    <Text style={[styles.quickActionText, { color: '#06B6D4' }]} numberOfLines={1}>
+                      {language === 'ar' ? 'المنتجات' : 'Products'}
                     </Text>
                   </TouchableOpacity>
                 </View>
