@@ -49,10 +49,12 @@ export default function SearchScreen() {
   const { cardWidth, numColumns } = useMemo(() => {
     const availableWidth = screenWidth - HORIZONTAL_PADDING;
     
-    // Desktop web: Fixed card width of 200px, dynamic column count
+    // Desktop web (>768px): Fixed card width of exactly 200px, dynamic unlimited columns
     if (Platform.OS === 'web' && screenWidth > 768) {
       const FIXED_CARD_WIDTH = 200;
-      const cols = Math.max(2, Math.floor(availableWidth / (FIXED_CARD_WIDTH + CARD_MARGIN * 2)));
+      // Calculate columns based on available width, minimum 2, no maximum limit
+      const calculatedCols = Math.floor(availableWidth / (FIXED_CARD_WIDTH + CARD_MARGIN * 2));
+      const cols = Math.max(2, calculatedCols); // Minimum 2 columns, unlimited maximum
       return { cardWidth: FIXED_CARD_WIDTH, numColumns: cols };
     }
     
