@@ -24,10 +24,11 @@ import { useInfiniteProducts } from '../src/hooks/useInfiniteProducts';
 import { carBrandsApi, carModelsApi, productBrandsApi, categoriesApi, cartApi } from '../src/services/api';
 
 // Constants for responsive grid layout
-const HORIZONTAL_PADDING = 10; // Total horizontal padding (5px left + 5px right)
-const CARD_MARGIN = 6; // Legacy - kept for compatibility
-const MAX_CARD_WIDTH = 203; // Maximum card width
-const MIN_CARD_WIDTH = 173; // Minimum card width for readability
+const HORIZONTAL_PADDING = 7; // Total horizontal padding (3.5px left + 3.5px right)
+const CARD_MARGIN = 5; // Legacy - kept for compatibility
+const MAX_CARD_WIDTH = 179; // Maximum card width
+const MIN_CARD_WIDTH = 175
+   // Minimum card width for readability
 
 export default function SearchScreen() {
   const params = useLocalSearchParams();
@@ -49,16 +50,16 @@ export default function SearchScreen() {
   const { cardWidth, numColumns } = useMemo(() => {
     // For web, use inner width minus padding
     const availableWidth = screenWidth - HORIZONTAL_PADDING;
-    const GAP = 6; // 3px on each side
+    const GAP = 5; // 2.5px on each side
     
     // Debug logging for development
     if (__DEV__ && Platform.OS === 'web') {
       console.log('[Search Grid Debug] screenWidth:', screenWidth, 'availableWidth:', availableWidth);
     }
     
-    // Desktop web (>768px): Dynamic 175.5px card width, 6px horizontal gap (3px/side)
+    // Desktop web (>768px): Dynamic 179px card width, 5px horizontal gap (2.5px/side)
     if (Platform.OS === 'web' && screenWidth > 768) {
-      const WEB_CARD_WIDTH = 175.5;
+      const WEB_CARD_WIDTH = 179;
       
       // Calculate how many columns can fit
       const calculatedCols = Math.floor(availableWidth / (WEB_CARD_WIDTH + GAP));
@@ -71,8 +72,8 @@ export default function SearchScreen() {
       return { cardWidth: WEB_CARD_WIDTH, numColumns: cols };
     }
     
-    // Mobile: Fixed 2-column layout with dynamic 173px card width, 6px horizontal gap (3px/side)
-    const MOBILE_CARD_WIDTH = 173;
+    // Mobile: Fixed 2-column layout with dynamic 175px card width, 5px horizontal gap (2.5px/side)
+    const MOBILE_CARD_WIDTH = 175;
     return { cardWidth: MOBILE_CARD_WIDTH, numColumns: 2 };
   }, [screenWidth]);
 
@@ -535,30 +536,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingBottom: 16,
+    paddingHorizontal: 17,
+    paddingBottom: 13,
     borderBottomWidth: 1,
   },
   backButton: {
-    padding: 8,
+    padding: 7,
   },
   headerTitle: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '600',
   },
   filterButton: {
-    padding: 8,
+    padding: 7,
   },
   filtersPanel: {
-    padding: 16,
+    padding: 15,
     borderBottomWidth: 1,
-    maxHeight: 337,
+    maxHeight: 335,
   },
   filterSection: {
-    marginBottom: 16,
+    marginBottom: 15,
   },
   filterLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
     marginBottom: 10,
   },
@@ -602,7 +603,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   clearButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '500',
   },
   loadingContainer: {
@@ -617,26 +618,26 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 3, // 3px each side = 6px total padding
-    paddingVertical: 12,
+    paddingVertical: 10,
   },
   cardWrapper: {
     // Uniform 6px gap for both platforms (3px margin each side)
     marginHorizontal: 3,
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 7,
   },
   row: {
     justifyContent: 'flex-start',
   },
   noModelsText: {
-    fontSize: 12,
+    fontSize: 11,
     fontStyle: 'italic',
-    marginTop: 8,
+    marginTop: 7,
   },
   resultsCount: {
-    fontSize: 14,
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    fontSize: 13,
+    marginBottom: 10,
+    paddingHorizontal: 5,
   },
   emptyContainer: {
     alignItems: 'center',
