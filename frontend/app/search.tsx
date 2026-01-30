@@ -27,8 +27,7 @@ import { carBrandsApi, carModelsApi, productBrandsApi, categoriesApi, cartApi } 
 const HORIZONTAL_PADDING = 7; // Total horizontal padding (3.5px left + 3.5px right)
 const CARD_MARGIN = 5; // Legacy - kept for compatibility
 const MAX_CARD_WIDTH = 179; // Maximum card width
-const MIN_CARD_WIDTH = 175
-   // Minimum card width for readability
+const MIN_CARD_WIDTH = 175; // Minimum card width for readability
 
 export default function SearchScreen() {
   const params = useLocalSearchParams();
