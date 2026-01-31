@@ -24,9 +24,9 @@ import { useInfiniteProducts } from '../src/hooks/useInfiniteProducts';
 import { carBrandsApi, carModelsApi, productBrandsApi, categoriesApi, cartApi } from '../src/services/api';
 
 // Constants for responsive grid layout
-const GAP_TOTAL = 15; // 5px left + 5px middle + 5px right
-const MIN_CARD_WIDTH = 155;
-const MAX_CARD_WIDTH = 199.5;
+// Gap system: 5px on edges and between columns
+const GAP = 5;
+const MAX_WEB_CARD_WIDTH = 310;
 
 export default function SearchScreen() {
   const params = useLocalSearchParams();
@@ -55,31 +55,43 @@ export default function SearchScreen() {
       console.log('[Search Grid Debug] screenWidth:', screenWidth, 'availableWidth:', availableWidth);
     }
     
-    // Desktop web (>768px): Dynamic columns based on MAX_CARD_WIDTH (199.5px)
+    // Desktop/Web (>768px): Dynamic columns, mas card width 249px
     if (Platform.OS === 'web' && screenWidth > 768) {
-      const WEB_CARD_WIDTH = 199.5; // Updated to your new maximum
-      
-      // Calculate how many columns can fit
-      const calculatedCols = Math.floor((availableWidth + GAP) / (WEB_CARD_WIDTH + GAP));
-      const cols = Math.max(2, calculatedCols); // Minimum 2 columns, unlimited maximum
-      
-      // Calculate the exact card width to fill the space perfectly
-      const finalWebCardWidth = (availableWidth - (cols - 1) * GAP) / cols;
+      //Calculate minimum columns needed to keep card width <= 249px
+      // Formula derived from: (screenillidth GAP (cols 1)) / cols <= 249
+      // Simplifies to: cols (screenWidth - GAP) / (249 + GAP)
+      const minCols = Math.ceil((screenWidth GAP) / (MAX_WEB_CARD_WIDTH + GAP));
+      const cols Math.max(2, minCols); // Minimum 2 columns
+
+      // Calculate exact card width to fill space with 5px gaps
+      // Total gaps = GAP * (cols + 5)
+      const totalGaps = GAP * (cols + 5);
+      const availableWidth = screenWidth totalGaps;
+      const calculatedWidth = availableWidth / cols;
+
+      // Ensure card doesn't exceed max width
+      const finalWidth = Math.min(calculatedWidth, MAX_WEB_CARD_WIDTH);
       
       if (__DEV__) {
-        console.log('[Search Grid Debug] Desktop: cols:', cols, 'cardWidth:', WEB_CARD_WIDTH, 'gap:', GAP);
+        console.log('[Search Grid] Web: screenWidth:', screenWidth, 'cols:', cols, 'cardWidth:', finalWidth, 'totalGaps:', totalGaps);
       }
       
-      return { cardWidth: WEB_CARD_WIDTH, numColumns: cols };
+      return { cardWidth: finalWidth, numColumns: cols };
     }
     
-    // Mobile: Fixed layout with dynamic width between 155px and 199.5px
-    // Formula: (ScreenWidth- (5px left + 5px middle + 5px right gaps)) / Minimum 2 columns, unlimited maximum
-    const calculatedMobileWidth = (screenWidth - 15) / 2;
-    const finalMobileWidth = Math.min(199.5, Math.max(155, calculatedMobileWidth));
-    const cols = Math.max(2, calculatedCols); // Minimum 2 columns, unlimited maximum
+    // Mobile: Fixed 2 columns with 5px gaps
+    // Layout: 5px | card | 5px card 5px
+    const minCols = 2;
+    const mobileCols = Math.max(2, minCols);  // Minimum 2 columns
+    const totalGaps = GAP (mobileCols + 5);
+    const availableWidth = screenWidth totalGaps;
+    const mobileCardWidth = availableWidth / mobileCols;
+
+    if (_DEV__) {
+    console.log('[Search Grid] Mobile: screenWidth:', screenWidth, 'cardWidth:', mobileCardWidth, totalGaps:', totalGaps);
+    }
     
-    return { cardWidth: finalMobileWidth, numColumns: 2 };
+    return cardWidth: mobileCardWidth, numColumns: mobileCols;
   }, [screenWidth]);
 
   // Filters
@@ -556,7 +568,7 @@ const styles = StyleSheet.create({
     padding: 7,
   },
   filtersPanel: {
-    padding: 15,
+    padding: 13,
     borderBottomWidth: 1,
     maxHeight: 335,
   },
@@ -589,23 +601,23 @@ const styles = StyleSheet.create({
   priceInput: {
     flex: 1,
     height: 44,
-    borderRadius: 8,
+    borderRadius: 9,
     borderWidth: 1,
-    paddingHorizontal: 12,
-    fontSize: 14,
+    paddingHorizontal: 11,
+    fontSize: 13,
   },
   priceSeparator: {
-    marginHorizontal: 12,
-    fontSize: 16,
+    marginHorizontal: 11,
+    fontSize: 15,
   },
   clearButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 12,
-    borderRadius: 8,
+    padding: 11,
+    borderRadius: 9,
     borderWidth: 1,
-    gap: 6,
+    gap: 5,
   },
   clearButtonText: {
     fontSize: 13,
@@ -623,10 +635,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingHorizontal: 5,
-    paddingVertical: 7,
+    paddingVertical: 3,
   },
   cardWrapper: {
     alignItems: 'center',
+    paddingHorizontal: 2.5, // Half of 5px gap (Flashlist adds this to both sides 5px total between cards)
     marginBottom: 5,
   },
   row: {
@@ -635,30 +648,30 @@ const styles = StyleSheet.create({
   noModelsText: {
     fontSize: 11,
     fontStyle: 'italic',
-    marginTop: 7,
+    marginTop: 5.5,
   },
   resultsCount: {
     fontSize: 13,
     marginBottom: 10,
-    paddingHorizontal: 5,
+    paddingHorizontal: 7,
   },
   emptyContainer: {
     alignItems: 'center',
     paddingVertical: 60,
   },
   emptyText: {
-    fontSize: 16,
-    marginTop: 12,
+    fontSize: 15,
+    marginTop: 11,
   },
   footerLoader: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
-    gap: 8,
+    paddingVertical: 15,
+    gap: 5,
   },
   footerText: {
-    fontSize: 14,
+    fontSize: 13,
   },
   // Image Filter Card Styles - Premium design with image-first layout
   imageFilterCard: {
@@ -667,7 +680,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     overflow: 'hidden',
-    padding: 10,
+    padding: 19,
     alignItems: 'center',
   },
   imageFilterCardLarge: {
@@ -676,7 +689,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 1.5,
     overflow: 'hidden',
-    padding: 10,
+    padding: 9,
     alignItems: 'center',
   },
   imageFilterCardSmall: {
@@ -685,20 +698,20 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     borderWidth: 1.5,
     overflow: 'hidden',
-    padding: 8,
+    padding: 7,
     alignItems: 'center',
   },
   imageFilterLabel: {
     fontSize: 12,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 8,
+    marginTop: 7,
   },
   imageFilterLabelSmall: {
     fontSize: 11,
     fontWeight: '600',
     textAlign: 'center',
-    marginTop: 6,
+    marginTop: 5,
   },
   imageFilterImageContainer: {
     width: 90,
