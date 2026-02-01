@@ -499,6 +499,7 @@ export default function SearchScreen() {
             key={`${numColumns}-${screenWidth}`} // Force re-render when columns or width change
             estimatedItemSize={250}
             contentContainerStyle={styles.listContent}
+            columnWrapperStyle={{ gap: 5 }}
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.5}
             refreshing={isRefreshing}
@@ -624,10 +625,10 @@ const styles = StyleSheet.create({
   listContent: {
     paddingVertical: 3,
   },
-  cardWrapper: {
-    // Horizontal spacing is now perfectly managed by the `useMemo` logic.
-    // No extra padding is needed here.
-    alignItems: 'center',
+    cardWrapper: {
+    // The horizontal layout (width and gaps) is now fully controlled by
+    // `cardWidth` from useMemo and `columnWrapperStyle` on the FlashList.
+    // This wrapper's only responsibility is the vertical margin between rows.
     marginBottom: 5,
   },
   row: {
