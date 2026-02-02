@@ -646,12 +646,18 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 0.3,
     marginBottom: 7,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 5,
   },
   subtitleText: {
-    color: 'rgba(255,255,255,0.85)',
+    color: 'rgba(255,255,255,0.75)',
     fontSize: 13,
     fontWeight: '500',
     marginTop: 5,
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,  
   },
   carBadge: {
     flexDirection: 'row',
@@ -671,8 +677,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'absolute',
     bottom: 16,
-    right: 18,
-    gap: 8,
+    right: 17,
+    gap: 7,
   },
   oldPrice: {
     color: 'rgba(255,255,255,0.5)',
@@ -680,20 +686,23 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
   },
   arrowIcon: {
-    opacity: 0.6,
+    opacity: 0.5,
   },
   newPrice: {
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: '900',
+    textShadowColor: 'rgba(0,0,0,0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 3,  
   },
   currency: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
   },
   actionSection: {
     alignItems: 'center',
     justifyContent: 'space-between', // Distribute: discount at top, icon in middle
-    minWidth: 70,
+    minWidth: 59,
     height: '100%',
     paddingTop: 0,
     paddingBottom: 35, // Space for price row
@@ -705,7 +714,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minWidth: 50,
     marginBottom: 0, // Remove margin - space-between handles spacing
-    // Shadow removed as per user request
+    ...Platform.select({
+      web: {
+        boxShadow: '0 3px 11px rgba(0,0,0,0.19)',
+      },
+      default: {
+        elevation: 6,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.17,
+        shadowRadius: 7 
+      }  
+    }),
   },
   discountNum: {
     color: '#1a1a2e',
@@ -728,7 +748,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
-    // Shadow removed as per user request
+    ...Platform.select({
+      web: {
+        boxShadow: '0 5px 19px rgba(0,0,0,0.39)',
+      },
+      default: {
+        elevation: 9,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 5 },
+        shadowOpacity: 0.35,
+        shadowRadius: 10,
+      },
+    }),
   },
   iconGlow: {
     position: 'absolute',
@@ -758,13 +789,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     zIndex: 10,
-    // Shadow removed as per user request
+    ...Platform.select({
+      web: {
+        boxShadow: '0 3px 15px rgba(0,0,0,0.3)',
+      },
+      default: {
+        elevation: 7,
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.3,
+        shadowRadius: 7,
+      },
+    }),
   },
   arrowLeft: {
-    left: 6,
+    left: 7,
   },
   arrowRight: {
-    right: 6,
+    right: 7,
   },
 });
 
