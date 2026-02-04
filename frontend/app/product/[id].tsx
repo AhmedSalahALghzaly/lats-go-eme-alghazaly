@@ -13,6 +13,7 @@ import {
   Keyboard,
   Animated as RNAnimated,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -329,7 +330,23 @@ export default function ProductDetailScreen() {
     });
   };
 
-  const renderStars = (rating: number, size: number = 16, interactive: boolean = false, onPress?: (rating: number) => void) => {
+  interface StarsDisplayProps {
+    rating: number;
+    size?: number;
+    interactive?: boolean;
+    onPress?: (rating: number) => void;
+    color?: string;
+    secondaryColor?: string;
+  }
+
+  const StarsDisplay = React.memo<StarsDisplayProps>(({
+    rating,
+    size = 17.5,
+    interactive = false,
+    onPress,
+    color = GOLD_COLOR, // Use the defined GOLD_COLOR constant
+    secondaryColor = '#A9A9A9'
+  }) => {
     return (
       <View style={styles.starsContainer}>
         {[1, 2, 3, 4, 5].map((star) => (
@@ -338,18 +355,19 @@ export default function ProductDetailScreen() {
             disabled={!interactive}
             onPress={() => onPress && onPress(star)}
             style={styles.starButton}
+            activeOpacity={0.7}
           >
             <Ionicons
               name={star <= rating ? 'star' : 'star-outline'}
               size={size}
-              color={star <= rating ? '#FFD700' : colors.textSecondary}
+              color={star <= rating ? color : secondaryColor}
             />
           </TouchableOpacity>
         ))}
       </View>
     );
-  };
-
+  });
+  
   if (loading) {
     return (
       <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -571,7 +589,7 @@ export default function ProductDetailScreen() {
           {/* Rating Summary */}
           {avgRating !== null && (
             <View style={styles.ratingContainer}>
-              {renderStars(Math.round(avgRating))}
+              <StarsDisplay rating={Math.round(avgRating)} />
               <Text style={[styles.ratingText, { color: colors.text }]}>
                 {avgRating.toFixed(1)}
               </Text>
@@ -639,31 +657,26 @@ export default function ProductDetailScreen() {
           )}
 
           {/* Compatible Cars - Clickable */}
-          {product.car_models && product.car_models.length > 0 && (
-            <View style={styles.section}>
-              <Text style={[styles.sectionTitle, { color: colors.text }]}>
-                {t('compatibleWith')}
+          <FlashList
+            data={product.car_models}
+            keyExtractor={(item) => item.id.toString()}
+            numColumns={2} // Displaying in 2 columns for a grid-like feel
+            estimatedItemSize={150} // Approximate width of two items
+            renderItem={({ item: model }) => (
+              <TouchableOpacity 
+                style={[styles.carModelBadge, { backgroundColor: colors.surface, flex: 1, margin: 4 }]}
+                onPress={() => router.push(`/car/${model.id}`)}
+              >
+                <Ionicons name="car-sport" size={14} color={colors.primary} />
+                <Text style={[styles.carModelText, { color: colors.text }]} numberOfLines={1}>
+                  {getName(model)}
+                  {model.year_start && model.year_end && (
+                    ` (${model.year_start}-${model.year_end})`
+                )}
               </Text>
-              <View style={styles.carModels}>
-                {product.car_models.map((model: any) => (
-                  <TouchableOpacity 
-                    key={model.id} 
-                    style={[styles.carModelBadge, { backgroundColor: colors.surface }]}
-                    onPress={() => router.push(`/car/${model.id}`)}
-                  >
-                    <Ionicons name="car-sport" size={14} color={colors.primary} />
-                    <Text style={[styles.carModelText, { color: colors.text }]}>
-                      {getName(model)}
-                      {model.year_start && model.year_end && (
-                        ` (${model.year_start}-${model.year_end})`
-                      )}
-                    </Text>
-                    <Ionicons name="chevron-forward" size={12} color={colors.textSecondary} />
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+            </TouchableOpacity>
           )}
+        />
 
           {/* Comments Section */}
           <View style={[styles.commentsSection, { borderTopColor: colors.border }]}>
@@ -701,8 +714,8 @@ export default function ProductDetailScreen() {
                 <Text style={[styles.formLabel, { color: colors.text }]}>
                   {language === 'ar' ? 'تقييمك' : 'Your Rating'}
                 </Text>
-                {renderStars(selectedRating, 28, true, setSelectedRating)}
-                
+                <StarsDisplay rating={selectedRating} size={28} interactive={true} onPress={setSelectedRating} secondaryColor={colors.textSecondary} />
+               
                 <Text style={[styles.formLabel, { color: colors.text, marginTop: 12 }]}>
                   {language === 'ar' ? 'تعليقك' : 'Your Comment'}
                 </Text>
@@ -752,72 +765,63 @@ export default function ProductDetailScreen() {
               </View>
             )}
 
-            {/* Comments List */}
-            {commentsLoading ? (
-              <ActivityIndicator size="small" color={colors.primary} style={{ marginTop: 20 }} />
-            ) : comments.length === 0 ? (
-              <View style={styles.noComments}>
-                <Ionicons name="chatbubble-outline" size={40} color={colors.textSecondary} />
-                <Text style={[styles.noCommentsText, { color: colors.textSecondary }]}>
-                  {language === 'ar' ? 'لا توجد تعليقات بعد' : 'No comments yet'}
-                </Text>
-              </View>
-            ) : (
-              <View style={styles.commentsList}>
-                {comments.map((comment) => (
-                  <View 
-                    key={comment.id} 
-                    style={[styles.commentCard, { backgroundColor: colors.surface, borderColor: colors.border }]}
-                  >
-                    <View style={styles.commentHeader}>
-                      <View style={styles.commentUserInfo}>
-                        <View style={[styles.commentAvatar, { backgroundColor: colors.primary + '20' }]}>
-                          {comment.user_picture ? (
-                            <Image 
-                              source={{ uri: comment.user_picture }} 
-                              style={styles.avatarImage}
-                              contentFit="cover"
-                              cachePolicy="disk"
-                            />
-                          ) : (
-                            <Ionicons name="person" size={18} color={colors.primary} />
-                          )}
-                        </View>
-                        <View>
-                          <Text style={[styles.commentUserName, { color: colors.text }]}>
-                            {comment.user_name}
-                          </Text>
-                          <Text style={[styles.commentDate, { color: colors.textSecondary }]}>
-                            {formatDate(comment.created_at)}
-                          </Text>
-                        </View>
+            {/* Comments List */}           
+            <FlashList
+              data={comments}
+              keyExtractor={(item) => item.id.toString()}
+              estimatedItemSize={130} // Approximate height of a comment card
+              renderItem={({ item: comment }) => (
+                <View 
+                  key={comment.id} 
+                  style={[styles.commentCard, { backgroundColor: colors.surface, borderColor: colors.border, marginBottom: 12 }]}
+                >
+                  <View style={styles.commentHeader}>
+                    <View style={styles.commentUserInfo}>
+                      <View style={[styles.commentAvatar, { backgroundColor: colors.primary + '20' }]}>
+                        {comment.user_picture ? (
+                          <Image 
+                            source={{ uri: comment.user_picture }} 
+                            style={styles.avatarImage}
+                            contentFit="cover"
+                            cachePolicy="disk"
+                          />
+                        ) : (
+                          <Ionicons name="person" size={18} color={colors.primary} />
+                        )}
                       </View>
-                      
-                      {comment.is_owner && (
-                        <TouchableOpacity
-                          style={styles.deleteCommentButton}
-                          onPress={() => handleDeleteComment(comment.id)}
-                        >
-                          <Ionicons name="trash-outline" size={18} color={colors.error} />
-                        </TouchableOpacity>
-                      )}
+                      <View>
+                        <Text style={[styles.commentUserName, { color: colors.text }]}>
+                          {comment.user_name}
+                       </Text>
+                        <Text style={[styles.commentDate, { color: colors.textSecondary }]}>
+                          {formatDate(comment.created_at)}
+                       </Text>
+                      </View>
                     </View>
-                    
-                    {comment.rating && (
-                      <View style={styles.commentRating}>
-                        {renderStars(comment.rating, 14)}
-                      </View>
+        
+                    {comment.is_owner && (
+                      <TouchableOpacity
+                        style={styles.deleteCommentButton}
+                        onPress={() => handleDeleteComment(comment.id)}
+                      >
+                        <Ionicons name="trash-outline" size={18} color={colors.error} />
+                      </TouchableOpacity>
                     )}
-                    
-                    <Text style={[styles.commentText, { color: colors.text }]}>
-                      {comment.text}
-                    </Text>
                   </View>
-                ))}
-              </View>
-            )}
-          </View>
-        </View>
+      
+                  {comment.rating && (
+                    <View style={styles.commentRating}>
+                      <StarsDisplay rating={comment.rating} size={14} secondaryColor={colors.textSecondary} />
+                    </View>
+                  )}
+      
+                  <Text style={[styles.commentText, { color: colors.text }]}>
+                    {comment.text}
+                  </Text>
+                </View>
+              )}
+            />
+
 
         {/* Bottom padding for button */}
         <View style={{ height: 100 }} />
@@ -1395,15 +1399,18 @@ const styles = StyleSheet.create({
     gap: 9,
     justifyContent: 'center',
   },
-  carModelBadge: {
+    carModelBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 10,
     paddingVertical: 7,
     borderRadius: 7,
     gap: 7,
+    // The following properties are now applied inline inside the FlashList renderItem
+    // flex: 1,
+    // margin: 4,
   },
-  carModelText: {
+    carModelText: {
     fontSize: 13,
     fontWeight: '500',
   },
@@ -1491,7 +1498,6 @@ const styles = StyleSheet.create({
   },
   commentsList: {
     marginTop: 16,
-    gap: 12,
   },
   commentCard: {
     padding: 14,
