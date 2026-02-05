@@ -1188,7 +1188,10 @@ const addToCartStyles = StyleSheet.create({
     paddingHorizontal: 8,
     textAlign: 'center',
   },
-
+  carModelText: {
+    fontSize: 15,
+    fontWeight: '500',
+  },
   qtyButton: {
     width: 32,
     height: 32,
@@ -1489,27 +1492,6 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 15,
-  },
-  carModels: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 9,
-    justifyContent: 'center',
-  },
-    carModelBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 7,
-    borderRadius: 7,
-    gap: 7,
-    // The following properties are now applied inline inside the FlashList renderItem
-    // flex: 1,
-    // margin: 4,
-  },
-    carModelText: {
-    fontSize: 13,
-    fontWeight: '500',
   },
   // Comments Section
   commentsSection: {
