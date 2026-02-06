@@ -228,7 +228,7 @@ export default function CarBrandsPage() {
         data={filteredBrands}
         renderItem={renderBrandItem}
         keyExtractor={(item) => item.id}
-        estimatedItemSize={94}
+        estimatedItemSize={113}
         ListHeaderComponent={ListHeaderComponent}
         ListEmptyComponent={ListEmptyComponent}
         contentContainerStyle={styles.listContainer}
@@ -321,23 +321,25 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
   },
   brandLogoContainer: {
-    width: 70,
-    height: 70,
+    width: 90,
+    height: 90,
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
   brandLogo: {
-    width: 60,
-    height: 60,
+    width: 79,
+    height: 79,
   },
   brandInfo: {
     flex: 1,
     marginLeft: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   brandName: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: '600',
     marginBottom: 4,
   },
